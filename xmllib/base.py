@@ -27,6 +27,10 @@ class XMLFile(File, ElementTree.ElementTree):
     def name(self):
         return self._root.tag if self._root else UNKNOWN_TAG
 
+    @property
+    def tree(self):
+        return self._root
+
     def _read(self):
         content = File._read(self)
         self._root = ElementTree.fromstring(content)
