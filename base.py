@@ -16,10 +16,11 @@ class File(object):
 
     _fext = ''
 
-    def __init__(self, abspath):
-        super().__init__()
-        self._fpath = abspath
-        self._fname, self._fext = os.path.splitext(os.path.basename(self._fpath))
+    def __init__(self, virtualFile):
+        object.__init__(self)
+        self._vFile = virtualFile
+        self._fname = self._vFile.getBasenameWoExtension()
+        self._fext = self._vFile.getExtension()
         self._content = None
 
     def __str__(self):
@@ -40,7 +41,7 @@ class File(object):
         return self._fext
 
     def __read(self):
-        with open(self._fpath, 'r') as fobj:
+        with open(self._vFile.getFilename(), 'r') as fobj:
             return fobj.read()
 
     def read(self):
