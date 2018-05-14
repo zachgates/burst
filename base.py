@@ -16,15 +16,15 @@ class File(object):
 
     _fext = ''
 
-    def __init__(self, virtualFile):
+    def __init__(self, pandaFilename):
         object.__init__(self)
-        self._vFile = virtualFile
-        self._fname = self._vFile.getBasenameWoExtension()
-        self._fext = self._vFile.getExtension()
+        self._fpath = str(pandaFilename)
+        self._fname = str(pandaFilename.getBasenameWoExtension())
+        self._fext = str(pandaFilename.getExtension())
         self._content = None
 
     def __str__(self):
-        return self.read()
+        return '%s.%s' % (self.fname, self.fext)
 
     def __enter__(self):
         return self
@@ -40,9 +40,9 @@ class File(object):
     def fext(self):
         return self._fext
 
-    def __read(self):
-        with open(self._vFile.getFilename(), 'r') as fobj:
+    def _read(self):
+        with open(self._fpath, 'r') as fobj:
             return fobj.read()
 
     def read(self):
-        return self._content or self.__read()
+        return self._content or self._read()
