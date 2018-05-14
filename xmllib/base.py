@@ -23,12 +23,22 @@ class XMLFile(File, ElementTree.ElementTree):
     def __str__(self):
         return '<%s__%s>' % (self.name, self.fname)
 
+    def __iter__(self):
+        for elem in self.tree:
+            yield elem
+
     @property
     def name(self):
-        return self._root.tag if self._root else UNKNOWN_TAG
+        if self._root:
+            return self._root.tag
+        else:
+            return UNKNOWN_TAG
 
     @property
     def tree(self):
+        if self._root is None:
+            self.read()
+
         return self._root
 
     def _read(self):
