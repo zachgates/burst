@@ -6,6 +6,7 @@ from . import constants
 class FileError(IOError):
 
     def __init__(self, msg):
+        IOError.__init__(self)
         self._msg = msg
 
     def __str__(self):
@@ -21,7 +22,7 @@ class File(object):
         self._fpath = str(pandaFilename)
         self._fname = str(pandaFilename.getBasenameWoExtension())
         self._fext = str(pandaFilename.getExtension())
-        self._content = None
+        self._content = ''
 
     def __str__(self):
         return '%s.%s' % (self.fname, self.fext)
@@ -46,3 +47,6 @@ class File(object):
 
     def read(self):
         return self._content or self._read()
+
+    def readlines(self):
+        return self.read().splitlines()
