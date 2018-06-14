@@ -23,10 +23,6 @@ class XMLFile(File, ElementTree.ElementTree):
     def __str__(self):
         return '<%s__%s>' % (self.name, self.fname)
 
-    def __iter__(self):
-        for elem in self.tree:
-            yield elem
-
     @property
     def name(self):
         if self._root:
