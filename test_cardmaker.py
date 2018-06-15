@@ -1,131 +1,10 @@
-from panda3d.core import NodePath, CardMaker, TextureStage, TransparencyAttrib
+from panda3d.core import CardMaker, NodePath, TextureStage, TransparencyAttrib
+
 from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 
 from src.visual.nodes import OrbitalNode
 
-
-tex_uv = (
-    (
-        'wall_lg_brick',
-        'phase_3.5_palette_3cmla_2',
-        (0.0078125, 0.731069982051849),
-        (0.484375, 0.23738002777099598),
-        True,
-    ),
-    (
-        'wall_lg_rock',
-        'walls_palette_3cmla_1',
-        (0.257813006639481, 0.757812976837158),
-        (0.484374970197677, 0.234375),
-        True,
-    ),
-    (
-        'wall_md_blank',
-        'phase_3.5_palette_1lmla_1',
-        (0.015625, 0.515625),
-        (0.46875, 0.46875),
-        True,
-    ),
-    (
-        'wall_md_board',
-        'walls_palette_3cmla_1',
-        (0.257813006639481, 0.507812976837158),
-        (0.484374970197677, 0.234375),
-        True,
-    ),
-    (
-        'wall_md_bricks',
-        'walls_palette_3cmla_1',
-        (0.0078125, 0.257813006639481),
-        (0.484375, 0.234375),
-        True,
-    ),
-    (
-        'wall_md_dental',
-        'walls_palette_3cmla_1',
-        (0.507812976837158, 0.257813006639481),
-        (0.484375, 0.234375),
-        True,
-    ),
-    (
-        'wall_md_pillars',
-        'walls_palette_3cmla_1',
-        (0.0078125, 0.0078125),
-        (0.484375, 0.234375),
-        True,
-    ),
-    (
-        'wall_sm_brick_blue',
-        'walls_palette_3cmla_1',
-        (0.757812976837158, 0.507812976837158),
-        (0.234375, 0.234375),
-        True,
-    ),
-    (
-        'wall_sm_brick_pink',
-        'walls_palette_3cmla_1',
-        (0.507812976837158, 0.0078125),
-        (0.234375, 0.234375),
-        True,
-    ),
-    (
-        'wall_sm_brick',
-        'walls_palette_3cmla_1',
-        (0.757812976837158, 0.757812976837158),
-        (0.234375, 0.234375),
-        True,
-    ),
-    (
-        'wall_sm_cement',
-        'walls_palette_3cmla_1',
-        (0.757812976837158, 0.0078125),
-        (0.234375, 0.234375),
-        True,
-    ),
-    (
-        'wall_sm_wood',
-        'walls_palette_3cmla_1',
-        (0.0078125, 0.507812976837158),
-        (0.234375, 0.484375),
-        True,
-    ),
-    (
-        'wall_bricks',
-        'phase_3.5_palette_3cmla_2',
-        (0.0552885010838509, 0.18359400331974),
-        (0.2373799905180931, 0.234374985098839),
-        True,
-    ),
-    (
-        'wall_sm_cement_blue',
-        'wall_sm_cement_blue',
-        None,
-        None,
-        True,
-    ),
-    (
-        'wall_stone_fence',
-        'fence_stoneWall',
-        None,
-        None,
-        False,
-    ),
-    (
-        'wall_woodflower_fence',
-        'fenceW_flower',
-        None,
-        None,
-        False,
-    ),
-    (
-        'wall_fence_wood',
-        'wall_fence_wood',
-        None,
-        None,
-        False,
-    ),
-)
 
 tex_uv_map = {
     'wall_lg_brick': (
@@ -228,7 +107,8 @@ class TestApp(ShowBase):
         if self._node:
             self._node.removeNode()
 
-        self._node = self.build(*tex_uv[self._index])
+        name = tex_uv_map.keys()[self._index]
+        self._node = self.build(name, *tex_uv_map[name])
         self._node.reparentTo(render2d)
         print self._node.getName()
 
