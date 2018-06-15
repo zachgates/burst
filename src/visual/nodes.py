@@ -1,44 +1,52 @@
-from panda3d.core import NodePath
+from panda3d.core import LPoint3f, NodePath
 
 
-class PivotNode2D(NodePath):
+class OrbitalNode(NodePath):
 
-    _modes = {
-        0: (0, 0, 0),
-        1: (180, 0, 0),
-        2: (180, 0, 180),
-        3: (0, 0, 180),
-    }
-
-    def __init__(self, model, parent=None):
+    def __init__(self, model):
         NodePath.__init__(self, model.getName())
-        self.reparentTo(parent if parent else hidden)
-        self._model = model
-        self._mode = 0
-
-        self.__pivot = NodePath('pivot')
-        self.__pivot.reparentTo(self)
+        self.__model = model
 
         self.__origin = NodePath('origin')
         self.__origin.reparentTo(self)
+        self.__render = self.__model.copyTo(self.__origin)
 
-        self.__model = self._model.copyTo(self.__origin)
-        self.__model.setTwoSided(True)
+        self.__center = NodePath('center')
+        self.__center.reparentTo(self)
+        self.__center.setPos(self.getCenterPoint())
+        self.__orbitingCenter = True
 
-        a, b = self.__model.getTightBounds()
-        center = (a[0] + ((b[0] - a[0]) / 2), 0, b[2] + ((a[2] - b[2]) / 2))
-        self.__pivot.setPos(*center)
+    def getCenterPoint(self):
+        bot, top = self.__render.getTightBounds()
+        centerX = bot[0] + (top[0] - bot[0]) / 2
+        centerY = bot[1] + (top[1] - bot[1]) / 2
+        centerZ = bot[2] + (top[2] - bot[2]) / 2
+        return LPoint3f(centerX, centerY, centerZ)
 
-    def reorient(self, mode=0):
-        if mode in PivotNode2D._modes:
-            self._mode = mode
-            self.__model.wrtReparentTo(self.__pivot)
-            self.__pivot.setHpr(*PivotNode2D._modes.get(self._mode))
-            self.__model.wrtReparentTo(self.__origin)
-        return self
+    def getCenterNode(self):
+        if self.isOrbitingCenter():
+            return self.__center
+        else:
+            return self.__origin
+
+    def setOrbitCenter(self, bool_):
+        if bool(bool_) is not self.isOrbitingCenter():
+            if self.isOrbitingCenter():
+                self.__render.wrtReparentTo(self.__origin)
+                self.__center.wrtReparentTo(self.__render)
+            else:
+                self.__center.wrtReparentTo(self)
+                self.__render.wrtReparentTo(self.__center)
+            self.__orbitingCenter = bool(bool_)
+
+    def isOrbitingCenter(self):
+        return self.__orbitingCenter
+
+    def setHpr(self, h, p, r):
+        self.getCenterNode().setHpr(h, p, r)
 
     def copyTo(self, parent):
-        node = PivotNode2D(self._model, parent)
-        node.setScale(self.getScale())
-        node.reorient(self._mode)
+        node = self.__class__(self.__model)
+        node.reparentTo(parent)
+        node.setPosHprScale(self.getPos(), self.getHpr(), self.getScale())
         return node
