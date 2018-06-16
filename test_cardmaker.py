@@ -166,7 +166,7 @@ class TestApp(ShowBase):
     def buildFromCustom(self):
         n = self.build(
             'wall_sm_wood',
-            'my_wall_palette',
+            'palettes/storage/my_wall_palette',
             (0.0078125, 0.507812976837158),
             ((256 * 0.234375) / 384, 0.484375),
             True,
