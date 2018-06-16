@@ -13,10 +13,19 @@ class OrbitalNode(NodePath):
 
         self.__center = NodePath('center')
         self.__center.reparentTo(self)
-        self.__center.setPos(self.getCenterPoint())
-        self.__orbitingCenter = True
+        self.__center.setPos(self.getCenter())
 
-    def getCenterPoint(self):
+        self.__orbitingCenter = False
+        self.__adjustDelegates()
+
+    def __adjustDelegates(self):
+        for funcName in dir(self):
+            flatName = funcName.lower()
+            if ('hpr' in flatName) and ('tex' not in flatName):
+                delegate = getattr(self.getCenterNode(), funcName)
+                setattr(self, funcName, delegate)
+
+    def getCenter(self):
         bot, top = self.__render.getTightBounds()
         centerX = bot[0] + (top[0] - bot[0]) / 2
         centerY = bot[1] + (top[1] - bot[1]) / 2
@@ -37,16 +46,16 @@ class OrbitalNode(NodePath):
             else:
                 self.__center.wrtReparentTo(self)
                 self.__render.wrtReparentTo(self.__center)
+
             self.__orbitingCenter = bool(bool_)
+            self.__adjustDelegates()
 
     def isOrbitingCenter(self):
         return self.__orbitingCenter
-
-    def setHpr(self, h, p, r):
-        self.getCenterNode().setHpr(h, p, r)
 
     def copyTo(self, parent):
         node = self.__class__(self.__model)
         node.reparentTo(parent)
         node.setPosHprScale(self.getPos(), self.getHpr(), self.getScale())
+        node.setOrbitCenter(self.isOrbitingCenter())
         return node
