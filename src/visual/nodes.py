@@ -3,27 +3,35 @@ from panda3d.core import LPoint3f, NodePath
 
 class OrbitalNode(NodePath):
 
-    def __init__(self, model):
-        NodePath.__init__(self, model.getName())
-        self.__model = model
+    _delegated = (
+        'getH',
+        'setH',
+        'getP',
+        'setP',
+        'getR',
+        'setR',
+        'getHpr',
+        'setHpr',
+        'hprInterval',
+        'printHpr',
+    )
 
-        self.__origin = NodePath('origin')
-        self.__origin.reparentTo(self)
-        self.__render = self.__model.copyTo(self.__origin)
+    def __init__(self, model):
+        super(OrbitalNode, self).__init__(model.getName())
+        self.__model = model
+        self.__render = self.__model.copyTo(self)
 
         self.__center = NodePath('center')
         self.__center.reparentTo(self)
         self.__center.setPos(self.getCenter())
 
         self.__orbitingCenter = False
-        self.__adjustDelegates()
 
-    def __adjustDelegates(self):
-        for funcName in dir(self):
-            flatName = funcName.lower()
-            if ('hpr' in flatName) and ('tex' not in flatName):
-                delegate = getattr(self.getCenterNode(), funcName)
-                setattr(self, funcName, delegate)
+    def __getattribute__(self, attr):
+        if (attr in OrbitalNode._delegated) and self.isOrbitingCenter():
+            return getattr(self.__center, attr)
+        else:
+            return super(OrbitalNode, self).__getattribute__(attr)
 
     def getCenter(self):
         bot, top = self.__render.getTightBounds()
@@ -32,26 +40,19 @@ class OrbitalNode(NodePath):
         centerZ = bot[2] + (top[2] - bot[2]) / 2
         return LPoint3f(centerX, centerY, centerZ)
 
-    def getCenterNode(self):
-        if self.isOrbitingCenter():
-            return self.__center
-        else:
-            return self.__origin
-
     def setOrbitCenter(self, bool_):
         if bool(bool_) is not self.isOrbitingCenter():
             if self.isOrbitingCenter():
-                self.__render.wrtReparentTo(self.__origin)
+                self.__render.wrtReparentTo(self)
                 self.__center.wrtReparentTo(self.__render)
             else:
                 self.__center.wrtReparentTo(self)
                 self.__render.wrtReparentTo(self.__center)
 
-            self.__orbitingCenter = bool(bool_)
-            self.__adjustDelegates()
+            self.__orbitingCenter = bool_
 
     def isOrbitingCenter(self):
-        return self.__orbitingCenter
+        return bool(self.__orbitingCenter)
 
     def copyTo(self, parent):
         node = self.__class__(self.__model)
