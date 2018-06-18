@@ -4,45 +4,50 @@ from . import constants
 from .base import File, FileError
 from .xmllib.base import XMLFile
 
-from panda3d.core import ConfigVariableString
+from panda3d.core import Filename
 
 
 class FileManager(object):
 
-    ROOT = ''
+    _root = ''
 
     def __init__(self, root=None):
         object.__init__(self)
-        self.ROOT = str(root or FileManager.ROOT or vfs.getCwd())
+        self._root = str(root or FileManager._root or vfs.getCwd())
+        self._ext = ''
 
-    @property
-    def root(self):
-        return self.ROOT
+    def getRoot(self):
+        return self._root
 
-    @property
-    def model_ext(self):
-        return ConfigVariableString('default-model-extension').getValue()
+    def setRoot(self, path):
+        self._root = str(path)
+
+    def getRestrictToExt(self):
+        return self._ext
+
+    def setRestrictToExt(self, fext):
+        self._ext = str(fext)
 
     def find(self, relpath):
-        return vfs.findFile(relpath, self.root)
+        return vfs.findFile(relpath, self._root)
 
-    def scan(self, relpath, filesOnly=False, foldersOnly=False):
-        for virtualFile in vfs.scanDirectory(relpath):
-            if filesOnly and not virtualFile.isRegularFile():
-                continue
-            elif foldersOnly and not virtualFile.isDirectory():
-                continue
-            else:
-                yield virtualFile
+    def loadDirectory(self, relpath, filesOnly=False, foldersOnly=False):
+        rootRelpath = os.path.join(self._root, relpath)
+        virtualLink = Filename(rootRelpath)
 
-    def loadDirectory(self, virtualLink, modelsOnly=None):
         if virtualLink and virtualLink.isDirectory():
-            for virtualFile in virtualLink.scanDirectory().getFiles():
-                fname = virtualFile.getFilename()
-                if modelsOnly and fname.getExtension() != self.model_ext[1:]:
+            for virtualFile in vfs.scanDirectory(virtualLink):
+                if filesOnly and not virtualFile.isRegularFile():
+                    continue
+                elif foldersOnly and not virtualFile.isDirectory():
                     continue
                 else:
-                    yield fname
+                    fname, fext = os.path.splitext(str(virtualFile))
+                    if self._ext and fext != self._ext:
+                        continue
+                    else:
+                        fpath = os.path.join(self._root, relpath, fname)
+                        yield Filename(fpath + fext)
 
     def loadFile(self, virtualFile):
         if virtualFile:
