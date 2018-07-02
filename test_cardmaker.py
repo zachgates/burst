@@ -8,7 +8,7 @@ from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 
 from src.common import FileManager
-from src.visual.nodes import OrbitalNode
+from src.visual.nodes import AngularNode
 
 
 class TestApp(ShowBase):
@@ -58,7 +58,7 @@ class TestApp(ShowBase):
         frame.setTexture(tex)
         frame.setTransparency(TransparencyAttrib.MBinary)
         frame.setTwoSided(True)
-        return OrbitalNode(frame)
+        return AngularNode(frame)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,13 @@
-from panda3d.core import LPoint3f, NodePath
+from panda3d.core import NodePath
 
 
-class OrbitalNode(NodePath):
+R_EXTERNAL = False
+R_INTERNAL = True
 
-    _delegated = (
+
+class AngularNode(NodePath):
+
+    _delegates = (
         'getH',
         'setH',
         'getP',
@@ -16,47 +20,48 @@ class OrbitalNode(NodePath):
         'printHpr',
     )
 
-    def __init__(self, model):
-        super(OrbitalNode, self).__init__(model.getName())
-        self.__model = model
-        self.__render = self.__model.copyTo(self)
-
-        self.__center = NodePath('center')
-        self.__center.reparentTo(self)
-        self.__center.setPos(self.getCenter())
-
-        self.__orbitingCenter = False
+    def __init__(self, node):
+        NodePath.__init__(self, 'AngularNode__%s' % node.getName())
+        self.setPythonTag(self.__class__.__name__, self)
+        self.__sourceNodePath = node
+        self.__nodePathInst = node.copyTo(self)
+        self.__centerMarker = self.attachNewNode('center')
+        self.__centerMarker.setPos(self.getTightCenter())
+        self.__axis = R_EXTERNAL
 
     def __getattribute__(self, attr):
-        if (attr in OrbitalNode._delegated) and self.isOrbitingCenter():
-            return getattr(self.__center, attr)
+        if (attr in AngularNode._delegates) and (self.__axis == R_INTERNAL):
+            return getattr(self.__centerMarker, attr)
         else:
-            return super(OrbitalNode, self).__getattribute__(attr)
+            return NodePath.__getattribute__(self, attr)
+
+    def getDimensions(self):
+        min_, max_ = self.getTightBounds()
+        return max_ - min_
 
     def getCenter(self):
-        bot, top = self.__render.getTightBounds()
-        centerX = bot[0] + (top[0] - bot[0]) / 2
-        centerY = bot[1] + (top[1] - bot[1]) / 2
-        centerZ = bot[2] + (top[2] - bot[2]) / 2
-        return LPoint3f(centerX, centerY, centerZ)
+        return self.node().getBounds().getCenter()
 
-    def setOrbitCenter(self, bool_):
-        if bool(bool_) is not self.isOrbitingCenter():
-            if self.isOrbitingCenter():
-                self.__render.wrtReparentTo(self)
-                self.__center.wrtReparentTo(self.__render)
-            else:
-                self.__center.wrtReparentTo(self)
-                self.__render.wrtReparentTo(self.__center)
+    def getTightCenter(self):
+        min_, max_ = self.getTightBounds()
+        return min_ + (self.getDimensions() / 2)
 
-            self.__orbitingCenter = bool_
+    def toggleAxis(self):
+        if self.__axis == R_INTERNAL:
+            axis, node = self.__nodePathInst, self.__centerMarker
+        else:
+            axis, node = self.__centerMarker, self.__nodePathInst
 
-    def isOrbitingCenter(self):
-        return bool(self.__orbitingCenter)
+        axis.wrtReparentTo(self)
+        node.wrtReparentTo(axis)
+        self.__axis = not self.__axis
 
-    def copyTo(self, parent):
-        node = self.__class__(self.__model)
-        node.reparentTo(parent)
-        node.setPosHprScale(self.getPos(), self.getHpr(), self.getScale())
-        node.setOrbitCenter(self.isOrbitingCenter())
-        return node
+    def copyTo(self, parentNodePath):
+        aNodePath = self.__class__(self.__sourceNodePath)
+        aNodePath.reparentTo(parentNodePath)
+        aNodePath.copyAllProperties(self)
+        return aNodePath
+
+    def removeNode(self):
+        self.clearPythonTag(self.__class__.__name__)
+        NodePath.removeNode(self)
