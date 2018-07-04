@@ -1,39 +1,31 @@
 from panda3d.core import NodePath
 
-
-R_EXTERNAL = False
-R_INTERNAL = True
+from direct.showbase.DirectObject import DirectObject
 
 
-class AngularNode(NodePath):
+R_EXTERNAL = 0
+R_INTERNAL = 1
 
-    _delegates = (
-        'getH',
-        'setH',
-        'getP',
-        'setP',
-        'getR',
-        'setR',
-        'getHpr',
-        'setHpr',
-        'hprInterval',
-        'printHpr',
-    )
+
+class AngularNode(NodePath, DirectObject):
 
     def __init__(self, node):
+        DirectObject.__init__(self)
         NodePath.__init__(self, 'AngularNode__%s' % node.getName())
         self.setPythonTag(self.__class__.__name__, self)
+
         self.__sourceNodePath = node
         self.__nodePathInst = node.copyTo(self)
         self.__centerMarker = self.attachNewNode('center')
         self.__centerMarker.setPos(self.getTightCenter())
         self.__axis = R_EXTERNAL
 
-    def __getattribute__(self, attr):
-        if (attr in AngularNode._delegates) and (self.__axis == R_INTERNAL):
-            return getattr(self.__centerMarker, attr)
+    @property
+    def node(self):
+        if self.getAxis() == R_INTERNAL:
+            return self.__centerMarker
         else:
-            return NodePath.__getattribute__(self, attr)
+            return self
 
     def getDimensions(self):
         min_, max_ = self.getTightBounds()
@@ -46,20 +38,28 @@ class AngularNode(NodePath):
         min_, max_ = self.getTightBounds()
         return min_ + (self.getDimensions() / 2)
 
-    def toggleAxis(self):
-        if self.__axis == R_INTERNAL:
-            axis, node = self.__nodePathInst, self.__centerMarker
-        else:
-            axis, node = self.__centerMarker, self.__nodePathInst
+    def getAxis(self):
+        return self.__axis
 
-        axis.wrtReparentTo(self)
-        node.wrtReparentTo(axis)
-        self.__axis = not self.__axis
+    def setAxis(self, code):
+        if code != self.getAxis():
+            if code == R_EXTERNAL:
+                axis, node = self.__nodePathInst, self.__centerMarker
+            elif code == R_INTERNAL:
+                axis, node = self.__centerMarker, self.__nodePathInst
+            else:
+                raise ValueError('invalid axis')
+
+            axis.wrtReparentTo(self)
+            node.wrtReparentTo(axis)
+            self.__axis = code
 
     def copyTo(self, parentNodePath):
         aNodePath = self.__class__(self.__sourceNodePath)
         aNodePath.reparentTo(parentNodePath)
-        aNodePath.copyAllProperties(self)
+        aNodePath.setAxis(self.getAxis())
+        aNodePath.setPosHprScale(self.getPos(), self.getHpr(), self.getScale())
+        aNodePath.node.setHpr(self.node.getHpr())
         return aNodePath
 
     def removeNode(self):
