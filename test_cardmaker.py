@@ -1,37 +1,28 @@
-import argparse
+from panda3d.core import CardMaker, TransparencyAttrib
 
-from panda3d.core import loadPrcFile, Filename
-from panda3d.core import CardMaker, NodePath, TextureStage, TransparencyAttrib
-
-from direct.interval.IntervalGlobal import Func, Sequence, Wait
 from direct.showbase.ShowBase import ShowBase
-from direct.task import Task
 
-from src.common import FileManager
-from src.visual.nodes import AngularNode
+from src.base import FileManager
+from src.nodes import AngularNode
 
 
 class TestApp(ShowBase):
 
-    def __init__(self, args):
+    def __init__(self):
         ShowBase.__init__(self)
-        loadPrcFile('editor.prc')
         self._index = 0
         self._node = None
+        self._textures = []
+
+        files = list(FileManager().load('palettes/storage/walls'))
+        while files:
+            virtualFile = files.pop(0)
+            if virtualFile.fname.endswith('_a'):
+                self._textures.append((virtualFile, files.pop(0).fpath))
+            else:
+                self._textures.append((virtualFile, None))
 
     def run(self):
-        fileManager = FileManager(args.root)
-        fileList = list(fileManager.loadDirectory('storage/tex'))
-
-        self._textures = []
-        while fileList:
-            virtualPath = fileList.pop(0)
-            fname = virtualPath.getBasenameWoExtension()
-
-            if fname.endswith('_a'):
-                self._textures.append((virtualPath, fileList.pop(0)))
-            else:
-                self._textures.append((virtualPath, None))
 
         taskMgr.doMethodLater(1, self.display, 'test')
         ShowBase.run(self)
@@ -51,8 +42,8 @@ class TestApp(ShowBase):
         return task.again
 
     def build(self, texPath, alphaPath):
-        tex = loader.loadTexture(texPath, alphaPath)
-        cm = CardMaker(texPath.getBasenameWoExtension())
+        tex = loader.loadTexture(texPath.fpath, alphaPath)
+        cm = CardMaker(texPath.fname)
         cm.setFrame(0, 1, 0, 1)
         frame = hidden.attachNewNode(cm.generate())
         frame.setTexture(tex)
@@ -62,8 +53,5 @@ class TestApp(ShowBase):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--root', type=str, default='./palettes')
-    args = parser.parse_args()
-    app = TestApp(args)
+    app = TestApp()
     app.run()
