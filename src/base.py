@@ -77,12 +77,18 @@ class FileManager(object):
 
     def load(self, fpath, silent=False, recursive=False):
         fobj = vfs.getFile(fpath)
-        if fobj.isRegularFile():
-            return self.loadFile(fobj, silent)
-        elif fobj.isDirectory():
-            return self.loadDirectory(fobj, silent, recursive)
-        else:
-            return None
+        try:
+            if fobj and fobj.isRegularFile():
+                return self.loadFile(fobj, silent)
+            elif fobj and fobj.isDirectory():
+                return self.loadDirectory(fobj, silent, recursive)
+            else:
+                return None
+        except AttributeError as e:
+            if not silent:
+                raise e
+            else:
+                return None
 
     def loadFile(self, fobj, silent=False):
         try:
