@@ -1,7 +1,7 @@
 import importlib
 
 
-__all__ = ['base', 'nodes', 'xmllib']
+__all__ = ['base', 'control', 'nodes', 'xmllib']
 
 
 for submodule in __all__:

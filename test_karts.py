@@ -16,7 +16,7 @@ class TestApp(ShowBase):
 
         wheel_one = nodes.AngularNode(m)
         wheel_one.reparentTo(render)
-        wheel_one.setAxis(nodes.R_INTERNAL)
+        wheel_one.setAxis(nodes.A_INTERNAL)
 
         wheel_two = wheel_one.copyTo(render)
         wheel_two.setZ(-1)
@@ -24,7 +24,7 @@ class TestApp(ShowBase):
         wheel_three = wheel_two.copyTo(render)
         wheel_three.setZ(-2)
 
-        wheel_four = wheel_two.copyTo(render)
+        wheel_four = wheel_three.copyTo(render)
         wheel_four.setZ(-3)
 
         self.setup(wheel_one, 1)
@@ -52,7 +52,7 @@ class TestApp(ShowBase):
         circumference = diameter * math.pi
         speed = (task.delayTime * mph) / circumference
         np.setX(np.getX() + (speed * circumference))
-        np.node.setR(np.node.getR() + (speed * 360))
+        np.getNode().setR(np.getNode().getR() + (speed * 360))
         return task.again
 
 
