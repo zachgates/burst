@@ -118,17 +118,14 @@ class SelectionManager(DirectObject):
         return np
 
     def __mouseSelect(self, cont=False):
-        sl = self.getSelection()
-        np = self.__getNodeAtMouse()
-
-        if not np:
-            self.reset()
-            return
-
         if not cont:
             self.reset()
 
-        if sl.hasPath(np):
+        np = self.__getNodeAtMouse()
+        if not np:
+            return
+
+        if cont and self.isSelected(np):
             self.deselect(np)
         else:
             self.select(np)
