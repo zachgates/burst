@@ -68,7 +68,7 @@ class SelectionManager(DirectObject):
         np = camera.attachNewNode(self.__selector_node)
         self.__coll_trav.addCollider(np, self.__coll_handler)
 
-        self.accept('mouse1', self.__mouseSelect, [False])
+        self.accept('mouse1', self.__mouseSelect)
         self.accept('shift-mouse1', self.__mouseSelect, [True])
 
     def getNetTag(self):
@@ -88,18 +88,22 @@ class SelectionManager(DirectObject):
         else:
             return False
 
+    def select(self, np):
+        self.__selected.addPath(np)
+        return np
+
+    def deselect(self, np):
+        self.__selected.removePath(np)
+        return np
+
     def reset(self):
         for np in self.getSelectedPaths():
             self.deselect(np)
 
-    def select(self, np):
-        if self.isSelected(np):
-            self.deselect(np)
-        else:
-            self.__selected.addPath(np)
-            return np
+    def __getNodeAtMouse(self):
+        if not base.mouseWatcherNode.hasMouse():
+            return None
 
-    def __mouseSelect(self, want_add=False):
         mpos = base.mouseWatcherNode.getMouse()
         self.__selector_ray.setFromLens(base.camNode, mpos.getX(), mpos.getY())
         self.__coll_trav.traverse(render)
@@ -111,13 +115,20 @@ class SelectionManager(DirectObject):
         else:
             np = None
 
+        return np
+
+    def __mouseSelect(self, cont=False):
         sl = self.getSelection()
-        if not want_add:
+        np = self.__getNodeAtMouse()
+
+        if not np:
+            self.reset()
+            return
+
+        if not cont:
             self.reset()
 
-        if np and (sl.getNumPaths() > 1 or not sl.hasPath(np)):
+        if sl.hasPath(np):
+            self.deselect(np)
+        else:
             self.select(np)
-
-    def deselect(self, np):
-        self.__selected.removePath(np)
-        return np

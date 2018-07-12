@@ -65,15 +65,20 @@ class AngularNode(DirectObject, NodePath):
     def getTransform(self):
         return self.getAxis(), self.getHpr(), self.getNode().getHpr()
 
-    def setTransform(self, axis, topRot=(0, 0, 0), botRot=(0, 0, 0)):
+    def setTransform(self, axis=None, topRot=None, botRot=None):
         if isinstance(axis, (tuple, list)) and len(axis) == 3:
             axis, topRot, botRot = axis
         else:
             self.notify.error('invalid transform')
 
-        self.setAxis(axis)
-        self.setHpr(topRot)
-        self.getNode().setHpr(botRot)
+        if axis:
+            self.setAxis(axis)
+
+        if topRot:
+            self.setHpr(topRot)
+
+        if botRot:
+            self.getNode().setHpr(botRot)
 
     def getAxis(self):
         return self.__axis
