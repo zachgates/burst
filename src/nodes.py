@@ -102,13 +102,13 @@ class AngularNode(DirectObject, NodePath):
     def getAxis(self):
         return self.__axis
 
-    def getTransform(self, np=None):
-        if np is None: np = render
+    def getTransform(self, otherNP=None):
+        if otherNP is None: otherNP = render
         return (self.getAxis(),
                 # top level
-                self.getPos(np),
-                self.getHpr(np),
-                self.getScale(np),
+                self.getPos(otherNP),
+                self.getHpr(otherNP),
+                self.getScale(otherNP),
                 # bottom level
                 self.__nodes.getPos(),
                 self.__nodes.getHpr(),
@@ -127,18 +127,18 @@ class AngularNode(DirectObject, NodePath):
                      axis=None,
                      topPos=None, topRot=None, topScale=None,
                      botPos=None, botRot=None, botScale=None,
-                     np=None):
+                     otherNP=None):
         try:
             axis, topPos, topRot, topScale, botPos, botRot, botScale = axis
         except TypeError:
             self.notify.error('invalid transform')
             return
 
-        if np is None: np = render
+        if otherNP is None: otherNP = render
         if axis: self.setAxis(axis)
-        if topPos: self.setPos(parentNP, topPos)
-        if topRot: self.setHpr(parentNP, topRot)
-        if topScale: self.setScale(parentNP, topScale)
+        if topPos: self.setPos(otherNP, topPos)
+        if topRot: self.setHpr(otherNP, topRot)
+        if topScale: self.setScale(otherNP, topScale)
         if botPos: self.__nodes.setPos(botPos)
         if botRot: self.__nodes.setPos(botRot)
         if botScale: self.__nodes.setScale(botScale)
@@ -165,16 +165,20 @@ class AngularNode(DirectObject, NodePath):
         self.clearPythonTag(self.__class__.__name__)
         NodePath.removeNode(self)
 
-    def getHpr(self, parentNP=None):
-        if parentNP is None: parentNP = self
-        if self.getAxis() == A_INTERNAL:
-            return self.__center.getHpr(parentNP)
-        else:
-            return self.__nodes.getHpr(parentNP)
+    def getH(self, otherNP=None): return self.getHpr(otherNP)[0]
+    def getP(self, otherNP=None): return self.getHpr(otherNP)[1]
+    def getR(self, otherNP=None): return self.getHpr(otherNP)[2]
 
-    def getH(self, parentNP=None): return self.getHpr(parentNP)[0]
-    def getP(self, parentNP=None): return self.getHpr(parentNP)[1]
-    def getR(self, parentNP=None): return self.getHpr(parentNP)[2]
+    def getHpr(self, otherNP=None):
+        if otherNP is None: otherNP = self
+        if self.getAxis() == A_INTERNAL:
+            return self.__center.getHpr(otherNP)
+        else:
+            return self.__nodes.getHpr(otherNP)
+
+    def setH(self, h): self.setHpr(h=h)
+    def setP(self, p): self.setHpr(p=p)
+    def setR(self, r): self.setHpr(r=r)
 
     def setHpr(self, h=None, p=None, r=None):
         if self.getAxis() == A_INTERNAL:
@@ -197,13 +201,17 @@ class AngularNode(DirectObject, NodePath):
         else:
             NodePath.setHpr(self, h, p, r)
 
-    def setH(self, h): self.setHpr(h=h)
-    def setP(self, p): self.setHpr(p=p)
-    def setR(self, r): self.setHpr(r=r)
+    def getSx(self, otherNP=None): return self.getScale(otherNP)[0]
+    def getSy(self, otherNP=None): return self.getScale(otherNP)[1]
+    def getSz(self, otherNP=None): return self.getScale(otherNP)[2]
 
-    def getScale(self, parentNP=None):
-        if parentNP is None: parentNP = self
-        return self.__nodes.getScale(parentNP)
+    def getScale(self, otherNP=None):
+        if otherNP is None: otherNP = self
+        return self.__nodes.getScale(otherNP)
+
+    def setSx(self, sX): self.setScale(sX=sX)
+    def setSy(self, sY): self.setScale(sY=sY)
+    def setSz(self, sZ): self.setScale(sZ=sZ)
 
     def setScale(self, sX=None, sY=None, sZ=None):
         scale = self.__nodes.getScale()
