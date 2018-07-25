@@ -1,4 +1,4 @@
-from panda3d.core import NodePath
+from panda3d.core import NodePath, VBase3
 
 from direct.directnotify import DirectNotifyGlobal
 from direct.showbase.DirectObject import DirectObject
@@ -8,106 +8,209 @@ A_EXTERNAL = 0
 A_INTERNAL = 1
 
 N_ORIG = 0
-N_COPY = 1
-N_INST = 2
+N_INST = 1
+N_COPY = 2
 
 
 class AngularNode(DirectObject, NodePath):
 
     notify = DirectNotifyGlobal.directNotify.newCategory('AngularNode')
 
-    def __init__(self, np, parentNP=None, mode=N_ORIG):
+    @classmethod
+    def isAngular(cls, np):
+        np = np.getPythonTag(cls.__name__) or np
+        return isinstance(np, cls), np
+
+    def __init__(self, parentNP=None, name=None, np=None, mode=N_ORIG):
         DirectObject.__init__(self)
-        NodePath.__init__(self, self.__class__.__name__ + '-' + np.getName())
+        NodePath.__init__(self,
+                          name or self.__class__.__name__ + '-%s' % \
+                          ('empty' if np is None else np.getName()))
+        self.setPythonTag(self.__class__.__name__, self)
+
+        self.__axis = A_EXTERNAL
+        self.__center = self.attachNewNode('center')
+        self.__nodes = self.attachNewNode('nodes')
+        self.__nextParent = hidden
 
         if parentNP is None:
-            parentNP = np.getParent()
+            parentNP = hidden
 
-        self.reparentTo(parentNP)
-        self.setPythonTag(self.__class__.__name__, self)
-        self.setPosHprScale(np.getPos(parentNP),
-                            np.getHpr(parentNP),
-                            np.getScale(parentNP))
-
-        if mode == N_ORIG:
-            np.reparentTo(self)
-        elif mode == N_COPY:
-            np = np.copyTo(self)
-        elif mode == N_INST:
-            np = np.instanceTo(self)
+        flag, parentNP = self.isAngular(parentNP)
+        if flag:
+            parentNP.attach(self)
         else:
-            self.notify.error('got invalid mode: %i' % mode)
+            self.reparentTo(parentNP)
 
-        self.__nodePathInst = np
-        self.__nodePathInst.setPos(0, 0, 0)
+        self.__nextParent = self.getParent()
+        if np is not None:
+            self.attach(np, mode)
 
-        self.__centerMarker = self.attachNewNode('center')
-        self.__centerMarker.setPos(render, self.getTightCenter())
-        self.__axis = A_EXTERNAL
+        s = loader.loadModel('smiley.egg.pz')
+        s.reparentTo(self.__center)
+        s.setScale(3)
+        self.__center.setColor(0, 0, 1)
 
-    def getNode(self):
-        if self.getAxis() == A_INTERNAL:
-            return self.__centerMarker
-        else:
-            return self
+    def __iter__(self):
+        for np in self.__nodes.getChildren():
+            yield np
+
+    # AngularNode helpers
 
     def getDimensions(self):
-        min_, max_ = self.getTightBounds()
-        return max_ - min_
+        bounds = self.getTightBounds()
+        if bounds:
+            min_, max_ = self.getTightBounds()
+            return max_ - min_
+        else:
+            return VBase3(0, 0, 0)
 
     def getCenter(self):
-        return self.getNode().getBounds().getCenter()
+        return self.__nodes.getBounds().getCenter()
 
     def getTightCenter(self):
-        min_, max_ = self.getTightBounds()
-        return min_ + (self.getDimensions() / 2)
-
-    def getTransform(self):
-        return self.getAxis(), self.getHpr(), self.getNode().getHpr()
-
-    def setTransform(self, axis=None, topRot=None, botRot=None):
-        if isinstance(axis, (tuple, list)) and len(axis) == 3:
-            axis, topRot, botRot = axis
+        bounds = self.getTightBounds()
+        if bounds:
+            min_, max_ = bounds
+            return min_ + (self.getDimensions() / 2)
         else:
-            self.notify.error('invalid transform')
+            return VBase3(0, 0, 0)
 
-        if axis:
-            self.setAxis(axis)
+    def _readjustCenter(self):
+        self.__center.setPos(self.getCenter())
 
-        if topRot:
-            self.setHpr(topRot)
+    def attach(self, np, mode=N_ORIG):
+        if mode == N_ORIG:
+            flag, np = self.isAngular(np)
+            if flag:
+                np.__nextParent = np.getParent()
+        elif mode == N_INST:
+            np = np.instanceTo(self.getParent())
+        elif mode == N_COPY:
+            np = np.copyTo(self.getParent())
+        else:
+            self.notify.error('got invalid mode: %i' % mode)
+            return
 
-        if botRot:
-            self.getNode().setHpr(botRot)
+        np.wrtReparentTo(self.__nodes)
+        self._readjustCenter()
+        return np
+
+    # AngularNode getters
+
+    def getKeys(self):
+        return set(np.getKey() for np in self)
+
+    def getFutureParent(self):
+        return self.__nextParent
 
     def getAxis(self):
         return self.__axis
 
-    def setAxis(self, code):
-        if code == self.getAxis():
-            return
+    def getTransform(self, np=None):
+        if np is None: np = render
+        return (self.getAxis(),
+                self.getPos(np), self.getHpr(np),
+                self.__nodes.getPos(), self.__nodes.getHpr())
 
-        if code == A_EXTERNAL:
-            axis, node = self.__nodePathInst, self.__centerMarker
-        elif code == A_INTERNAL:
-            axis, node = self.__centerMarker, self.__nodePathInst
+    # AngularNode setters
+
+    def setAxis(self, code):
+        if code == A_EXTERNAL or code == A_INTERNAL:
+            self.__axis = code
+            self._readjustCenter()
         else:
             self.notify.error('got invalid axis: %i' % code)
 
-        axis.wrtReparentTo(self)
-        node.wrtReparentTo(axis)
-        self.__axis = code
+    def setTransform(self,
+                     axis=None,
+                     topPos=None, topRot=None,
+                     botPos=None, botRot=None,
+                     np=None):
+        try:
+            axis, topPos, topRot, botPos, botRot = axis
+        except TypeError:
+            self.notify.error('invalid transform')
+            return
+
+        if np is None: np = render
+        if axis: self.setAxis(axis)
+        if topPos: self.setPos(parentNP, topPos)
+        if topRot: self.setHpr(parentNP, topRot)
+        if botPos: self.__nodes.setPos(botPos)
+        if botRot: self.__nodes.setPos(botRot)
+
+    # NodePath overloads
+
+    def detachNode(self):
+        flag, parentNP = self.isAngular(self.getParent())
+        self.wrtReparentTo(self.getFutureParent())
+        self.__nextParent = hidden
+
+        if flag:
+            parentNP._readjustCenter()
+
+        return self
 
     def copyTo(self, parentNP):
-        aNodePath = self.__class__(self.__nodePathInst, parentNP, N_COPY)
-        aNodePath.setTransform(self.getTransform())
-        return aNodePath
+        return self.__nodes.copyTo(parentNP)
 
     def instanceTo(self, parentNP):
-        aNodePath = self.__class__(self.__nodePathInst, parentNP, N_INST)
-        aNodePath.setTransform(self.getTransform())
-        return aNodePath
+        return self.__nodes.instanceTo(parentNP)
 
     def removeNode(self):
         self.clearPythonTag(self.__class__.__name__)
         NodePath.removeNode(self)
+
+    def getHpr(self, parentNP=None):
+        if parentNP is None: parentNP = self
+        if self.getAxis() == A_INTERNAL:
+            return self.__center.getHpr(parentNP)
+        else:
+            return self.__nodes.getHpr(parentNP)
+
+    def getH(self, parentNP=None): return self.getHpr(parentNP)[0]
+    def getP(self, parentNP=None): return self.getHpr(parentNP)[1]
+    def getR(self, parentNP=None): return self.getHpr(parentNP)[2]
+
+    def setHpr(self, h=None, p=None, r=None):
+        if self.getAxis() == A_INTERNAL:
+            hpr = self.__center.getHpr()
+        else:
+            hpr = self.getHpr()
+
+        if h is None: h = hpr[0]
+        if p is None: p = hpr[1]
+        if r is None: r = hpr[2]
+
+        h %= 360
+        p %= 360
+        r %= 360
+
+        if self.getAxis() == A_INTERNAL:
+            self.__nodes.wrtReparentTo(self.__center)
+            self.__center.setHpr(h, p, r)
+            self.__nodes.wrtReparentTo(self)
+        else:
+            NodePath.setHpr(self, h, p, r)
+
+    def setH(self, h): self.setHpr(h=h)
+    def setP(self, p): self.setHpr(p=p)
+    def setR(self, r): self.setHpr(r=r)
+
+    def getScale(self, parentNP=None):
+        if parentNP is None: parentNP = self
+        return self.__nodes.getScale(parentNP)
+
+    def setScale(self, sX=None, sY=None, sZ=None):
+        scale = self.__nodes.getScale()
+        if sX is None: sX = scale[0]
+        if sY is None: sY = scale[1]
+        if sZ is None: sZ = scale[2]
+
+        oldCP = self.getCenter()
+        self.__nodes.setScale(sX, sY, sZ)
+
+        if self.getAxis() == A_INTERNAL:
+            newCP = self.getCenter()
+            self.setPos(self.getPos() - (newCP - oldCP))

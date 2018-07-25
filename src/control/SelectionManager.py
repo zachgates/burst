@@ -1,53 +1,10 @@
-import functools
 import uuid
 
 from panda3d.core import *
 
 from direct.showbase.DirectObject import DirectObject
 
-from .base import File, FileError
-
-
-class FileManager(DirectObject):
-
-    _fext = None
-
-    def load(self, fpath, silent=False, recursive=False):
-        fobj = vfs.getFile(fpath)
-        try:
-            if fobj and fobj.isRegularFile():
-                return self.loadFile(fobj, silent)
-            elif fobj and fobj.isDirectory():
-                return self.loadDirectory(fobj, silent, recursive)
-            else:
-                return None
-        except AttributeError as e:
-            if not silent:
-                raise e
-            else:
-                return None
-
-    def loadFile(self, fobj, silent=False):
-        try:
-            ftype = File.find_class_by_fext(self._fext)
-            return ftype(fobj.getFilename())
-        except FileError as e:
-            if not silent:
-                raise e
-            else:
-                return None
-
-    def loadDirectory(self, fobj, silent=False, recursive=False):
-        for virtualFile in vfs.scanDirectory(fobj.getFilename()):
-            if virtualFile.isDirectory() and not recursive:
-                continue
-            elif virtualFile.isDirectory():
-                for file_ in self.loadDirectory(fobj, silent, recursive):
-                    yield file_
-            elif virtualFile.isRegularFile():
-                yield self.loadFile(virtualFile, silent)
-            else:
-                yield None
+from .. import nodes
 
 
 class SelectionManager(DirectObject):
@@ -59,7 +16,12 @@ class SelectionManager(DirectObject):
         self.__coll_trav = CollisionTraverser('trav-%s' % self.getNetTag())
         self.__coll_handler = CollisionHandlerQueue()
 
-        self.__selected = NodePathCollection()
+        self.__selected = nodes.AngularNode(render, 'selection')
+        self.__selected.setAxis(nodes.A_INTERNAL)
+        self.__selected.setColor(1, 0, 0)
+        self.__selected._AngularNode__center.setColor(0, 1, 0)
+        self.__selected._AngularNode__center.setScale(5)
+
         self.__selector_ray = CollisionRay()
         self.__selector_node = CollisionNode('mouse-%s' % self.getNetTag())
         self.__selector_node.setFromCollideMask(GeomNode.getDefaultCollideMask())
@@ -68,36 +30,55 @@ class SelectionManager(DirectObject):
         np = camera.attachNewNode(self.__selector_node)
         self.__coll_trav.addCollider(np, self.__coll_handler)
 
+        self.__resetEvents()
+
+    def acceptAll(self):
+        self.acceptSelectors()
+
+    def acceptSelectors(self):
+        print self.getAllAccepting()
+        # mouse handlers
         self.accept('mouse1', self.__mouseSelect)
         self.accept('shift-mouse1', self.__mouseSelect, [True])
+        # keyboard handlers
+        self.accept('control-a', self.__selectAll)
+        self.accept('control-d', self.reset)
+        self.accept('control-e', self.__resetEvents)
+
+    def __resetEvents(self):
+        if config.GetBool('events-anytime', False):
+            if not self.getAllAccepting():
+                self.acceptAll()
+                return
+        else:
+            self.ignoreAll()
+            self.acceptSelectors()
 
     def getNetTag(self):
         return self.__tag
 
     def getSelection(self):
-        sel = NodePathCollection()
-        sel.extend(self.__selected)
-        return sel
+        return self.__selected
 
-    def getSelectedPaths(self):
-        return self.__selected.getPaths()
+    def getSelectedKeys(self):
+        return self.getSelection().getKeys()
 
     def isSelected(self, np):
         if np:
-            return self.__selected.hasPath(np)
+            return np.getKey() in self.getSelectedKeys()
         else:
             return False
 
     def select(self, np):
-        self.__selected.addPath(np)
-        return np
+        return self.__selected.attach(np)
 
     def deselect(self, np):
-        self.__selected.removePath(np)
-        return np
+        return np.detachNode()
 
     def reset(self):
-        for np in self.getSelectedPaths():
+        self.__resetEvents()
+        for np in self.getSelection():
+            flag, np = nodes.AngularNode.isAngular(np)
             self.deselect(np)
 
     def __getNodeAtMouse(self):
@@ -112,20 +93,27 @@ class SelectionManager(DirectObject):
             self.__coll_handler.sortEntries()
             np = self.__coll_handler.getEntry(0).getIntoNodePath()
             np = np.findNetTag(self.getNetTag())
+            flag, np = nodes.AngularNode.isAngular(np)
         else:
             np = None
 
         return np
 
     def __mouseSelect(self, cont=False):
-        if not cont:
-            self.reset()
-
         np = self.__getNodeAtMouse()
         if not np:
+            if config.GetBool('empty-click-reset', True):
+                self.reset()
             return
 
         if cont and self.isSelected(np):
             self.deselect(np)
+        elif self.isSelected(np):
+            pass
         else:
+            self.select(np)
+
+    def __selectAll(self):
+        self.reset()
+        for np in render.findAllMatches('**/=' + self.getNetTag()):
             self.select(np)
