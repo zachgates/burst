@@ -40,12 +40,12 @@ class SelectionManager(DirectObject):
         # keyboard handlers
         self.accept('control-a', self.__selectAll)
         self.accept('control-d', self.reset)
-        self.accept('control-e', self.__resetEvents, [True])
+        self.accept('control-l', self.__resetEvents, [True])
 
     def __resetEvents(self, wantAllEvents=False):
         self.ignoreAll()
 
-        if config.GetBool('events-anytime', False):
+        if config.GetBool('events-locked', True):
             wantAllEvents = bool(self.getAllAccepting()) or wantAllEvents
 
         if wantAllEvents:
