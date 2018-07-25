@@ -2,7 +2,7 @@ from panda3d.core import CardMaker, TransparencyAttrib
 
 from direct.showbase.ShowBase import ShowBase
 
-from src.base import FileManager
+from src.control.FileManager import FileManager
 from src.nodes import AngularNode
 
 
