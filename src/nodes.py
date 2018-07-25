@@ -46,11 +46,6 @@ class AngularNode(DirectObject, NodePath):
         if np is not None:
             self.attach(np, mode)
 
-        s = loader.loadModel('smiley.egg.pz')
-        s.reparentTo(self.__center)
-        s.setScale(3)
-        self.__center.setColor(0, 0, 1)
-
     def __iter__(self):
         for np in self.__nodes.getChildren():
             yield np

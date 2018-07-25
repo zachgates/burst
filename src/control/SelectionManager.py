@@ -19,8 +19,6 @@ class SelectionManager(DirectObject):
         self.__selected = nodes.AngularNode(render, 'selection')
         self.__selected.setAxis(nodes.A_INTERNAL)
         self.__selected.setColor(1, 0, 0)
-        self.__selected._AngularNode__center.setColor(0, 1, 0)
-        self.__selected._AngularNode__center.setScale(5)
 
         self.__selector_ray = CollisionRay()
         self.__selector_node = CollisionNode('mouse-%s' % self.getNetTag())
@@ -36,22 +34,23 @@ class SelectionManager(DirectObject):
         self.acceptSelectors()
 
     def acceptSelectors(self):
-        print self.getAllAccepting()
         # mouse handlers
         self.accept('mouse1', self.__mouseSelect)
         self.accept('shift-mouse1', self.__mouseSelect, [True])
         # keyboard handlers
         self.accept('control-a', self.__selectAll)
         self.accept('control-d', self.reset)
-        self.accept('control-e', self.__resetEvents)
+        self.accept('control-e', self.__resetEvents, [True])
 
-    def __resetEvents(self):
+    def __resetEvents(self, wantAllEvents=False):
+        self.ignoreAll()
+
         if config.GetBool('events-anytime', False):
-            if not self.getAllAccepting():
-                self.acceptAll()
-                return
+            wantAllEvents = bool(self.getAllAccepting()) or wantAllEvents
+
+        if wantAllEvents:
+            self.acceptAll()
         else:
-            self.ignoreAll()
             self.acceptSelectors()
 
     def getNetTag(self):
