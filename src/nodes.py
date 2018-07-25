@@ -105,8 +105,14 @@ class AngularNode(DirectObject, NodePath):
     def getTransform(self, np=None):
         if np is None: np = render
         return (self.getAxis(),
-                self.getPos(np), self.getHpr(np),
-                self.__nodes.getPos(), self.__nodes.getHpr())
+                # top level
+                self.getPos(np),
+                self.getHpr(np),
+                self.getScale(np),
+                # bottom level
+                self.__nodes.getPos(),
+                self.__nodes.getHpr(),
+                self.__nodes.getScale())
 
     # AngularNode setters
 
@@ -119,11 +125,11 @@ class AngularNode(DirectObject, NodePath):
 
     def setTransform(self,
                      axis=None,
-                     topPos=None, topRot=None,
-                     botPos=None, botRot=None,
+                     topPos=None, topRot=None, topScale=None,
+                     botPos=None, botRot=None, botScale=None,
                      np=None):
         try:
-            axis, topPos, topRot, botPos, botRot = axis
+            axis, topPos, topRot, topScale, botPos, botRot, botScale = axis
         except TypeError:
             self.notify.error('invalid transform')
             return
@@ -132,8 +138,10 @@ class AngularNode(DirectObject, NodePath):
         if axis: self.setAxis(axis)
         if topPos: self.setPos(parentNP, topPos)
         if topRot: self.setHpr(parentNP, topRot)
+        if topScale: self.setScale(parentNP, topScale)
         if botPos: self.__nodes.setPos(botPos)
         if botRot: self.__nodes.setPos(botRot)
+        if botScale: self.__nodes.setScale(botScale)
 
     # NodePath overloads
 
