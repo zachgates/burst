@@ -17,9 +17,9 @@ class AngularNode(DirectObject, NodePath):
     notify = DirectNotifyGlobal.directNotify.newCategory('AngularNode')
 
     @classmethod
-    def isAngular(cls, np):
-        np = np.getPythonTag(cls.__name__) or np
-        return isinstance(np, cls), np
+    def getPyObj(cls, np):
+        pyNP = np.getPythonTag(cls.__name__)
+        return (pyNP if isinstance(pyNP, cls) else None)
 
     def __init__(self, parentNP=None, name=None, np=None, mode=N_ORIG):
         DirectObject.__init__(self)
@@ -36,9 +36,9 @@ class AngularNode(DirectObject, NodePath):
         if parentNP is None:
             parentNP = hidden
 
-        flag, parentNP = self.isAngular(parentNP)
-        if flag:
-            parentNP.attach(self)
+        pyParentNP = self.getPyObj(parentNP)
+        if pyParentNP:
+            pyParentNP.attach(self)
         else:
             self.reparentTo(parentNP)
 
@@ -76,8 +76,8 @@ class AngularNode(DirectObject, NodePath):
 
     def attach(self, np, mode=N_ORIG):
         if mode == N_ORIG:
-            flag, np = self.isAngular(np)
-            if flag:
+            np = self.getPyObj(np)
+            if np:
                 np.__nextParent = np.getParent()
         elif mode == N_INST:
             np = np.instanceTo(self.getParent())
@@ -146,12 +146,12 @@ class AngularNode(DirectObject, NodePath):
     # NodePath overloads
 
     def detachNode(self):
-        flag, parentNP = self.isAngular(self.getParent())
+        pyParentNP = self.getPyObj(self.getParent())
         self.wrtReparentTo(self.getFutureParent())
         self.__nextParent = hidden
 
-        if flag:
-            parentNP._readjustCenter()
+        if pyParentNP:
+            pyParentNP._readjustCenter()
 
         return self
 

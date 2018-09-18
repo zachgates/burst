@@ -41,6 +41,8 @@ class SelectionManager(DirectObject):
         self.accept('control-a', self.__selectAll)
         self.accept('control-d', self.reset)
         self.accept('control-l', self.__resetEvents, [True])
+        # deletion
+        self.accept('control-backspace', self.__deleteSelection)
 
     def __resetEvents(self, wantAllEvents=False):
         self.ignoreAll()
@@ -77,8 +79,8 @@ class SelectionManager(DirectObject):
     def reset(self):
         self.__resetEvents()
         for np in self.getSelection():
-            flag, np = nodes.AngularNode.isAngular(np)
-            self.deselect(np)
+            pyNP = nodes.AngularNode.getPyObj(np)
+            self.deselect(pyNP)
 
     def __getNodeAtMouse(self):
         if not base.mouseWatcherNode.hasMouse():
@@ -92,7 +94,7 @@ class SelectionManager(DirectObject):
             self.__coll_handler.sortEntries()
             np = self.__coll_handler.getEntry(0).getIntoNodePath()
             np = np.findNetTag(self.getNetTag())
-            flag, np = nodes.AngularNode.isAngular(np)
+            np = nodes.AngularNode.getPyObj(np)
         else:
             np = None
 
@@ -116,3 +118,7 @@ class SelectionManager(DirectObject):
         self.reset()
         for np in render.findAllMatches('**/=' + self.getNetTag()):
             self.select(np)
+
+    def __deleteSelection(self):
+        for np in self.getSelection():
+            np.removeNode()
