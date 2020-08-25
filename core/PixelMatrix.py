@@ -35,11 +35,14 @@ class PixelMatrix(object):
         """
         Returns the sub-values of a pixel. Index expected in range [0, 256).
         """
-        point = self.__calcPosFromIndex(index)
-        index = self._normIndexFromPos(point) - 1
-        pxSize = len(self.mode)
-        pxData = self.__data[index * pxSize : index * pxSize + pxSize]
-        return p3d.LVector4i(*pxData)
+        if self.__data:
+            point = self.__calcPosFromIndex(index)
+            index = self._normIndexFromPos(point) - 1
+            pxSize = len(self.mode)
+            pxData = self.__data[index * pxSize : index * pxSize + pxSize]
+            return p3d.LVector4i(*pxData)
+        else:
+            return self._BLANK
 
     def __calcPosFromIndex(self, index: int) -> p3d.LPoint2i:
         """
