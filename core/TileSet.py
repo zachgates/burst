@@ -106,7 +106,7 @@ class TileSet(TexturePool):
         _RULES = ('tile_size', 'tile_run', 'tile_offset')
 
     class Tiles(XYDataset):
-
+        pass
 
     def __init__(self, f_path: str, ruleset: dict):
         super().__init__()
@@ -115,20 +115,20 @@ class TileSet(TexturePool):
         self._pixelmat = PixelSet(self._atlas, )
 
         if self._atlas and self._rules:
-            LOG.info(f'loaded tileset: "{f_name}"')
+            LOG.info(f'loaded tileset: "{f_path}"')
         else:
-            LOG.warning(f'failed to load tileset: "{f_name}"')
+            LOG.warning(f'failed to load tileset: "{f_path}"')
             return
 
-        for row in range(self._rules.tile_run.y):
-            self._tilemat[row + 1] = {0: self._BLANK}
-            for col in range(self._rules.tile_run.x):
-                x, y = (row + 1), (col + 1)
-                n = (row * self._rules.tile_run.x) + y
-                self._tilemat[x][y] = self._tilemap[n] = self.Tile(
-                    index = n,
-                    position = (x, y),
-                    size = (self._rules.tile_size.x, self._rules.tile_size.y))
+        # for row in range(self._rules.tile_run.y):
+        #     self._pixelmat[row + 1] = {0: PixelSet._BLANK}
+        #     for col in range(self._rules.tile_run.x):
+        #         x, y = (row + 1), (col + 1)
+        #         n = (row * self._rules.tile_run.x) + y
+        #         self._pixelmat[x][y] = self._tilemap[n] = self.Tile(
+        #             index = n,
+        #             position = (x, y),
+        #             size = (self._rules.tile_size.x, self._rules.tile_size.y))
 
         # Initialize the tile maker
         self.__tile_maker = p3d.CardMaker(f'tile-maker:{self.name}')

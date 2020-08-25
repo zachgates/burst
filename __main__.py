@@ -13,7 +13,7 @@ class BurstApp(ShowBase):
 
     def run(self):
         self.data.load('tilesheet.png', {'tile_size': 4, 'tile_run': 4, 'tile_offset': 0})
-        np = self.data.loader.make(13)
+        # np = self.data.loader.make(13)
         super().run()
 
 
