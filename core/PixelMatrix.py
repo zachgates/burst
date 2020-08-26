@@ -38,9 +38,9 @@ class PixelMatrix(object):
         if self.__data:
             point = self.__calcPosFromIndex(index)
             index = self._normIndexFromPos(point) - 1
-            pxSize = len(self.mode)
-            pxData = self.__data[index * pxSize : index * pxSize + pxSize]
-            return p3d.LVector4i(*pxData)
+            px_size = len(self.mode)
+            px_data = self.__data[index * px_size : index * px_size + px_size]
+            return p3d.LVector4i(*px_data)
         else:
             return self._BLANK
 

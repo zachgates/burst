@@ -7,8 +7,7 @@ from panda3d import core as p3d
 
 from direct.directnotify import DirectNotifyGlobal
 
-from .PixelSet import PixelSet
-from .XYDataset import XYDataset
+from .PixelMatrix import PixelMatrix
 from .XYRuleset import XYRuleset
 from ..tools.TexturePool import TexturePool
 
@@ -21,14 +20,12 @@ class TileSet(TexturePool):
     class Rules(XYRuleset):
         _RULES = ('tile_size', 'tile_run', 'tile_offset')
 
-    class Tiles(XYDataset):
-        pass
-
     def __init__(self, f_path: str, ruleset: dict):
         super().__init__()
         self._atlas = self.loadTexture(p3d.Filename(f_path))
         self._rules = self.Rules(**ruleset)
-        self._pixelmat = PixelSet(self._atlas, )
+        self._tiles = {}
+        self._pixelMat = PixelMatrix(self._atlas)
 
         if self._atlas and self._rules:
             LOG.info(f'loaded tileset: "{f_path}"')
@@ -36,20 +33,10 @@ class TileSet(TexturePool):
             LOG.warning(f'failed to load tileset: "{f_path}"')
             return
 
-        # for row in range(self._rules.tile_run.y):
-        #     self._pixelmat[row + 1] = {0: PixelSet._BLANK}
-        #     for col in range(self._rules.tile_run.x):
-        #         x, y = (row + 1), (col + 1)
-        #         n = (row * self._rules.tile_run.x) + y
-        #         self._pixelmat[x][y] = self._tilemap[n] = self.Tile(
-        #             index = n,
-        #             position = (x, y),
-        #             size = (self._rules.tile_size.x, self._rules.tile_size.y))
-
         # Initialize the tile maker
         self.__tile_maker = p3d.CardMaker(f'tile-maker:{self.name}')
         self.__tile_maker.setFrameFullscreenQuad()
-        self.__tiletex_nameplate = 'tex:ref:{0}:{1}'
+        self.__tiletex_nameplate = 'tex:{0}:ref:{1}'
 
     @property
     def name(self):
@@ -82,7 +69,7 @@ class TileSet(TexturePool):
         """
         Returns a list of all the Tiles in the TileSet, sorted by index.
         """
-        return sorted(self._tilemap.values(), key = lambda tile: tile.index)
+        return sorted(self._tiles.values(), key = lambda tex: tex.name)
 
     @property
     def count(self) -> int:
@@ -95,85 +82,79 @@ class TileSet(TexturePool):
         else:
             return -1
 
-    def get(self, tile_index: int) -> p3d.Texture:
+    @property
+    def tile_size(self) -> int:
         """
-        Returns the n-th tile in the TileSet.
+        Returns the size, in pixels, of the tiles in the TileSet.
         """
-        try:
-            tile_index %= (self.count + 1)
-        except ZeroDivisionError:
-            return None
+        return (self.rules.tile_size.x * self.rules.tile_size.y)
 
-        if tile_index in self._tilemap:
-            tex = self._tilemap[tile_index]
-        else:
-            tex = self._generate(tile_index)
-            self._tilemap[tile_index] = tex
-
-        return tex
-
-    def make(self, tile_index: int) -> p3d.NodePath:
-        tex = self.get(tile_index)
-        tile = self.__tile_maker.generate()
-        tile.setName(self.__tiletex_nameplate.format(tile_index, self.name))
-        tileNP = aspect2d.attachNewNode(tile)
-        print(tex)
-        tileNP.setTexture(tex)
-        return tileNP
-
-    def __getPixelOffset(self, tile_index: int) -> Tuple[int, int]:
+    def __calcPixelData(self, index: int) -> bytearray:
         """
-        Returns the (x, y) pixel offset for a given tile, from the bottom
-        right corner of the tileset.
+        Returns the Texture data of the Tile at index as a bytearray.
         """
-        x_size, y_size = self.rules.tile_size
-        x_run, y_run = self.rules.tile_run
-        x_offset, y_offset = self.rules.tile_offset
+        cells = []
 
-        row = math.ceil(tile_index / x_run) - 1
-        row_offset = (y_run - (row + 1)) * (y_size + y_offset)
-        row_offset *= self.atlas.getXSize()
+        if index:
+            row = math.ceil(index / self.rules.tile_run.y)
+            col = ((index - 1) % self.rules.tile_run.x) + 1
+            off = p3d.LVector2i(
+                x = (row - 1) * self.rules.tile_run.y * self.tile_size,
+                y = (col - 1) * self.rules.tile_size.x)
 
-        col = (tile_index - 1) % x_run
-        col_offset = (x_size + x_offset) * col
+            for row in range(self.rules.tile_size.y):
+                offset = (off.x + off.y + 1)
+                off.y += (self.rules.tile_run.x * self.rules.tile_size.x)
+                cells.append([self._pixelMat.get(index = offset + col)
+                             for col in range(self.rules.tile_size.x)])
 
-        return (row_offset, col_offset)
+        cells.reverse()
+        px_data = bytearray()
 
-    def _generate(self, tile_index: int, mode: str = 'BGRA') -> p3d.Texture:
+        for row in cells:
+            for cell in row:
+                px_data += bytes(cell.getXyz())
+                px_data += bytes([cell.getW()])
+
+        return px_data
+
+    def _generate(self, index: int, mode: str = 'BGRA') -> p3d.Texture:
         """
         Generate a Texture for the n-th tile in the TileSet.
         """
-        image = self.atlas.getRamImageAs('BGRA')
-        x_size, y_size = self.rules.tile_size
-        x_run, y_run = self.rules.tile_run
-        x_offset, y_offset = self.rules.tile_offset
-
-        pixels = []
-        for i in range(0, ((x_size * x_run) * (y_size * y_run) * 4), 4):
-            pixel = PixelSet.Pixel()
-            pixel = [image.getElement(i + j) for j in range(4)]
-            pixels.append(pixel)
-
-        for row in range(x_run):
-            for col in range(y_run):
-                PixelSet.Pixel(mode, tuple(data), (row + 1, col + 1))
-
-        x_offset, y_offset = self.__getPixelOffset(tile_index)
-        offset = row_offset + col_offset
-
-        m = []
-        for i in range(y_size):
-            k = []
-            for j in range(x_size):
-                n = j + row_offset + col_offset + (self.atlas.getXSize() * i)
-                k += pixels[n]
-            m += k
-
+        x, y = self.rules.tile_size
         data = p3d.PTAUchar()
-        data.setData(m)
-
-        tex = p3d.Texture(self.__tiletex_nameplate.format(tile_index, self.name))
-        tex.setup2dTexture(x_size, y_size, p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
+        data.setData(self.__calcPixelData(index))
+        tex = p3d.Texture(self.__tiletex_nameplate.format(self.name, index))
+        tex.setup2dTexture(x, y, p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
         tex.setMagfilter(p3d.Texture.FTNearest)
         tex.setRamImage(data)
         return tex
+
+    def get(self, index: int) -> p3d.Texture:
+        """
+        Returns the Texture for the n-th Tile in the TileSet.
+        """
+        try:
+            index %= (self.count + 1)
+        except ZeroDivisionError:
+            return None
+
+        if index in self._tiles:
+            tex = self._tiles[index]
+        else:
+            tex = self._generate(index)
+            self._tiles[index] = tex
+
+        return tex
+
+    def make(self, index: int) -> p3d.NodePath:
+        """
+        Returns a NodePath with the Texture generated from the Tile at index.
+        """
+        tex = self.get(index)
+        tile = self.__tile_maker.generate()
+        tile.setName(tex.getName())
+        tileNP = aspect2d.attachNewNode(tile)
+        tileNP.setTexture(tex)
+        return tileNP

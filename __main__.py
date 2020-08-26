@@ -12,8 +12,8 @@ class BurstApp(ShowBase):
         self.data = AppData()
 
     def run(self):
-        self.data.load('tilesheet.png', {'tile_size': 4, 'tile_run': 4, 'tile_offset': 0})
-        # np = self.data.loader.make(13)
+        self.data.load('fake.png', {'tile_size': 4, 'tile_run': 4, 'tile_offset': 0})
+        np = self.data.loader.make(13)
         super().run()
 
 
