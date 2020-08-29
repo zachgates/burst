@@ -17,7 +17,7 @@ compressed-textures #f
 
 textures-square none
 textures-power-2 none
-fake-texture-image fake.png
+fake-texture-image fake_5x5.png
 texture-anisotropic-degree 100
 
 tile-sheet-path tilesheet.png

@@ -22,21 +22,17 @@ class TileSet(TexturePool):
 
     def __init__(self, f_path: str, ruleset: dict):
         super().__init__()
-        self._atlas = self.loadTexture(p3d.Filename(f_path))
+        self._atlas = super().loadTexture(p3d.Filename(f_path))
         self._rules = self.Rules(**ruleset)
         self._tiles = {}
         self._pixelMat = PixelMatrix(self._atlas)
+        self.__nameplate = 'tex:{0}:ref:{1}'
 
         if self._atlas and self._rules:
             LOG.info(f'loaded tileset: "{f_path}"')
         else:
             LOG.warning(f'failed to load tileset: "{f_path}"')
             return
-
-        # Initialize the tile maker
-        self.__tile_maker = p3d.CardMaker(f'tile-maker:{self.name}')
-        self.__tile_maker.setFrameFullscreenQuad()
-        self.__tiletex_nameplate = 'tex:{0}:ref:{1}'
 
     @property
     def name(self):
@@ -65,19 +61,12 @@ class TileSet(TexturePool):
         return self._rules
 
     @property
-    def tiles(self) -> Tuple[int, p3d.Texture]:
-        """
-        Returns a list of all the Tiles in the TileSet, sorted by index.
-        """
-        return sorted(self._tiles.values(), key = lambda tex: tex.name)
-
-    @property
     def count(self) -> int:
         """
         Returns the number of tiles in the TileSet. Returns -1 if the atlas
         Texture fails to load.
         """
-        if self.atlas:
+        if self._atlas:
             return (self.rules.tile_run.x * self.rules.tile_run.y)
         else:
             return -1
@@ -105,12 +94,10 @@ class TileSet(TexturePool):
             for row in range(self.rules.tile_size.y):
                 offset = (off.x + off.y + 1)
                 off.y += (self.rules.tile_run.x * self.rules.tile_size.x)
-                cells.append([self._pixelMat.get(index = offset + col)
-                             for col in range(self.rules.tile_size.x)])
+                cells.insert(0, [self._pixelMat.get(index = offset + col)
+                                 for col in range(self.rules.tile_size.x)])
 
-        cells.reverse()
         px_data = bytearray()
-
         for row in cells:
             for cell in row:
                 px_data += bytes(cell.getXyz())
@@ -118,43 +105,29 @@ class TileSet(TexturePool):
 
         return px_data
 
-    def _generate(self, index: int, mode: str = 'BGRA') -> p3d.Texture:
-        """
-        Generate a Texture for the n-th tile in the TileSet.
-        """
-        x, y = self.rules.tile_size
-        data = p3d.PTAUchar()
-        data.setData(self.__calcPixelData(index))
-        tex = p3d.Texture(self.__tiletex_nameplate.format(self.name, index))
-        tex.setup2dTexture(x, y, p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
-        tex.setMagfilter(p3d.Texture.FTNearest)
-        tex.setRamImage(data)
-        return tex
+    def _getTexName(self, index: int) -> str:
+        return self.__nameplate.format(self.name, index)
 
-    def get(self, index: int) -> p3d.Texture:
+    def loadTexture(self,
+                    index: int,  mode: str = 'BGRA') -> Optional[p3d.Texture]:
         """
         Returns the Texture for the n-th Tile in the TileSet.
         """
-        try:
-            index %= (self.count + 1)
-        except ZeroDivisionError:
-            return None
+        index %= (self.count + 1)
+        name = self._getTexName(index)
 
-        if index in self._tiles:
-            tex = self._tiles[index]
+        if self.hasTexture(name):
+            return self.findTexture(name)
         else:
-            tex = self._generate(index)
-            self._tiles[index] = tex
-
-        return tex
-
-    def make(self, index: int) -> p3d.NodePath:
-        """
-        Returns a NodePath with the Texture generated from the Tile at index.
-        """
-        tex = self.get(index)
-        tile = self.__tile_maker.generate()
-        tile.setName(tex.getName())
-        tileNP = aspect2d.attachNewNode(tile)
-        tileNP.setTexture(tex)
-        return tileNP
+            data = p3d.PTAUchar()
+            data.setData(self.__calcPixelData(index))
+            tex = p3d.Texture(name)
+            tex.setup2dTexture(
+                *self.rules.tile_size,
+                p3d.Texture.TUnsignedByte,
+                p3d.Texture.FRgba)
+            tex.setMagfilter(p3d.Texture.FTNearest)
+            tex.setRamImage(data)
+            tex.setFullpath(tex.getName())
+            self.addTexture(tex)
+            return tex

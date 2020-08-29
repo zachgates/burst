@@ -18,18 +18,18 @@ BAM = p3d.BamCache.getGlobalPtr()
 
 # src/gobj/texture.cxx L:1991-2001
 def downToPower(val: int, pow_: int = 2):
-	if val < 1:
-		return 1
-	else:
-		return pow(pow_, math.floor(math.log(val) / math.log(pow_)))
+    if val < 1:
+        return 1
+    else:
+        return pow(pow_, math.floor(math.log(val) / math.log(pow_)))
 
 
 # src/gobj/texture.cxx L:1979-1989
 def upToPower(val: int, pow_: int = 2):
-	if val < 1:
-		return 1
-	else:
-		return pow(pow_, math.ceil(math.log(val) / math.log(pow_)))
+    if val < 1:
+        return 1
+    else:
+        return pow(pow_, math.ceil(math.log(val) / math.log(pow_)))
 
 
 # src/gobj/texturePool.h L:152-160
@@ -178,18 +178,19 @@ class TexturePool(object):
          * if the extension is not one of the extensions for a texture file.
          */
         """
-        # src/gobj/texturePool.cxx L:87
-        ext = ext.lower()
-        if ext not in self._type_registry:
-            # src/gobj/texturePool.cxx L:94-101
-            pnm = p3d.PNMFileTypeRegistry.getGlobalPtr()
-            type_ = pnm.getTypeFromExtension(ext)
-            if type_ or (ext in self.TEX_TYPES):
-                # // This is a known image type; create an ordinary Texture.
-                self._type_registry[ext] = default
-            else:
-                # // This is an unknown texture type.
-                return None
+        if ext:
+            # src/gobj/texturePool.cxx L:87
+            ext = ext.lower()
+            if ext not in self._type_registry:
+                # src/gobj/texturePool.cxx L:94-101
+                pnm = p3d.PNMFileTypeRegistry.getGlobalPtr()
+                type_ = pnm.getTypeFromExtension(ext)
+                if type_ or (ext in self.TEX_TYPES):
+                    # // This is a known image type; create an ordinary Texture.
+                    self._type_registry[ext] = default
+                else:
+                    # // This is an unknown texture type.
+                    return None
         # src/gobj/texturePool.cxx L:88-92
         return self._type_registry.get(ext, default)
 
@@ -788,75 +789,78 @@ class TexturePool(object):
             tex = self._preLoad(f_name, alpha_f_name,
                                 primary_file_num_channels, alpha_file_channel,
                                 read_mipmaps, options)
+            if tex:
+                return tex
 
             # src/gobj/texturePool.cxx L:388;225
             store_record = False
             # src/gobj/texturePool.cxx L:395-397;232-234
             record, tex, compressed = self._tryLoadCache(key.f_name, options)
 
+            # // The texture was not supplied by a texture filter.
+            # // See if it can be found in the on-disk cache, if it is active.
             # src/gobj/texturePool.cxx L:399-419;236-273
-            if tex is None:
-                # src/gobj/texturePool.cxx L:242
-                ext = key.f_name.getExtension().lower()
-                # src/gobj/texturePool.cxx L:243-272
-                if ext in self.BAM_TYPES:
-                    # // Assume this is a txo file, which might conceivably
-                    # // contain a movie file or some other subclass of
-                    # // Texture. In that case, use make_from_txo() to load it
-                    # // instead of read().
-                    # src/gobj/texturePool.cxx L:249
-                    key.f_name.setBinary()
-                    # src/gobj/texturePool.cxx L:251-256
-                    f_obj = VFS.getFile(key.f_name)
-                    if not f_obj:
-                        # // No such file.
-                        LOG.warning(f'could not find: {key.f_name}')
-                    else:
-                        # src/gobj/texturePool.cxx L:258-261
-                        LOG.debug(f'reading texture object: {key.f_name}')
-
-                        # src/gobj/texturePool.cxx L:263-265
-                        data = f_obj.openReadFile(True)
-                        path = key.f_name.getFullpath()
-                        tex = p3d.Texture.makeFromTxo(data, path)
-                        VFS.closeReadFile(data)
-
-                        # src/gobj/texturePool.cxx L:270-272
-                        if tex:
-                            tex.setFullpath(key.f_name)
-                            tex.clearAlphaFullpath()
-                            tex.setKeepRamImage(False)
-                        # src/gobj/texturePool.cxx L:267-269
-                        else:
-                            return None
-                # src/gobj/texturePool.cxx L:274-282;400-411
+            # src/gobj/texturePool.cxx L:242
+            ext = key.f_name.getExtension().lower()
+            # src/gobj/texturePool.cxx L:243-272
+            if ext in self.BAM_TYPES:
+                # // Assume this is a txo file, which might conceivably
+                # // contain a movie file or some other subclass of
+                # // Texture. In that case, use make_from_txo() to load it
+                # // instead of read().
+                # src/gobj/texturePool.cxx L:249
+                key.f_name.setBinary()
+                # src/gobj/texturePool.cxx L:251-256
+                f_obj = VFS.getFile(key.f_name)
+                if not f_obj:
+                    # // No such file.
+                    LOG.warning(f'could not find: {key.f_name}')
                 else:
-                    # // The texture was neither in the pool, nor found in
-                    # // the on-disk cache; it needs to be loaded from
-                    # // its src image(s).
-                    LOG.info(f'loading texture: {key.f_name}; '
-                             f'alpha: {key.alpha_f_name}')
-                    # // Read it the conventional way.
-                    # src/gobj/texturePool.cxx L:276
-                    tex = self.makeTexture(ext)
-                    # src/gobj/texturePool.cxx L:277-282;406-412
-                    if not tex.read(key.f_name, key.alpha_f_name,
-                                    primary_file_num_channels,
-                                    alpha_file_channel, 0, 0, False,
-                                    read_mipmaps, None, options):
-                        # src/gobj/texturePool.cxx L:279-280;409-410
-                        # // This texture was not found or could not be read.
-                        self._report(key.f_name)
-                        return None
-                    # src/gobj/texturePool.cxx L:414-418
-                    else:
-                        # src/gobj/texturePool.cxx L:414-416
-                        if options.getTextureFlags() \
-                           & p3d.LoaderOptions.TFPreloadSimple:
-                            tex.generateSimpleRamImage()
+                    # src/gobj/texturePool.cxx L:258-261
+                    LOG.debug(f'reading texture object: {key.f_name}')
 
-                        # src/gobj/texturePool.cxx L:418;289
-                        store_record = (record is not None)
+                    # src/gobj/texturePool.cxx L:263-265
+                    data = f_obj.openReadFile(True)
+                    path = key.f_name.getFullpath()
+                    tex = p3d.Texture.makeFromTxo(data, path)
+                    VFS.closeReadFile(data)
+
+                    # src/gobj/texturePool.cxx L:270-272
+                    if tex:
+                        tex.setFullpath(key.f_name)
+                        tex.clearAlphaFullpath()
+                        tex.setKeepRamImage(False)
+                    # src/gobj/texturePool.cxx L:267-269
+                    else:
+                        return None
+            # src/gobj/texturePool.cxx L:274-282;400-411
+            else:
+                # // The texture was neither in the pool, nor found in
+                # // the on-disk cache; it needs to be loaded from
+                # // its src image(s).
+                LOG.info(f'loading texture: {key.f_name}; '
+                         f'alpha: {key.alpha_f_name}')
+                # // Read it the conventional way.
+                # src/gobj/texturePool.cxx L:276
+                tex = self.makeTexture(ext)
+                # src/gobj/texturePool.cxx L:277-282;406-412
+                if not tex.read(key.f_name, key.alpha_f_name,
+                                primary_file_num_channels,
+                                alpha_file_channel, 0, 0, False,
+                                read_mipmaps, None, options):
+                    # src/gobj/texturePool.cxx L:279-280;409-410
+                    # // This texture was not found or could not be read.
+                    self._report(key.f_name)
+                    return None
+                # src/gobj/texturePool.cxx L:414-418
+                else:
+                    # src/gobj/texturePool.cxx L:414-416
+                    if options.getTextureFlags() \
+                       & p3d.LoaderOptions.TFPreloadSimple:
+                        tex.generateSimpleRamImage()
+
+                    # src/gobj/texturePool.cxx L:418;289
+                    store_record = (record is not None)
 
             # src/gobj/texturePool.cxx L:421-439;292-310
             if self.CM_CompressCache and tex.hasCompression():
