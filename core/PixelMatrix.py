@@ -7,16 +7,15 @@ class PixelMatrix(object):
 
     _BLANK = p3d.LVector4i.zero()
 
-    def __init__(self, tex: p3d.Texture, mode = 'BGRA'):
+    def __init__(self, tex: p3d.Texture):
         if tex and tex.hasRamImage():
             width, height = (tex.getXSize(), tex.getYSize())
-            data = tex.getRamImageAs(mode)
+            data = tex.getRamImageAs('BGRA')
         else:
             width = height = 0
             data = b''
 
         self.__size = p3d.LVector2i(width, height)
-        self.__mode = mode
         self.__data = memoryview(data)
 
     @property
@@ -27,18 +26,14 @@ class PixelMatrix(object):
     def height(self) -> int:
         return self.__size.y
 
-    @property
-    def mode(self) -> str:
-        return self.__mode
-
     def __calcPixelByIndex(self, index: int) -> p3d.LVector4i:
         """
-        Returns the sub-values of a pixel. Index expected in range [0, 256).
+        Returns the sub-values of a pixel.
         """
         if self.__data:
             point = self.__calcPosFromIndex(index)
             index = self._normIndexFromPos(point) - 1
-            px_size = len(self.mode)
+            px_size = 4 # BGRA
             px_data = self.__data[index * px_size : index * px_size + px_size]
             return p3d.LVector4i(*px_data)
         else:
@@ -47,7 +42,7 @@ class PixelMatrix(object):
     def __calcPosFromIndex(self, index: int) -> p3d.LPoint2i:
         """
         Returns the 2D (X, Y) coordinates for a given pixel, from the bottom-
-        left corner of the PixelMatrix. Index expected in range [0, 256).
+        left corner of the PixelMatrix.
         """
         return p3d.LPoint2i(
             x = self.height - math.floor(index / self.width),
@@ -56,7 +51,7 @@ class PixelMatrix(object):
     def _normPosFromIndex(self, index: int) -> p3d.LPoint2i:
         """
         Returns the 2D (X, Y) coordinates for a given pixel, from the top-left
-        corner of the PixelMatrix. Index expected in range (0, 256].
+        corner of the PixelMatrix.
         """
         return p3d.LPoint2i(
             x = math.ceil(index / self.height),

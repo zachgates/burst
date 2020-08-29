@@ -32,9 +32,9 @@ class BurstApp(ShowBase):
         return tileNP
 
     def run(self):
-        np = self.createTile(-5)
+        np = self.createTile(278)
         super().run()
 
 
-builtins.burst = BurstApp('fake_5x5.png', size = 5, run = 5, offset = 0)
+builtins.burst = BurstApp('tilesheet.png', size = 16, run = 32, offset = 1)
 burst.run()

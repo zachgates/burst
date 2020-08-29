@@ -23,15 +23,14 @@ class TileSet(TexturePool):
     def __init__(self, f_path: str, **rules):
         super().__init__()
         self._atlas = super().loadTexture(p3d.Filename(f_path))
-        self._rules = self.Rules(**{f'tile_{k}': v for k, v in rules.items()})
-        self._pixelMat = PixelMatrix(self._atlas)
-        self.__nameplate = 'tex:{0}:ref:{1}'
+        self._rules = self.Rules(**{f'tile_{k}': rules[k] for k in rules})
+        self._pxmat = PixelMatrix(self._atlas)
+        self.__name = 'tex:{0}:ref:{1}'
 
         if self._atlas and self._rules:
-            LOG.info(f'loaded tileset: "{f_path}"')
+            LOG.info(f'loaded tileset: {self.name}')
         else:
-            LOG.warning(f'failed to load tileset: "{f_path}"')
-            return
+            LOG.warning(f'failed to load tileset: {self.name}')
 
     @property
     def name(self):
@@ -76,23 +75,33 @@ class TileSet(TexturePool):
         """
         Returns the Texture data of the Tile at index as a bytearray.
         """
-        cells = []
-
+        px_rows = []
         if index:
             row = math.ceil(index / self.rules.tile_run.y)
             col = ((index - 1) % self.rules.tile_run.x) + 1
             off = p3d.LVector2i(
-                x = (row - 1) * self.rules.tile_run.y * self.tile_size,
-                y = (col - 1) * self.rules.tile_size.x)
+                x = (row - 1) \
+                    * (self.tile_size \
+                       * self.rules.tile_run.y \
+                       + (self.rules.tile_run.x - 1) \
+                       * self.rules.tile_size.y \
+                       * self.rules.tile_offset.x \
+                       + self.rules.tile_offset.y \
+                       * self._pxmat.width),
+                y = (col - 1) \
+                    * (self.rules.tile_size.x \
+                       + self.rules.tile_offset.x))
 
             for row in range(self.rules.tile_size.y):
                 offset = (off.x + off.y + 1)
-                off.y += (self.rules.tile_run.x * self.rules.tile_size.x)
-                cells.insert(0, [self._pixelMat.get(index = offset + col)
-                                 for col in range(self.rules.tile_size.x)])
+                off.y += (self.rules.tile_run.x * self.rules.tile_size.x) \
+                         + (self.rules.tile_run.x - 1) \
+                         * self.rules.tile_offset.x
+                px_rows.append([self._pxmat.get(index = offset + col)
+                                for col in range(self.rules.tile_size.x)])
 
         px_data = bytearray()
-        for row in cells:
+        for row in px_rows[::-1]:
             for cell in row:
                 px_data += bytes(cell.getXyz())
                 px_data += bytes([cell.getW()])
@@ -101,18 +110,17 @@ class TileSet(TexturePool):
 
     def findTexture(self, index: int):
         index %= (self.count + 1)
-        return super().findTexture(self.__nameplate.format(self.name, index))
+        return super().findTexture(self.__name.format(self.name, index))
 
     def findAllTextures(self) -> p3d.TextureCollection:
-        return super().findAllTextures(self.__nameplate.format(self.name, '*'))
+        return super().findAllTextures(self.__name.format(self.name, '*'))
 
-    def loadTexture(self,
-                    index: int,  mode: str = 'BGRA') -> Optional[p3d.Texture]:
+    def loadTexture(self, index: int) -> Optional[p3d.Texture]:
         """
         Returns the Texture for the n-th Tile in the TileSet.
         """
         index %= (self.count + 1)
-        name = self.__nameplate.format(self.name, index)
+        name = self.__name.format(self.name, index)
 
         if self.hasTexture(name):
             return self.findTexture(index)

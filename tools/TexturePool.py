@@ -764,8 +764,8 @@ class TexturePool(object):
         # src/gobj/texturePool.cxx L:363-366
         if not self._fake_image.empty() \
            and (f_name != self._fake_image.getFullpath()):
-            return self.loadTexture(
-                self._fake_image,
+            return TexturePool.loadTexture(
+                self, self._fake_image,
                 primary_file_num_channels = primary_file_num_channels,
                 read_mipmaps = read_mipmaps,
                 options = options)
