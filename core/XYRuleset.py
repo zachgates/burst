@@ -21,6 +21,7 @@ class Rule(object):
 
 class XYRuleset:
 
+    _AFFIX = ''
     _RULES = ()
     _DEFAULTS = {}
     _NULL = Rule(0, 0)
@@ -34,9 +35,7 @@ class XYRuleset:
 
         for name in self._RULES:
             if name not in self.__rules:
-                LOG.warning(f'rule not defined: "{name}"')
-                self.clear()
-                break
+                self.reset(name, null=True)
         else:
             LOG.info(f'defined rules: {self._RULES}')
 
@@ -70,7 +69,7 @@ class XYRuleset:
                 LOG.debug(f'set rule: "{name}" = {x, y}')
                 return True
         else:
-            LOG.warning(f'rule not defined: "{name}"')
+            LOG.warning(f'set: unknown rule: "{name}"')
 
         return False
 
@@ -80,8 +79,11 @@ class XYRuleset:
         """
         if name.startswith('_'):
             return super().__getattr__(self, name)
+        elif name.startswith(self._AFFIX):
+            name = name.rsplit('_', 1)
+            return self.get(name[1])
         else:
-            return self.get(name)
+            raise AttributeError(name)
 
     def get(self, name: str) -> Rule:
         """
@@ -90,10 +92,10 @@ class XYRuleset:
         if name in self.__rules:
             return self.__rules[name]
         elif name in self._DEFAULTS:
-            LOG.debug(f'rule not set: {name}')
+            LOG.debug(f'rule not defined: {name}')
             return self._DEFAULTS[name]
         else:
-            LOG.warning(f'rule not defined: "{name}"')
+            LOG.warning(f'get: unknown rule: "{name}"')
             return self._NULL
 
     def reset(self, name: str, null: bool = False) -> bool:
@@ -107,7 +109,7 @@ class XYRuleset:
             self.__rules[name] = (self._NULL if null else value)
             return True
         else:
-            LOG.warning(f'rule not defined: "{name}"')
+            LOG.warning(f'reset: unknown rule: "{name}"')
             return False
 
     def clear(self, null: bool = False) -> bool:

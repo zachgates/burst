@@ -18,12 +18,13 @@ LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
 class TileSet(TexturePool):
 
     class Rules(XYRuleset):
-        _RULES = ('tile_size', 'tile_run', 'tile_offset')
+        _AFFIX = 'tile'
+        _RULES = ('size', 'run', 'offset')
 
     def __init__(self, f_path: str, **rules):
         super().__init__()
         self._atlas = super().loadTexture(p3d.Filename(f_path))
-        self._rules = self.Rules(**{f'tile_{k}': rules[k] for k in rules})
+        self._rules = self.Rules(**rules)
         self._pxmat = PixelMatrix(self._atlas)
         self.__name = 'tex:{0}:ref:{1}'
 
