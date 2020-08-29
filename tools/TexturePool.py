@@ -648,7 +648,6 @@ class TexturePool(object):
         for key, val in self._textures.items():
             if val == tex:
                 del self._textures[key]
-                break
         # src/gobj/texturePool.cxx L:859-866
         else:
             # // Blow away the cache of resolved relative filenames.

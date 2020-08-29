@@ -99,6 +99,13 @@ class TileSet(TexturePool):
 
         return px_data
 
+    def findTexture(self, index: int):
+        index %= (self.count + 1)
+        return super().findTexture(self.__nameplate.format(self.name, index))
+
+    def findAllTextures(self) -> p3d.TextureCollection:
+        return super().findAllTextures(self.__nameplate.format(self.name, '*'))
+
     def loadTexture(self,
                     index: int,  mode: str = 'BGRA') -> Optional[p3d.Texture]:
         """
@@ -108,13 +115,14 @@ class TileSet(TexturePool):
         name = self.__nameplate.format(self.name, index)
 
         if self.hasTexture(name):
-            return self.findTexture(name)
+            return self.findTexture(index)
         else:
             data = p3d.PTAUchar()
             data.setData(self.__calcPixelData(index))
             tex = p3d.Texture(name)
             tex.setup2dTexture(
-                *self.rules.tile_size,
+                self.rules.tile_size.x,
+                self.rules.tile_size.y,
                 p3d.Texture.TUnsignedByte,
                 p3d.Texture.FRgba)
             tex.setMagfilter(p3d.Texture.FTNearest)
@@ -122,3 +130,6 @@ class TileSet(TexturePool):
             tex.setFullpath(tex.getName())
             self.addTexture(tex)
             return tex
+
+    def verifyTexture(self, index: int) -> bool:
+        return True
