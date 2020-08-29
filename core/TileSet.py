@@ -38,12 +38,7 @@ class TileSet(TexturePool):
         """
         Returns the name of the Texture containing the atlas of the TileSet.
         """
-        if self._atlas:
-            name = self._atlas.getName()
-        else:
-            name = 'empty'
-
-        return f'<{name}>'
+        return f"<{self.atlas.getName() if self.atlas else 'empty'}>"
 
     @property
     def atlas(self) -> Optional[p3d.Texture]:
@@ -104,16 +99,13 @@ class TileSet(TexturePool):
 
         return px_data
 
-    def _getTexName(self, index: int) -> str:
-        return self.__nameplate.format(self.name, index)
-
     def loadTexture(self,
                     index: int,  mode: str = 'BGRA') -> Optional[p3d.Texture]:
         """
         Returns the Texture for the n-th Tile in the TileSet.
         """
         index %= (self.count + 1)
-        name = self._getTexName(index)
+        name = self.__nameplate.format(self.name, index)
 
         if self.hasTexture(name):
             return self.findTexture(name)
