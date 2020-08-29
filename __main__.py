@@ -9,10 +9,11 @@ from .core.TileSet import TileSet
 
 class BurstApp(ShowBase):
 
-    def __init__(self):
+    def __init__(self, f_name, **rules):
         super().__init__()
-        self.__tile_pool = None
-        self.__tile_card = None
+        self.__tile_pool = TileSet(f_name, **rules)
+        self.__tile_card = p3d.CardMaker(f'tile-maker:{self.tileset.name}')
+        self.__tile_card.setFrameFullscreenQuad()
 
     @property
     def tileset(self):
@@ -31,16 +32,9 @@ class BurstApp(ShowBase):
         return tileNP
 
     def run(self):
-        self.__tile_pool = TileSet('fake_5x5.png',
-                                   {'tile_size': 5,
-                                    'tile_run': 5,
-                                    'tile_offset': 0})
-        self.__tile_card = p3d.CardMaker(f'tile-maker:{self.tileset.name}')
-        self.__tile_card.setFrameFullscreenQuad()
-
         np = self.createTile(-5)
         super().run()
 
 
-builtins.burst = BurstApp()
+builtins.burst = BurstApp('fake_5x5.png', size = 5, run = 5, offset = 0)
 burst.run()
