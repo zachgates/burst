@@ -19,18 +19,23 @@ class BurstApp(ShowBase):
     def tileset(self):
         return self.__tile_pool
 
-    def make(self, index: int) -> p3d.NodePath:
+    def make_tile(self, index: int) -> p3d.NodePath:
         """
         Returns a NodePath with the Texture generated from the Tile at the
         supplied index of the TileSet.
         """
-        tile = aspect2d.attachNewNode(self.__tile_card.generate())
+        tile = hidden.attachNewNode(self.__tile_card.generate())
         tile.setTexture(self.tileset.loadTexture(index))
         tile.node().setName(f'{index}_{self.__tile_card.name}')
         return tile
 
     def run(self):
-        self.make(278)
+        seqNode = p3d.SequenceNode('sprite')
+        for n in (275, 279, 277, 278):
+            seqNode.addChild(self.make_tile(n).node())
+        seqNode.setFrameRate(12)
+        seqNode.pingpong(True)
+        seqNP = aspect2d.attachNewNode(seqNode)
         super().run()
 
 
