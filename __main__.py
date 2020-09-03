@@ -4,6 +4,7 @@ from panda3d import core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
+from .core.TileCache import TileCache
 from .core.TileSet import TileSet
 
 
@@ -11,13 +12,21 @@ class BurstApp(ShowBase):
 
     def __init__(self, f_name, **rules):
         super().__init__()
-        self.__tile_pool = TileSet(f_name, **rules)
+
+        f_path = p3d.Filename(f_name)
+        self.__cache = TileCache(f_path)
+        self.__tileset = TileSet(f_path, **rules)
+
         self.__tile_card = p3d.CardMaker(f'{self.tileset.name}')
         self.__tile_card.setFrameFullscreenQuad()
 
     @property
-    def tileset(self):
-        return self.__tile_pool
+    def cache(self) -> TileCache:
+        return self.__cache
+
+    @property
+    def tileset(self) -> TileSet:
+        return self.__tileset
 
     def make_tile(self, index: int) -> p3d.NodePath:
         """

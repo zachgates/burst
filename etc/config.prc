@@ -7,18 +7,11 @@ fullscreen #f
 
 notify-level info
 
-model-path $THIS_PRC_DIR/../data
-model-cache-dir $THIS_PRC_DIR/../.cache
-model-cache-models #f
-
+model-path $THIS_PRC_DIR/data
 model-cache-textures #f
-model-cache-compressed-textures #f
-compressed-textures #f
+model-cache-dir $THIS_PRC_DIR/../.cache
 
 textures-square none
 textures-power-2 none
 # fake-texture-image fake_4x4.png
 texture-anisotropic-degree 100
-
-tile-sheet-path tilesheet.png
-tile-sheet-mode RGBA

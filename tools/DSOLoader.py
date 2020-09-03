@@ -165,11 +165,12 @@ class DSOLoader(object):
         self.__f_path: p3d.Filename = self.resolve(search_path, f_name)
         self.__module: _DSO = _DSO(self.__f_path)
 
-    def __getattr__(self, symbol: str):
-        return getattr(self.__module, symbol)
+    @property
+    def module(self) -> _DSO:
+        return self.__module
 
     # src/dtoolutil/load_dso.cxx L:119-130
-    def load(self):
+    def load(self) -> bool:
         # src/dtoolutil/load_dso.cxx L:49-51
         # src/dtoolutil/load_dso.cxx L:122-127
         if not self.__f_path.isRegularFile():
@@ -178,15 +179,19 @@ class DSOLoader(object):
             # // subsequent call to getErrorCode() from returning a
             # // previously stored error.
             code = self.__module.getErrorCode()
-            self.notify.error(f'failed to load: {self.__module}: {code}')
+            self.notify.warning(f'failed to load: {self.__module}: {code}')
+            return False
         else:
             self.__module.load()
             self.notify.info(f'library loaded: {self.__module}')
+            return True
 
     # src/dtoolutil/load_dso.cxx L:56-62
     # src/dtoolutil/load_dso.cxx L:132-135
     def free(self) -> bool:
         if not self.__module.free():
-            self.notify.error(f'failed to release: {self.__module}')
+            self.notify.warning(f'failed to release: {self.__module}')
+            return False
         else:
             self.notify.info(f'library released: {self.__module}')
+            return True

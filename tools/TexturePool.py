@@ -13,7 +13,6 @@ from .DSOLoader import DSOLoader
 
 LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
 VFS = p3d.VirtualFileSystem.getGlobalPtr()
-BAM = p3d.BamCache.getGlobalPtr()
 
 
 # src/gobj/texture.cxx L:1991-2001
@@ -317,98 +316,97 @@ class TexturePool(object):
          * Attempts to load the texture from the cache record.
          */
         """
-        tex = record = None
-        compressed = False
         # src/gobj/texturePool.cxx L:1063
-        if not self.CM_HeaderOnly \
-           and (self.CM_Active or self.CM_CompressCache):
-            # src/gobj/texturePool.cxx L:1069-1072
-            dummy = self.makeTexture(f_path.getExtension())
-            dummy.clear()
-            # src/gobj/texturePool.cxx L:1074-1156
-            record = BAM.lookup(f_path, self.BAM_TYPES[0])
-            if record:
-                # src/gobj/texturePool.cxx L:1076-1144
-                if record.hasData():
-                    # src/gobj/texturePool.cxx L:1077-1080
-                    tex = record.getData()
-                    # src/gobj/texturePool.cxx L:1078
-                    compressed = self.isCompressed(tex)
+        # src/gobj/texturePool.cxx L:1069-1072
+        dummy = TexturePool.makeTexture(self, f_path.getExtension())
+        dummy.clear()
 
-                    # src/gobj/texturePool.cxx L:1079-1080
-                    x_size = tex.getOrigFileXSize()
-                    y_size = tex.getOrigFileYSize()
-                    # src/gobj/texturePool.cxx L:1081
-                    x_size, y_size = self._adjustSize(
-                        x_size, y_size,
-                        f_path.getBasename(), True,
-                        options.getAutoTextureScale())
+        # src/gobj/texturePool.cxx L:1074-1156
+        cache = p3d.BamCache.getGlobalPtr()
+        record = cache.lookup(f_path, self.BAM_TYPES[0])
+        if record:
+            # src/gobj/texturePool.cxx L:1076-1144
+            if record.hasData():
+                # src/gobj/texturePool.cxx L:1077-1080
+                tex = record.getData()
+                # src/gobj/texturePool.cxx L:1078
+                compressed = self.isCompressed(tex)
 
-                    # src/gobj/texturePool.cxx L:1083-1090
-                    if not self.CM_Active and not compressed:
-                        # // We're not supposed to cache uncompressed textures.
-                        LOG.debug(f'not caching uncompressed texture: '
-                                  f'{f_path}')
-                        tex = None
-                    # src/gobj/texturePool.cxx L:1092-1105
-                    elif x_size != tex.getXSize() or y_size != tex.getYSize():
-                        # // The cached texture no longer matches our expected
-                        # // size (the resizing config variables must have
-                        # // changed). We'll have to reload the texture from
-                        # // its original file so we can rebuild the cache.
-                        LOG.debug(f'wrong size; dropping cache: {f_path}')
-                        tex = None
-                    # src/gobj/texturePool.cxx L:1107-1114
-                    elif not self.CM_CompressCache and compressed:
-                        # // This texture shouldn't be compressed,
-                        # // but it is. Go reload it.
-                        LOG.debug(f'compressed in cache; '
-                                  f'dropping cache: {f_path}')
-                        tex = None
-                    # src/gobj/texturePool.cxx L:1116-1143
-                    else:
-                        LOG.info(f'found in disk cache: {f_path}')
+                # src/gobj/texturePool.cxx L:1079-1080
+                x_size = tex.getOrigFileXSize()
+                y_size = tex.getOrigFileYSize()
+                # src/gobj/texturePool.cxx L:1081
+                x_size, y_size = self._adjustSize(
+                    x_size, y_size,
+                    f_path.getBasename(), True,
+                    options.getAutoTextureScale())
 
-                        # src/gobj/texturePool.cxx L:1119-1122
-                        if not tex.hasSimpleRamImage() \
-                           and (options.getTextureFlags()
-                                & p3d.LoaderOptions.TFPreloadSimple):
-                            tex.generateSimpleRamImage()
-
-                        # src/gobj/texturePool.cxx L:1123-1127
-                        if not (options.getTextureFlags()
-                                & p3d.LoaderOptions.TFPreload):
-                            # // But drop the RAM until we need it.
-                            tex.clearRamImage()
-                        # src/gobj/texturePool.cxx L:1127-1140
-                        else:
-                            # src/gobj/texturePool.cxx L:1128
-                            was_compressed = self.isCompressed(tex)
-                            # src/gobj/texturePool.cxx L:1129-1140
-                            if self._considerAutoProcessRamImage(tex, True):
-                                # src/gobj/texturePool.cxx L:1131-1139
-                                if not was_compressed \
-                                   and self.isCompressed(tex) \
-                                   and self.CM_CompressCache:
-                                    # // We've re-compressed the image after
-                                    # // loading it from the cache.  To keep
-                                    # // the cache current, rewrite it to the
-                                    # // cache now, in newly compressed form.
-                                    LOG.debug(f'storing compressed texture: '
-                                              f'{f_path}')
-                                    record.setData(tex)
-                                    BAM.store(record)
-                                    compressed = True
-                        # src/gobj/texturePool.cxx L:1142
-                        tex.setKeepRamImage(False)
-                # src/gobj/texturePool.cxx L:1144-1155
+                # src/gobj/texturePool.cxx L:1083-1090
+                if not self.CM_Active and not compressed:
+                    # // We're not supposed to cache uncompressed textures.
+                    LOG.debug(f'not caching uncompressed texture: '
+                              f'{f_path}')
+                    tex = None
+                # src/gobj/texturePool.cxx L:1092-1105
+                elif x_size != tex.getXSize() or y_size != tex.getYSize():
+                    # // The cached texture no longer matches our expected
+                    # // size (the resizing config variables must have
+                    # // changed). We'll have to reload the texture from
+                    # // its original file so we can rebuild the cache.
+                    LOG.debug(f'wrong size; dropping cache: {f_path}')
+                    tex = None
+                # src/gobj/texturePool.cxx L:1107-1114
+                elif not self.CM_CompressCache and compressed:
+                    # // This texture shouldn't be compressed,
+                    # // but it is. Go reload it.
+                    LOG.debug(f'compressed in cache; '
+                              f'dropping cache: {f_path}')
+                    tex = None
+                # src/gobj/texturePool.cxx L:1116-1143
                 else:
-                    if not self.CM_Active:
-                        # // This texture has no actual record, and therefore
-                        # // no compressed record (yet).  And we're not
-                        # // supposed to be caching uncompressed textures.
-                        LOG.info('not caching uncompressed texture')
-                        record = None
+                    LOG.info(f'found in disk cache: {f_path}')
+
+                    # src/gobj/texturePool.cxx L:1119-1122
+                    if not tex.hasSimpleRamImage() \
+                       and (options.getTextureFlags()
+                            & p3d.LoaderOptions.TFPreloadSimple):
+                        tex.generateSimpleRamImage()
+
+                    # src/gobj/texturePool.cxx L:1123-1127
+                    if not (options.getTextureFlags()
+                            & p3d.LoaderOptions.TFPreload):
+                        # // But drop the RAM until we need it.
+                        tex.clearRamImage()
+                    # src/gobj/texturePool.cxx L:1127-1140
+                    else:
+                        # src/gobj/texturePool.cxx L:1128
+                        was_compressed = self.isCompressed(tex)
+                        # src/gobj/texturePool.cxx L:1129-1140
+                        if self._considerAutoProcessRamImage(tex, True):
+                            # src/gobj/texturePool.cxx L:1131-1139
+                            if not was_compressed \
+                               and self.isCompressed(tex) \
+                               and self.CM_CompressCache:
+                                # // We've re-compressed the image after
+                                # // loading it from the cache.  To keep
+                                # // the cache current, rewrite it to the
+                                # // cache now, in newly compressed form.
+                                LOG.debug(f'storing compressed texture: '
+                                          f'{f_path}')
+                                record.setData(tex)
+                                cache.store(record)
+                                compressed = True
+                    # src/gobj/texturePool.cxx L:1142
+                    tex.setKeepRamImage(False)
+            # src/gobj/texturePool.cxx L:1144-1155
+            else:
+                if not self.CM_Active:
+                    # // This texture has no actual record, and therefore
+                    # // no compressed record (yet).  And we're not
+                    # // supposed to be caching uncompressed textures.
+                    LOG.info('not caching uncompressed texture')
+                    tex = record = None
+                    compressed = False
 
         return (record, tex, compressed)
 
@@ -794,7 +792,13 @@ class TexturePool(object):
             # src/gobj/texturePool.cxx L:388;225
             store_record = False
             # src/gobj/texturePool.cxx L:395-397;232-234
-            record, tex, compressed = self._tryLoadCache(key.f_name, options)
+            if not self.CM_HeaderOnly \
+               and (self.CM_Active or self.CM_CompressCache):
+                record, tex, compressed = self._tryLoadCache(key.f_name,
+                                                             options)
+            else:
+                tex = record = None
+                compressed = False
 
             # // The texture was not supplied by a texture filter.
             # // See if it can be found in the on-disk cache, if it is active.
@@ -841,7 +845,7 @@ class TexturePool(object):
                          f'alpha: {key.alpha_f_name}')
                 # // Read it the conventional way.
                 # src/gobj/texturePool.cxx L:276
-                tex = self.makeTexture(ext)
+                tex = TexturePool.makeTexture(self, ext)
                 # src/gobj/texturePool.cxx L:277-282;406-412
                 if not tex.read(key.f_name, key.alpha_f_name,
                                 primary_file_num_channels,
@@ -916,7 +920,8 @@ class TexturePool(object):
                 # // Store the on-disk cache record for next time.
                 LOG.debug(f'storing cache record: {key.f_name}')
                 record.setData(tex)
-                BAM.store(record)
+                cache = p3d.BamCache.getGlobalPtr()
+                cache.store(record)
 
                 # And this to recompress the texture if we are compressing
                 # everything in memory (compressed-textures).
