@@ -129,22 +129,28 @@ class TileSet(TexturePool):
             LOG.debug(f'loading tile from pool: {index}')
             return self.findTexture(index)
 
-        cache_path = self._getTilePath(index)
-        cache_tile = burst.cache.lookup(cache_path)
-        if cache_tile:
-            LOG.debug(f'loaded tile from cache: {index} @ {cache_path}')
-            cache_tile.setFullpath(f_name)
-            self.addTexture(cache_tile)
-            return cache_tile
-        else:
-            LOG.debug(f'loading tile from tilesheet: {index}')
-            tex = self.makeTexture(index)
-            tex.setFullpath(self._getTilePath(index))
-            tex.setRamImage(self.__getTileData(index))
-            tex.compressRamImage()
-            self.addTexture(tex)
+        if burst.cache.active:
+            cache_path = self._getTilePath(index)
+            cache_tile = burst.cache.lookup(cache_path)
+            if cache_tile:
+                LOG.debug(f'loaded tile from cache: {index} @ {cache_path}')
+                cache_tile.setFullpath(f_name)
+                self.addTexture(cache_tile)
+                return cache_tile
+            else:
+                LOG.debug(f'tile not in cache: {index}')
+
+        LOG.debug(f'loading tile from tilesheet: {index}')
+        tex = self.makeTexture(index)
+        tex.setFullpath(self._getTilePath(index))
+        tex.setRamImage(self.__getTileData(index))
+        tex.compressRamImage()
+
+        self.addTexture(tex)
+        if burst.cache.active:
             burst.cache.store(tex)
-            return tex
+
+        return tex
 
     def verifyTexture(self, index: int) -> bool:
         return True

@@ -15,7 +15,15 @@ class TileCache(object):
     def __init__(self, sheet_path):
         self.__idx = bytes.fromhex(self.hashFilename(sheet_path))
         self._root = p3d.ConfigVariableFilename('model-cache-dir').getValue()
-        self.readIndex()
+        self._active = False
+
+    @property
+    def active(self):
+        return self._active
+
+    def init(self):
+        if burst.cache.readIndex():
+            self._active = True
 
     def hashFilename(self, f_name: p3d.Filename) -> p3d.Filename:
         hv = p3d.HashVal()
