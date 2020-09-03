@@ -2,6 +2,8 @@ import math
 
 from panda3d import core as p3d
 
+from .Rules import Rule2D
+
 
 class PixelMatrix(object):
 
@@ -15,7 +17,7 @@ class PixelMatrix(object):
             width = height = 0
             data = b''
 
-        self.__size = p3d.LVector2i(width, height)
+        self.__size = Rule2D(width, height)
         self.__data = memoryview(data)
 
     @property

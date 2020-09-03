@@ -4,7 +4,7 @@ from typing import get_type_hints
 
 class _Rule:
     """
-    Base class for below dataclasses representing strict, typed rules.
+    Base class for dataclasses representing strict, typed rules.
     """
 
     @classmethod
