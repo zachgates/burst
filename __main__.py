@@ -39,7 +39,6 @@ class BurstApp(ShowBase):
         return tile
 
     def run(self):
-        burst.cache.init()
         seqNode = p3d.SequenceNode('sprite')
         for n in (275, 279, 277, 278):
             seqNode.addChild(self.make_tile(n).node())

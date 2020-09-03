@@ -17,14 +17,13 @@ class TileCache(object):
         # a ConfigVariableSearchPath. Sacrifice to get the path as a Filename.
         self._root = p3d.ConfigVariableFilename('model-cache-dir').getValue()
         self._active = False
+        if p3d.ConfigVariableBool('model-cache-tiles').getValue():
+            if self.readIndex():
+                self._active = True
 
     @property
     def active(self):
         return self._active
-
-    def init(self):
-        if burst.cache.readIndex():
-            self._active = True
 
     def hashFilename(self, f_name: p3d.Filename) -> p3d.Filename:
         hv = p3d.HashVal()

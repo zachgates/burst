@@ -8,8 +8,9 @@ fullscreen #f
 notify-level info
 
 model-path $THIS_PRC_DIR/data
-model-cache-textures #f
 model-cache-dir $THIS_PRC_DIR/../.cache
+model-cache-textures #f
+model-cache-tiles #t
 
 textures-square none
 textures-power-2 none
