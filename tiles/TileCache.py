@@ -11,27 +11,33 @@ class TileCache(object):
     _EXT = 'tile'
     _IDX = 'index_name.txt'
 
-    def __init__(self, sheet_path):
-        self.__idx = bytes.fromhex(self.hashFilename(sheet_path))
-        # Throws a PRC warning here because model-cache-dir is technically
-        # a ConfigVariableSearchPath. Sacrifice to get the path as a Filename.
-        self._root = p3d.ConfigVariableFilename('model-cache-dir').getValue()
-        self._active = False
-        if p3d.ConfigVariableBool('model-cache-tiles').getValue():
-            if self.readIndex():
-                self._active = True
-
-    @property
-    def active(self):
-        return self._active
-
-    def hashFilename(self, f_name: p3d.Filename) -> p3d.Filename:
+    @staticmethod
+    def hashFilename(f_name: p3d.Filename) -> str:
         hv = p3d.HashVal()
         hv.hashString(f_name.getFullpath())
         return hv.asHex()
 
-    def readIndex(self) -> bool:
-        f_path = p3d.Filename(self._root, self._IDX)
+    def __init__(self, sheet_path):
+        self.__idx = bytes.fromhex(self.hashFilename(sheet_path))
+
+        search = p3d.ConfigVariableSearchPath('model-cache-dir')
+        self.__root = search.getDirectories()[0]
+
+        self.__active = False
+        if p3d.ConfigVariableBool('model-cache-tiles').getValue():
+            if self._readIndex():
+                self.__active = True
+
+    @property
+    def root(self) -> str:
+        return self.__root
+
+    @property
+    def active(self) -> bool:
+        return self.__active
+
+    def _readIndex(self) -> bool:
+        f_path = p3d.Filename(self.root, self._IDX)
         f_path.setBinary()
 
         if f_path.exists():
@@ -47,19 +53,19 @@ class TileCache(object):
         else:
             LOG.debug(f'no cache index present @ {f_path}')
 
-        return self.rebuildIndex()
+        return self._rebuildIndex()
 
-    def rebuildIndex(self):
-        if self._root.exists():
-            LOG.debug(f'deleting old cache @ {self._root}')
-            for f_name in self._root.scanDirectory():
+    def _rebuildIndex(self) -> bool:
+        if self.root.exists():
+            LOG.debug(f'deleting old cache @ {self.root}')
+            for f_name in self.root.scanDirectory():
                 f_path = p3d.Filename(f_name)
                 f_path.unlink()
         else:
-            self._root.mkdir()
+            self.root.mkdir()
 
-        LOG.debug(f'rebuilding cache @ {self._root}')
-        f_path = p3d.Filename(self._root, self._IDX)
+        LOG.debug(f'rebuilding cache @ {self.root}')
+        f_path = p3d.Filename(self.root, self._IDX)
         f_path.setBinary()
 
         stream = p3d.OFileStream()
@@ -75,7 +81,7 @@ class TileCache(object):
     def store(self, tex: p3d.Texture):
         f_name = p3d.Filename(self.hashFilename(tex.getFullpath()))
         f_name.setExtension(self._EXT)
-        f_path = p3d.Filename(self._root, f_name)
+        f_path = p3d.Filename(self.root, f_name)
         f_path.setBinary()
 
         if not f_path.exists():
@@ -101,7 +107,7 @@ class TileCache(object):
         return False
 
     def lookup(self, f_name: p3d.Filename) -> p3d.BamCacheRecord:
-        f_path = p3d.Filename(self._root, self.hashFilename(f_name))
+        f_path = p3d.Filename(self.root, self.hashFilename(f_name))
         f_path.setExtension(self._EXT)
 
         if f_path.exists():

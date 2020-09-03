@@ -10,19 +10,19 @@ from .tiles.TileSet import TileSet
 
 class BurstApp(ShowBase):
 
-    def __init__(self, f_name, **rules):
+    def __init__(self):
         super().__init__()
+        self.__root = p3d.Filename(p3d.Filename(__file__).getDirname())
+        self.__tileset = None
 
-        f_path = p3d.Filename(f_name)
-        self.__cache = TileCache(f_path)
-        self.__tileset = TileSet(f_path, **rules)
-
+    def init(self, f_name, **rules):
+        self.__tileset = TileSet(p3d.Filename(f_name), **rules)
         self.__tile_card = p3d.CardMaker(f'{self.tileset.name}')
         self.__tile_card.setFrameFullscreenQuad()
 
     @property
-    def cache(self) -> TileCache:
-        return self.__cache
+    def root(self) -> p3d.Filename:
+        return self.__root
 
     @property
     def tileset(self) -> TileSet:
@@ -48,6 +48,6 @@ class BurstApp(ShowBase):
         super().run()
 
 
-builtins.burst = BurstApp(
-    'tilesheet.png', tile_size = 16, tile_run = 32, tile_offset = 1)
+builtins.burst = BurstApp()
+burst.init('tilesheet.png', tile_size = 16, tile_run = 32, tile_offset = 1)
 burst.run()

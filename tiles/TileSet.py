@@ -1,5 +1,4 @@
 import math
-import uuid
 
 from typing import Generator, List, Mapping, Optional, Tuple
 
@@ -9,6 +8,8 @@ from direct.directnotify import DirectNotifyGlobal
 
 from ..core.PixelMatrix import PixelMatrix
 from ..tools.TexturePool import TexturePool
+
+from .Tile import Tile
 from .TileCache import TileCache
 from .TileRules import TileRules
 
@@ -21,9 +22,9 @@ class TileSet(TexturePool):
     def __init__(self, f_path: p3d.Filename, **rules):
         super().__init__()
         self.rules = TileRules(**rules)
+        self.cache = TileCache(f_path)
         self.atlas = super().loadTexture(f_path)
-        self._pxmat = PixelMatrix(self.atlas)
-        self.__name = 'tex:{0}:ref:{1}'
+        self.pixel = PixelMatrix(self.atlas)
 
     @property
     def name(self) -> str:
@@ -31,9 +32,7 @@ class TileSet(TexturePool):
 
     @property
     def path(self) -> str:
-        hv = p3d.HashVal()
-        hv.hashFile(self.atlas.getFullpath())
-        return hv.asHex()
+        return self.atlas.getFullpath()
 
     @property
     def count(self) -> int:
@@ -53,14 +52,7 @@ class TileSet(TexturePool):
         """
         return (self.rules.tile_size.x * self.rules.tile_size.y)
 
-    def _getTilePath(self, index: int) -> str:
-        base = uuid.UUID(self.path)
-        path = uuid.uuid3(base, hex(index))
-        fake = p3d.Filename(self.atlas.getFullpath())
-        return p3d.Filename(fake.getFullpathWoExtension(),
-                            p3d.Filename(f'{path.hex}.tile'))
-
-    def __getTileData(self, index: int) -> bytearray:
+    def __draw(self, index: int) -> bytearray:
         """
         Returns the Texture data of the Tile at index as a bytearray.
         """
@@ -76,7 +68,7 @@ class TileSet(TexturePool):
                        * self.rules.tile_size.y \
                        * self.rules.tile_offset.x \
                        + self.rules.tile_offset.y \
-                       * self._pxmat.width),
+                       * self.pixel.width),
                 y = (col - 1) \
                     * (self.rules.tile_size.x \
                        + self.rules.tile_offset.x))
@@ -86,7 +78,7 @@ class TileSet(TexturePool):
                 off.y += (self.rules.tile_run.x * self.rules.tile_size.x) \
                          + (self.rules.tile_run.x - 1) \
                          * self.rules.tile_offset.x
-                px_rows.append([self._pxmat.get(index = offset + col)
+                px_rows.append([self.pixel.get(index = offset + col)
                                 for col in range(self.rules.tile_size.x)])
 
         px_data = bytearray()
@@ -98,32 +90,32 @@ class TileSet(TexturePool):
         return p3d.PTAUchar(px_data)
 
     def makeTexture(self, index: int):
-        tex = p3d.Texture(self.__name.format(self.name, index))
+        tex = Tile(index, Tile.getName(self, index))
         tex.setMagfilter(p3d.Texture.FTNearest)
         tex.setup2dTexture(self.rules.tile_size.x, self.rules.tile_size.y,
                            p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
         return tex
 
     def findTexture(self, index: int):
-        return super().findTexture(self.__name.format(self.name, index))
+        return super().findTexture(Tile.getTileName(self, index))
 
     def findAllTextures(self) -> p3d.TextureCollection:
-        return super().findAllTextures(self.__name.format(self.name, '*'))
+        return super().findAllTextures(Tile.getTileName(self, '*'))
 
     def loadTexture(self, index: int) -> Optional[p3d.Texture]:
         """
         Returns the Texture for the n-th Tile in the TileSet.
         """
         index %= (self.count + 1)
-        f_name = self.__name.format(self.name, index)
 
+        f_name = Tile.getName(self, index)
         if self.hasTexture(f_name):
             LOG.debug(f'loading tile from pool: {index}')
             return self.findTexture(index)
 
-        if burst.cache.active:
-            cache_path = self._getTilePath(index)
-            cache_tile = burst.cache.lookup(cache_path)
+        if self.cache.active:
+            cache_path = Tile.getPath(self, index)
+            cache_tile = self.cache.lookup(cache_path)
             if cache_tile:
                 LOG.debug(f'loaded tile from cache: {index} @ {cache_path}')
                 cache_tile.setFullpath(f_name)
@@ -134,14 +126,14 @@ class TileSet(TexturePool):
 
         LOG.debug(f'loading tile from tilesheet: {index}')
         tex = self.makeTexture(index)
-        tex.setFullpath(self._getTilePath(index))
-        tex.setRamImage(self.__getTileData(index))
+        tex.setFullpath(Tile.getPath(self, index))
+        tex.setRamImage(self.__draw(index))
         tex.compressRamImage()
 
-        self.addTexture(tex)
-        if burst.cache.active:
-            burst.cache.store(tex)
+        if self.cache.active:
+            self.cache.store(tex)
 
+        self.addTexture(tex)
         return tex
 
     def verifyTexture(self, index: int) -> bool:
