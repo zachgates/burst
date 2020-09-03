@@ -97,10 +97,10 @@ class TileSet(TexturePool):
         return tex
 
     def findTexture(self, index: int):
-        return super().findTexture(Tile.getTileName(self, index))
+        return super().findTexture(Tile.getName(self, index))
 
     def findAllTextures(self) -> p3d.TextureCollection:
-        return super().findAllTextures(Tile.getTileName(self, '*'))
+        return super().findAllTextures(Tile.getName(self, '*'))
 
     def loadTexture(self, index: int) -> Optional[p3d.Texture]:
         """
