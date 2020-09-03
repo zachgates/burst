@@ -1,13 +1,13 @@
 import math
 
-from typing import Generator, List, Mapping, Optional, Tuple
+from typing import Optional
 
 from panda3d import core as p3d
 
 from direct.directnotify import DirectNotifyGlobal
 
 from ..core.PixelMatrix import PixelMatrix
-from ..tools.TexturePool import TexturePool
+from ..core.TexturePool import TexturePool
 
 from .Tile import Tile
 from .TileCache import TileCache

@@ -1,7 +1,7 @@
 import ctypes
 import math
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Mapping, Tuple, Optional
 
 from panda3d import core as p3d
