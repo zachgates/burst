@@ -4,7 +4,6 @@ from direct.directnotify import DirectNotifyGlobal
 
 
 LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
-VFS = p3d.VirtualFileSystem.getGlobalPtr()
 
 
 class TileCache(object):
@@ -14,6 +13,8 @@ class TileCache(object):
 
     def __init__(self, sheet_path):
         self.__idx = bytes.fromhex(self.hashFilename(sheet_path))
+        # Throws a PRC warning here because model-cache-dir is technically
+        # a ConfigVariableSearchPath. Sacrifice to get the path as a Filename.
         self._root = p3d.ConfigVariableFilename('model-cache-dir').getValue()
         self._active = False
 
@@ -50,18 +51,17 @@ class TileCache(object):
         return self.rebuildIndex()
 
     def rebuildIndex(self):
-        f_path = p3d.Filename(self._root, self._IDX)
-        f_path.setBinary()
-
         if self._root.exists():
             LOG.debug(f'deleting old cache @ {self._root}')
-            scan = VFS.scanDirectory(self._root)
-            for n in range(scan.getNumFiles()):
-                VFS.deleteFile(scan.getFile(n).getFilename())
-            VFS.deleteFile(self._root)
+            for f_name in self._root.scanDirectory():
+                f_path = p3d.Filename(f_name)
+                f_path.unlink()
+        else:
+            self._root.mkdir()
 
-        LOG.debug(f'rebuilding cache index @ {f_path}')
-        VFS.makeDirectory(self._root)
+        LOG.debug(f'rebuilding cache @ {self._root}')
+        f_path = p3d.Filename(self._root, self._IDX)
+        f_path.setBinary()
 
         stream = p3d.OFileStream()
         if f_path.openWrite(stream, True):
@@ -118,12 +118,12 @@ class TileCache(object):
                     else:
                         LOG.warning(f'unable to fully resolve tile @ {f_path}')
                 else:
-                    LOG.warning(f'empty cache file @ {f_path}')
+                    LOG.warning(f'invalid cache file @ {f_path}')
             else:
                 LOG.warning(f'could not read existing cache file @ {f_path}')
 
             # Get rid of the corrupt cache file
-            VFS.deleteFile(f_path)
+            f_path.unlink()
         else:
             LOG.debug(f'cache file does not exist @ {f_path}');
 
