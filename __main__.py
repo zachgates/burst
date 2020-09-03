@@ -4,8 +4,8 @@ from panda3d import core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-from .core.TileCache import TileCache
-from .core.TileSet import TileSet
+from .tiles.TileCache import TileCache
+from .tiles.TileSet import TileSet
 
 
 class BurstApp(ShowBase):
@@ -48,5 +48,6 @@ class BurstApp(ShowBase):
         super().run()
 
 
-builtins.burst = BurstApp('tilesheet.png', size = 16, run = 32, offset = 1)
+builtins.burst = BurstApp(
+    'tilesheet.png', tile_size = 16, tile_run = 32, tile_offset = 1)
 burst.run()

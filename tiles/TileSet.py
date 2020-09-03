@@ -1,17 +1,16 @@
 import math
 import uuid
 
-from dataclasses import dataclass, field
 from typing import Generator, List, Mapping, Optional, Tuple
 
 from panda3d import core as p3d
 
 from direct.directnotify import DirectNotifyGlobal
 
-from .PixelMatrix import PixelMatrix
-from .TileCache import TileCache
-from .XYRuleset import XYRuleset
+from ..core.PixelMatrix import PixelMatrix
 from ..tools.TexturePool import TexturePool
+from .TileCache import TileCache
+from .TileRules import TileRules
 
 
 LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
@@ -19,28 +18,21 @@ LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
 
 class TileSet(TexturePool):
 
-    class Rules(XYRuleset):
-        _AFFIX = 'tile'
-        _RULES = ('size', 'run', 'offset')
-
     def __init__(self, f_path: p3d.Filename, **rules):
         super().__init__()
-        self._rules = self.Rules(**rules)
-        self._sheet = super().loadTexture(f_path)
-        self._pxmat = PixelMatrix(self._sheet)
+        self.rules = TileRules(**rules)
+        self.atlas = super().loadTexture(f_path)
+        self._pxmat = PixelMatrix(self.atlas)
         self.__name = 'tex:{0}:ref:{1}'
 
     @property
     def name(self) -> str:
-        """
-        Returns the name of the Texture containing the TileSet.
-        """
-        return f"<{self._sheet.getName() if self._sheet else 'empty'}>"
+        return f"<{self.atlas.getName() if self.atlas else 'empty'}>"
 
     @property
     def path(self) -> str:
         hv = p3d.HashVal()
-        hv.hashFile(self._sheet.getFullpath())
+        hv.hashFile(self.atlas.getFullpath())
         return hv.asHex()
 
     @property
@@ -49,8 +41,8 @@ class TileSet(TexturePool):
         Returns the number of tiles in the TileSet. Returns -1 if the sheet
         Texture fails to load.
         """
-        if self._sheet:
-            return (self._rules.tile_run.x * self._rules.tile_run.y)
+        if self.atlas:
+            return (self.rules.tile_run.x * self.rules.tile_run.y)
         else:
             return -1
 
@@ -59,12 +51,12 @@ class TileSet(TexturePool):
         """
         Returns the size, in pixels, of the tiles in the TileSet.
         """
-        return (self._rules.tile_size.x * self._rules.tile_size.y)
+        return (self.rules.tile_size.x * self.rules.tile_size.y)
 
     def _getTilePath(self, index: int) -> str:
         base = uuid.UUID(self.path)
         path = uuid.uuid3(base, hex(index))
-        fake = p3d.Filename(self._sheet.getFullpath())
+        fake = p3d.Filename(self.atlas.getFullpath())
         return p3d.Filename(fake.getFullpathWoExtension(),
                             p3d.Filename(f'{path.hex}.tile'))
 
@@ -74,28 +66,28 @@ class TileSet(TexturePool):
         """
         px_rows = []
         if index:
-            row = math.ceil(index / self._rules.tile_run.y)
-            col = ((index - 1) % self._rules.tile_run.x) + 1
+            row = math.ceil(index / self.rules.tile_run.y)
+            col = ((index - 1) % self.rules.tile_run.x) + 1
             off = p3d.LVector2i(
                 x = (row - 1) \
                     * (self.page_size \
-                       * self._rules.tile_run.y \
-                       + (self._rules.tile_run.x - 1) \
-                       * self._rules.tile_size.y \
-                       * self._rules.tile_offset.x \
-                       + self._rules.tile_offset.y \
+                       * self.rules.tile_run.y \
+                       + (self.rules.tile_run.x - 1) \
+                       * self.rules.tile_size.y \
+                       * self.rules.tile_offset.x \
+                       + self.rules.tile_offset.y \
                        * self._pxmat.width),
                 y = (col - 1) \
-                    * (self._rules.tile_size.x \
-                       + self._rules.tile_offset.x))
+                    * (self.rules.tile_size.x \
+                       + self.rules.tile_offset.x))
 
-            for row in range(self._rules.tile_size.y):
+            for row in range(self.rules.tile_size.y):
                 offset = (off.x + off.y + 1)
-                off.y += (self._rules.tile_run.x * self._rules.tile_size.x) \
-                         + (self._rules.tile_run.x - 1) \
-                         * self._rules.tile_offset.x
+                off.y += (self.rules.tile_run.x * self.rules.tile_size.x) \
+                         + (self.rules.tile_run.x - 1) \
+                         * self.rules.tile_offset.x
                 px_rows.append([self._pxmat.get(index = offset + col)
-                                for col in range(self._rules.tile_size.x)])
+                                for col in range(self.rules.tile_size.x)])
 
         px_data = bytearray()
         for row in px_rows[::-1]:
@@ -108,7 +100,7 @@ class TileSet(TexturePool):
     def makeTexture(self, index: int):
         tex = p3d.Texture(self.__name.format(self.name, index))
         tex.setMagfilter(p3d.Texture.FTNearest)
-        tex.setup2dTexture(self._rules.tile_size.x, self._rules.tile_size.y,
+        tex.setup2dTexture(self.rules.tile_size.x, self.rules.tile_size.y,
                            p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
         return tex
 
