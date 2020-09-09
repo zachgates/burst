@@ -13,29 +13,37 @@ class BurstApp(ShowBase):
     def __init__(self):
         super().__init__()
         self.__root = p3d.Filename(p3d.Filename(__file__).getDirname())
-        self.__tileset = None
+        self.__cache = None
+        self.__tile_set = None
+        self.__tile_gen = None
 
     def init(self, f_name, **rules):
-        self.__tileset = TileSet(p3d.Filename(f_name), **rules)
-        self.__tile_card = p3d.CardMaker(f'{self.tileset.name}')
-        self.__tile_card.setFrameFullscreenQuad()
+        f_name = p3d.Filename(f_name)
+        self.__cache = TileCache(f_name)
+        self.__tile_set = TileSet(f_name, **rules)
+        self.__tile_gen = p3d.CardMaker(f'{self.tileset.name}')
+        self.__tile_gen.setFrameFullscreenQuad()
 
     @property
     def root(self) -> p3d.Filename:
         return self.__root
 
     @property
+    def cache(self) -> TileCache:
+        return self.__cache
+
+    @property
     def tileset(self) -> TileSet:
-        return self.__tileset
+        return self.__tile_set
 
     def make_tile(self, index: int) -> p3d.NodePath:
         """
         Returns a NodePath with the Texture generated from the Tile at the
         supplied index of the TileSet.
         """
-        tile = hidden.attachNewNode(self.__tile_card.generate())
+        tile = hidden.attachNewNode(self.__tile_gen.generate())
         tile.setTexture(self.tileset.loadTexture(index))
-        tile.node().setName(f'{index}_{self.__tile_card.name}')
+        tile.node().setName(f'{index}_{self.__tile_gen.name}')
         return tile
 
     def run(self):
