@@ -20,8 +20,8 @@ class TileSet(TexturePool):
 
     def __init__(self, f_path: p3d.Filename, **rules):
         super().__init__()
-        self.rules = TileRules(**rules)
         self.atlas = super().loadTexture(f_path)
+        self.rules = TileRules(**rules)
         self.pixel = PixelMatrix(self.atlas)
 
     @property

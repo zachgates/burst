@@ -1,5 +1,6 @@
+import typing
+
 from dataclasses import dataclass, astuple
-from typing import get_type_hints
 
 
 class _Rule:
@@ -16,7 +17,7 @@ class _Rule:
         yield from astuple(self)
 
     def __post_init__(self):
-        types = get_type_hints(self)
+        types = typing.get_type_hints(self)
         for name, type_ in types.items():
             if getattr(self, name) is None:
                 setattr(self, name, type_())
