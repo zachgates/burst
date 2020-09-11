@@ -1,7 +1,6 @@
 from typing import Optional
 
 from panda3d import core as p3d
-
 from direct.directnotify import DirectNotifyGlobal
 
 from .Tile import Tile
