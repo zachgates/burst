@@ -95,8 +95,10 @@ class TileSet(dict):
             LOG.debug(f'loading tile from tilesheet: {index}')
             tile = self[name] = Tile(name, index)
             tile.setup2dTexture(
-                self.rules.tile_size.x, self.rules.tile_size.y,
-                p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
+                self.rules.tile_size.x,
+                self.rules.tile_size.y,
+                p3d.Texture.TUnsignedByte,
+                p3d.Texture.FRgba)
             tile.setMagfilter(p3d.Texture.FTNearest)
             tile.setRamImage(self.__draw(index))
             tile.compressRamImage()

@@ -31,4 +31,21 @@ def load_tileset(f_name: str, **rules):
     return TileSet(find_tileset(f_name), **rules)
 
 
-__all__ = [get_root, get_tile_path, find_tileset, load_tileset]
+def get_scene_path() -> p3d.DSearchPath:
+    global _SCENEPATH
+    if _SCENEPATH is None:
+        _SCENEPATH = p3d.DSearchPath(p3d.Filename(get_root(), 'scene/data'))
+    return _SCENEPATH
+
+
+def find_scene(f_name: str) -> Optional[p3d.Filename]:
+    assert f_name
+    f_path = get_scene_path().findFile(f_name)
+    return (f_path if f_path.exists() else None)
+
+
+__all__ = [
+    get_root,
+    get_tile_path, find_tileset, load_tileset,
+    get_scene_path, find_scene,
+]
