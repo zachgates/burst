@@ -9,7 +9,7 @@ _SCENEPATH = None
 
 def get_root() -> p3d.Filename:
     import burst
-    f_path = p3d.Filename(burst.__file__)
+    f_path = p3d.Filename.fromOsSpecific(burst.__file__)
     return p3d.Filename(f_path.getDirname())
 
 
