@@ -86,19 +86,18 @@ class TileSet(dict):
         Returns the Texture for the n-th Tile in the TileSet.
         """
         index %= (self.count + 1)
-        f_path = Tile.getPath(self, index)
+        name = Tile.getName(self, index)
 
-        if f_path in self:
+        if name in self:
             LOG.debug(f'loading tile from pool: {index}')
-            return self[f_path]
+            return self[name]
         else:
             LOG.debug(f'loading tile from tilesheet: {index}')
-            tile = self[f_path] = Tile(self, index)
+            tile = self[name] = Tile(name, index)
             tile.setup2dTexture(
                 self.rules.tile_size.x, self.rules.tile_size.y,
                 p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
             tile.setMagfilter(p3d.Texture.FTNearest)
-            tile.setFullpath(f_path)
             tile.setRamImage(self.__draw(index))
             tile.compressRamImage()
             return tile
