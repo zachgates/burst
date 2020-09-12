@@ -2,7 +2,7 @@ import math
 
 from panda3d import core as p3d
 
-from .Rules import Rule2D
+from . import Rule2D
 
 
 class PixelMatrix(object):
@@ -15,7 +15,7 @@ class PixelMatrix(object):
             data = tex.getRamImageAs('BGRA')
         else:
             width = height = 0
-            data = b''
+            data = bytes()
 
         self.__size = Rule2D(width, height)
         self.__data = memoryview(data)

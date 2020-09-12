@@ -5,30 +5,30 @@ from typing import Optional
 from panda3d import core as p3d
 from direct.directnotify import DirectNotifyGlobal
 
-from ..core.PixelMatrix import PixelMatrix
-from ..core.TexturePool import TexturePool
-from .Tile import Tile
-from .TileRules import TileRules
+from ..core import PixelMatrix
+from . import Tile
+from . import TileRules
 
 
 LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
 
 
-class TileSet(TexturePool):
+class TileSet(dict):
 
     def __init__(self, f_path: p3d.Filename, **rules):
         super().__init__()
-        self.atlas = super().loadTexture(f_path)
-        self.rules = TileRules(**rules)
-        self.pixel = PixelMatrix(self.atlas)
+        if f_path:
+            assert f_path.exists()
+            self.atlas = loader.loadTexture(f_path)
+            self.pixel = PixelMatrix(self.atlas)
+            self.rules = TileRules(**rules)
+        else:
+            self.atlas = self.pixel = None
+            self.rules = TileRules()
 
     @property
     def name(self) -> str:
         return f"<{self.atlas.getName() if self.atlas else 'empty'}>"
-
-    @property
-    def path(self) -> str:
-        return self.atlas.getFullpath()
 
     @property
     def size(self) -> int:
@@ -40,13 +40,9 @@ class TileSet(TexturePool):
     @property
     def count(self) -> int:
         """
-        Returns the number of tiles in the TileSet. Returns -1 if the sheet
-        Texture fails to load.
+        Returns the number of tiles in the TileSet.
         """
-        if self.atlas:
-            return (self.rules.tile_run.x * self.rules.tile_run.y)
-        else:
-            return -1
+        return (self.rules.tile_run.x * self.rules.tile_run.y)
 
     def __draw(self, index: int) -> bytearray:
         """
@@ -85,52 +81,24 @@ class TileSet(TexturePool):
 
         return p3d.PTAUchar(px_data)
 
-    def makeTexture(self, index: int):
-        tex = Tile(index)
-        tex.setMagfilter(p3d.Texture.FTNearest)
-        tex.setup2dTexture(self.rules.tile_size.x, self.rules.tile_size.y,
-                           p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
-        return tex
-
-    def findTexture(self, index: int):
-        return super().findTexture(Tile.getName(index))
-
-    def findAllTextures(self) -> p3d.TextureCollection:
-        return super().findAllTextures(Tile.getName('*'))
-
-    def loadTexture(self, index: int) -> Optional[p3d.Texture]:
+    def get(self, index: int) -> Optional[p3d.Texture]:
         """
         Returns the Texture for the n-th Tile in the TileSet.
         """
         index %= (self.count + 1)
-        f_name = Tile.getName(index)
-        f_path = Tile.getPath(index)
+        f_path = Tile.getPath(self, index)
 
-        if self.hasTexture(f_name):
+        if f_path in self:
             LOG.debug(f'loading tile from pool: {index}')
-            return self.findTexture(index)
-
-        if burst.cache.active:
-            tile = burst.cache.lookup(f_path)
-            if tile:
-                LOG.debug(f'loaded tile from cache: {index} @ {f_path}')
-                tile.setFullpath(f_name)
-                self.addTexture(tile)
-                return tile
-            else:
-                LOG.debug(f'tile not in cache: {index}')
-
-        LOG.debug(f'loading tile from tilesheet: {index}')
-        tile = self.makeTexture(index)
-        tile.setFullpath(f_path)
-        tile.setRamImage(self.__draw(index))
-        tile.compressRamImage()
-
-        if burst.cache.active:
-            burst.cache.store(tile)
-
-        self.addTexture(tile)
-        return tile
-
-    def verifyTexture(self, index: int) -> bool:
-        return True
+            return self[f_path]
+        else:
+            LOG.debug(f'loading tile from tilesheet: {index}')
+            tile = self[f_path] = Tile(self, index)
+            tile.setup2dTexture(
+                self.rules.tile_size.x, self.rules.tile_size.y,
+                p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
+            tile.setMagfilter(p3d.Texture.FTNearest)
+            tile.setFullpath(f_path)
+            tile.setRamImage(self.__draw(index))
+            tile.compressRamImage()
+            return tile

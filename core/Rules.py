@@ -3,7 +3,7 @@ import typing
 from dataclasses import dataclass, astuple
 
 
-class _Rule:
+class RuleBase:
     """
     Base class for dataclasses representing strict, typed rules.
     """
@@ -30,7 +30,7 @@ class _Rule:
 
 
 @dataclass(frozen=True)
-class Rule2D(_Rule):
+class Rule2D(RuleBase):
     """
     Two-dimensional (X, Y) integer rule.
     """
@@ -39,7 +39,7 @@ class Rule2D(_Rule):
 
 
 @dataclass(frozen=True)
-class Rule3D(Rule2D):
+class Rule3D(RuleBase):
     """
     Three-dimensional (X, Y, Z) integer rule.
     """

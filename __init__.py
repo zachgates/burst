@@ -1,5 +1,22 @@
-import os
+from panda3d.core import loadPrcFileData
+loadPrcFileData('burst',
+    """
+    load-display pandagl
+    win-origin -2 -2
+    win-size 512 512
+    fullscreen #f
+    notify-level info
+    textures-square none
+    textures-power-2 none
+    """)
 
 
-os.environ['PANDA_PRC_DIR'] = \
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'etc')
+import importlib
+tools = importlib.import_module('burst.core.tools')
+class burst:
+    for func in tools.__all__:
+        locals()[func.__name__] = staticmethod(func)
+
+
+import builtins
+builtins.burst = burst()
