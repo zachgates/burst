@@ -1,6 +1,6 @@
+from .AtlasRules import AtlasRules
 from .Tile import Tile
-from .TileRules import TileRules
 from .TileSet import TileSet
 
 
-__all__ = [Tile, TileRules, TileSet]
+__all__ = [AtlasRules, Tile, TileSet]

@@ -7,7 +7,7 @@ from direct.directnotify import DirectNotifyGlobal
 
 from ..core import PixelMatrix
 from . import Tile
-from . import TileRules
+from . import AtlasRules
 
 
 LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
@@ -21,10 +21,10 @@ class TileSet(dict):
             assert f_path.exists()
             self.atlas = loader.loadTexture(f_path)
             self.pixel = PixelMatrix(self.atlas)
-            self.rules = TileRules(**rules)
         else:
             self.atlas = self.pixel = None
-            self.rules = TileRules()
+
+        self.rules = AtlasRules(**rules)
 
     @property
     def name(self) -> str:

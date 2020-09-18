@@ -22,8 +22,7 @@ def get_tile_path() -> p3d.DSearchPath:
 
 def find_tileset(f_name: str) -> Optional[p3d.Filename]:
     assert f_name
-    f_path = get_tile_path().findFile(f_name)
-    return (f_path if f_path.exists() else None)
+    return get_tile_path().findFile(f_name)
 
 
 def load_tileset(f_name: str, **rules):
@@ -38,14 +37,20 @@ def get_scene_path() -> p3d.DSearchPath:
     return _SCENEPATH
 
 
-def find_scene(f_name: str) -> Optional[p3d.Filename]:
+def find_scene_2d(f_name: str) -> Optional[p3d.Filename]:
     assert f_name
-    f_path = get_scene_path().findFile(f_name)
-    return (f_path if f_path.exists() else None)
+    return get_scene_path().findFile(f_name)
+
+
+def load_scene_2d(f_name: str):
+    from ..scene import SceneLoader2D
+    path = find_scene_2d(f_name)
+    with SceneLoader2D(path) as loader:
+        return loader.read()
 
 
 __all__ = [
     get_root,
     get_tile_path, find_tileset, load_tileset,
-    get_scene_path, find_scene,
+    get_scene_path, find_scene_2d, load_scene_2d,
 ]

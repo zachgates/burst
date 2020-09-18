@@ -3,7 +3,7 @@ loadPrcFileData('burst',
     """
     load-display pandagl
     win-origin -2 -2
-    win-size 512 512
+    win-size 1 1
     fullscreen #f
     notify-level info
     textures-square none

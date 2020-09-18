@@ -28,15 +28,19 @@ class PixelMatrix(object):
     def height(self) -> int:
         return self.__size.y
 
+    @property
+    def data(self) -> memoryview:
+        return self.__data
+
     def __calcPixelByIndex(self, index: int) -> p3d.LVector4i:
         """
         Returns the sub-values of a pixel.
         """
-        if self.__data:
+        if self.data:
             point = self.__calcPosFromIndex(index)
             index = self._normIndexFromPos(point) - 1
             px_size = 4 # BGRA
-            px_data = self.__data[index * px_size : index * px_size + px_size]
+            px_data = self.data[index * px_size : index * px_size + px_size]
             return p3d.LVector4i(*px_data)
         else:
             return self._BLANK

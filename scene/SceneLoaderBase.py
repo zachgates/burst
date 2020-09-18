@@ -28,17 +28,17 @@ class SceneLoaderBase(StreamIOWrapper):
         LOG.debug(f'loading scene: {self.path}')
         self.__root.setBinary()
         assert self.__root.openRead(self._stream)
-        super().__init__(self._stream, needsVfsClose = True)
+        super().__init__(self._stream)
         assert super().readable()
         return self
+
 
     def __exit__(self, *exc):
         if not exc:
             LOG.debug(f'done loading scene: {self.path}')
 
-        # close the vfile before propagating the exception
+        # close before propagating exception
         super().close()
-        self.__root = None
         return False
 
     def read(self, n_bytes: int = -1) -> bytes:
