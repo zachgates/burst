@@ -7,7 +7,7 @@ class TestApp(ShowBase):
     def run(self):
         scene = burst.loadScene2D('sample.burst')
         seqNode = p3d.SequenceNode('sprite')
-        for n in (275, 279, 277, 278):
+        for n in (307, 308, 309, 310):
             seqNode.addChild(scene.makeTile(n).node())
         seqNode.setFrameRate(12)
         seqNode.pingpong(True)
