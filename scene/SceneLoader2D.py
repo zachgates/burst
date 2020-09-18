@@ -21,23 +21,23 @@ class SceneLoader2D(SceneLoaderBase):
         yield from (
             # scene name
             dgi.getFixedString(0xff),
-            # scene size
-            self._unpack_rule(dgi),
+            # scene resolution
+            self._unpackRule(dgi),
             # atlas name
             dgi.getFixedString(0xff),
             # atlas ram image
             dgi.getBlob32(),
             # atlas size
-            self._unpack_rule(dgi),
+            self._unpackRule(dgi),
             # atlas rules
             {
-                'tile_size': self._unpack_rule(dgi),
-                'tile_run': self._unpack_rule(dgi),
-                'tile_offset': self._unpack_rule(dgi),
+                'tile_size': self._unpackRule(dgi),
+                'tile_run': self._unpackRule(dgi),
+                'tile_offset': self._unpackRule(dgi),
             },
         )
 
-    def _unpack_rule(self, dgi):
+    def _unpackRule(self, dgi):
         return (dgi.getUint16(), dgi.getUint16())
 
     def read(self) -> Scene2D:

@@ -11,7 +11,7 @@ class AtlasRules(RuleBase):
     tile_run: Rule2D = None
     tile_offset: Rule2D = None
 
-    def _type_check(self, name, type_):
+    def _typeCheck(self, name, type_):
         attr = getattr(self, name)
         if isinstance(attr, int):
             value = type_.fill(attr)

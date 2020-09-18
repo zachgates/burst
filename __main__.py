@@ -5,10 +5,10 @@ from direct.showbase.ShowBase import ShowBase
 class TestApp(ShowBase):
 
     def run(self):
-        scene = burst.load_scene_2d('sample.burst')
+        scene = burst.loadScene2D('sample.burst')
         seqNode = p3d.SequenceNode('sprite')
         for n in (275, 279, 277, 278):
-            seqNode.addChild(scene.make_tile(n).node())
+            seqNode.addChild(scene.makeTile(n).node())
         seqNode.setFrameRate(12)
         seqNode.pingpong(True)
         seqNP = aspect2d.attachNewNode(seqNode)

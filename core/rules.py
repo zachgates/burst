@@ -22,9 +22,9 @@ class RuleBase:
             if getattr(self, name) is None:
                 setattr(self, name, type_())
             else:
-                assert self._type_check(name, type_)
+                assert self._typeCheck(name, type_)
 
-    def _type_check(self, name, type_):
+    def _typeCheck(self, name, type_):
         attr = getattr(self, name)
         return isinstance(attr, type_)
 

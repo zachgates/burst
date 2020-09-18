@@ -32,7 +32,6 @@ class SceneLoaderBase(StreamIOWrapper):
         assert super().readable()
         return self
 
-
     def __exit__(self, *exc):
         if not exc:
             LOG.debug(f'done loading scene: {self.path}')

@@ -7,50 +7,50 @@ _TILESPATH = None
 _SCENEPATH = None
 
 
-def get_root() -> p3d.Filename:
+def getRoot() -> p3d.Filename:
     import burst
     f_path = p3d.Filename.fromOsSpecific(burst.__file__)
     return p3d.Filename(f_path.getDirname())
 
 
-def get_tile_path() -> p3d.DSearchPath:
+def getTilePath() -> p3d.DSearchPath:
     global _TILESPATH
     if _TILESPATH is None:
-        _TILESPATH = p3d.DSearchPath(p3d.Filename(get_root(), 'tile/data'))
+        _TILESPATH = p3d.DSearchPath(p3d.Filename(getRoot(), 'tile/data'))
     return _TILESPATH
 
 
-def find_tileset(f_name: str) -> Optional[p3d.Filename]:
+def findTileset(f_name: str) -> Optional[p3d.Filename]:
     assert f_name
-    return get_tile_path().findFile(f_name)
+    return getTilePath().findFile(f_name)
 
 
-def load_tileset(f_name: str, **rules):
+def loadTileset(f_name: str, **rules):
     from ..tile import TileSet
-    return TileSet(find_tileset(f_name), **rules)
+    return TileSet(findTileset(f_name), **rules)
 
 
-def get_scene_path() -> p3d.DSearchPath:
+def getScenePath() -> p3d.DSearchPath:
     global _SCENEPATH
     if _SCENEPATH is None:
-        _SCENEPATH = p3d.DSearchPath(p3d.Filename(get_root(), 'scene/data'))
+        _SCENEPATH = p3d.DSearchPath(p3d.Filename(getRoot(), 'scene/data'))
     return _SCENEPATH
 
 
-def find_scene_2d(f_name: str) -> Optional[p3d.Filename]:
+def findScene2D(f_name: str) -> Optional[p3d.Filename]:
     assert f_name
-    return get_scene_path().findFile(f_name)
+    return getScenePath().findFile(f_name)
 
 
-def load_scene_2d(f_name: str):
+def loadScene2D(f_name: str):
     from ..scene import SceneLoader2D
-    path = find_scene_2d(f_name)
+    path = findScene2D(f_name)
     with SceneLoader2D(path) as loader:
         return loader.read()
 
 
 __all__ = [
-    get_root,
-    get_tile_path, find_tileset, load_tileset,
-    get_scene_path, find_scene_2d, load_scene_2d,
+    getRoot,
+    getTilePath, findTileset, loadTileset,
+    getScenePath, findScene2D, loadScene2D,
 ]

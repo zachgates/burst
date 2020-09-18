@@ -7,27 +7,30 @@ from ..tile import TileSet
 class Scene2D(object):
 
     @classmethod
-    def make_atlas(cls, data: bytes, size: tuple) -> p3d.Texture:
+    def makeAtlas(cls, name: str, data: bytes, size: tuple):
         tex = p3d.Texture()
         tex.setup2dTexture(*size, p3d.Texture.TUnsignedByte, p3d.Texture.FRgba)
+        tex.setFullpath(name)
+        tex.setName(name)
         tex.setRamImage(data)
-        return tex
+        p3d.TexturePool.addTexture(tex)
 
     def __init__(self,
-                 scene_name: str, scene_size: tuple,
-                 atlas_data: bytes, atlas_size: tuple, atlas_rules: dict):
-        self.tiles = TileSet(None, **atlas_rules)
-        self.tiles.atlas = self.make_atlas(atlas_data, atlas_size)
-        self.tiles.pixel = PixelMatrix(self.tiles.atlas)
-        self.adjust_window(scene_name, scene_size)
+                 scene_name: str, scene_res: tuple,
+                 atlas_name: str, atlas_data: bytes, atlas_size: tuple,
+                 atlas_rules: dict):
+        super().__init__()
+        self.adjustWindow(scene_name, scene_res)
+        self.makeAtlas(atlas_name, atlas_data, atlas_size)
+        self.tiles = TileSet(atlas_name, **atlas_rules)
 
-    def adjust_window(self, name: str, size: tuple):
+    def adjustWindow(self, scene_name: str, scene_res: tuple):
         prop = p3d.WindowProperties()
-        prop.setTitle(name)
-        prop.setSize(size)
+        prop.setTitle(scene_name)
+        prop.setSize(scene_res)
         base.win.requestProperties(prop)
 
-    def make_tile(self, index: int) -> p3d.NodePath:
+    def makeTile(self, index: int) -> p3d.NodePath:
         # TEMP
         if not hasattr(self, '_cm'):
             self._cm = p3d.CardMaker(f'{self.tiles.name}')

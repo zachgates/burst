@@ -15,16 +15,14 @@ LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
 
 class TileSet(dict):
 
-    def __init__(self, f_path: p3d.Filename, **rules):
+    def __init__(self, f_path: str, **rules):
         super().__init__()
+        self.rules = AtlasRules(**rules)
         if f_path:
-            assert f_path.exists()
             self.atlas = loader.loadTexture(f_path)
             self.pixel = PixelMatrix(self.atlas)
         else:
             self.atlas = self.pixel = None
-
-        self.rules = AtlasRules(**rules)
 
     @property
     def name(self) -> str:
