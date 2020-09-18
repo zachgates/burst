@@ -18,7 +18,7 @@ class Scene2D(object):
                  atlas_data: bytes, atlas_size: tuple, atlas_rules: dict):
         prop = p3d.WindowProperties()
         prop.setTitle(scene_name)
-        prop.setSize((128, 128))
+        prop.setSize(scene_size)
         base.win.requestProperties(prop)
 
         self.tiles = TileSet(None, **atlas_rules)
