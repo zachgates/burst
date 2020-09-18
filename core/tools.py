@@ -21,13 +21,13 @@ def getTilePath() -> p3d.DSearchPath:
 
 
 def findTileset(f_name: str) -> Optional[p3d.Filename]:
-    assert f_name
     return getTilePath().findFile(f_name)
 
 
 def loadTileset(f_name: str, **rules):
     from ..tile import TileSet
-    return TileSet(findTileset(f_name), **rules)
+    path = findTileset(f_name)
+    return TileSet(path, **rules)
 
 
 def getScenePath() -> p3d.DSearchPath:
@@ -38,7 +38,6 @@ def getScenePath() -> p3d.DSearchPath:
 
 
 def findScene2D(f_name: str) -> Optional[p3d.Filename]:
-    assert f_name
     return getScenePath().findFile(f_name)
 
 
