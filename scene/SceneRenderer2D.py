@@ -4,7 +4,7 @@ from ..core import PixelMatrix
 from ..tile import TileSet
 
 
-class Scene2D(object):
+class SceneRenderer2D(object):
 
     @classmethod
     def makeAtlas(cls, name: str, data: bytes, size: tuple):
@@ -36,7 +36,7 @@ class Scene2D(object):
             self._cm = p3d.CardMaker(f'{self.tiles.name}')
             self._cm.setFrameFullscreenQuad()
 
-        tile = hidden.attachNewNode(self._cm.generate())
-        tile.setTexture(self.tiles.get(index))
-        tile.node().setName(f'{index}_{self._cm.name}')
-        return tile
+        np = hidden.attachNewNode(self._cm.generate())
+        np.setTexture(self.tiles.get(index))
+        np.node().setName(f'{index}_{self._cm.name}')
+        return np

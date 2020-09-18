@@ -3,7 +3,7 @@ from typing import Generator
 from panda3d import core as p3d
 
 from . import SceneLoaderBase
-from . import Scene2D
+from . import SceneRenderer2D
 
 
 class SceneLoader2D(SceneLoaderBase):
@@ -37,9 +37,9 @@ class SceneLoader2D(SceneLoaderBase):
             },
         )
 
-    def _unpackRule(self, dgi):
+    def _unpackRule(self, dgi) -> tuple:
         return (dgi.getUint16(), dgi.getUint16())
 
-    def read(self) -> Scene2D:
+    def read(self):
         data = self._unpack()
-        return Scene2D(*data)
+        return SceneRenderer2D(*data)

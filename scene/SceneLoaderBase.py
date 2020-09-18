@@ -17,11 +17,11 @@ class SceneLoaderBase(StreamIOWrapper):
             self.__root = self.__strm = None
 
     @property
-    def path(self):
+    def path(self) -> str:
         return self.__root.getFullpath()
 
     @property
-    def _stream(self):
+    def _stream(self) -> p3d.istream:
         return self.__strm
 
     def __enter__(self):
@@ -32,7 +32,7 @@ class SceneLoaderBase(StreamIOWrapper):
         assert super().readable()
         return self
 
-    def __exit__(self, *exc):
+    def __exit__(self, *exc) -> bool:
         if not exc:
             LOG.debug(f'done loading scene: {self.path}')
 
