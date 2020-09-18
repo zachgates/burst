@@ -16,14 +16,16 @@ class Scene2D(object):
     def __init__(self,
                  scene_name: str, scene_size: tuple,
                  atlas_data: bytes, atlas_size: tuple, atlas_rules: dict):
-        prop = p3d.WindowProperties()
-        prop.setTitle(scene_name)
-        prop.setSize(scene_size)
-        base.win.requestProperties(prop)
-
         self.tiles = TileSet(None, **atlas_rules)
         self.tiles.atlas = self.make_atlas(atlas_data, atlas_size)
         self.tiles.pixel = PixelMatrix(self.tiles.atlas)
+        self.adjust_window(scene_name, scene_size)
+
+    def adjust_window(self, name: str, size: tuple):
+        prop = p3d.WindowProperties()
+        prop.setTitle(name)
+        prop.setSize(size)
+        base.win.requestProperties(prop)
 
     def make_tile(self, index: int) -> p3d.NodePath:
         # TEMP
