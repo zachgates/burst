@@ -23,6 +23,8 @@ class SceneLoader2D(SceneLoaderBase):
             dgi.getFixedString(0xff),
             # scene size
             self._unpack_rule(dgi),
+            # atlas name
+            dgi.getFixedString(0xff),
             # atlas ram image
             dgi.getBlob32(),
             # atlas size
