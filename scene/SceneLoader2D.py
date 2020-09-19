@@ -1,4 +1,4 @@
-class SceneLoader2D(burst.core.InputManager):
+class SceneLoader2D(burst.core.InputFileManager):
 
     def _unpack(self) -> tuple:
         dg = burst.p3d.Datagram()

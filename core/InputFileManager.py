@@ -1,7 +1,7 @@
 from direct.stdpy.file import StreamIOWrapper
 
 
-class InputManager(StreamIOWrapper):
+class InputFileManager(StreamIOWrapper):
 
     def __init__(self):
         self.__root = self.__strm = None
