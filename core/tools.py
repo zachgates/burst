@@ -1,5 +1,3 @@
-from typing import Optional
-
 from panda3d import core as p3d
 
 
@@ -8,9 +6,11 @@ _SCENEPATH = None
 
 
 def getRoot() -> p3d.Filename:
-    import burst
     f_path = p3d.Filename.fromOsSpecific(burst.__file__)
     return p3d.Filename(f_path.getDirname())
+
+
+# Core TileSet Tools
 
 
 def getTilePath() -> p3d.DSearchPath:
@@ -20,14 +20,16 @@ def getTilePath() -> p3d.DSearchPath:
     return _TILESPATH
 
 
-def findTileset(f_name: str) -> Optional[p3d.Filename]:
+def findTileset(f_name: str) -> p3d.Filename:
     return getTilePath().findFile(f_name)
 
 
 def loadTileset(f_name: str, **rules):
-    from ..tile import TileSet
-    path = findTileset(f_name)
-    return TileSet(path, **rules)
+    f_path = findTileset(f_name)
+    return burst.tile.TileSet(f_path, **rules)
+
+
+# Core Scene Tools
 
 
 def getScenePath() -> p3d.DSearchPath:
@@ -37,15 +39,15 @@ def getScenePath() -> p3d.DSearchPath:
     return _SCENEPATH
 
 
-def findScene2D(f_name: str) -> Optional[p3d.Filename]:
+def findScene2D(f_name: str) -> p3d.Filename:
     return getScenePath().findFile(f_name)
 
 
 def loadScene2D(f_name: str):
-    from ..scene import SceneLoader2D
-    path = findScene2D(f_name)
-    with SceneLoader2D(path) as loader:
-        return loader.read()
+    Loader = burst.scene.SceneLoader2D()
+    f_path = findScene2D(f_name)
+    with Loader(f_path) as scene:
+        return scene.read()
 
 
 __all__ = [

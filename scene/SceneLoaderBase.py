@@ -8,27 +8,30 @@ LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
 
 class SceneLoaderBase(StreamIOWrapper):
 
-    def __init__(self, f_name: p3d.Filename):
-        if f_name:
-            assert f_name.exists()
-            self.__root = f_name
-            self.__strm = p3d.IFileStream(self.path)
-        else:
-            self.__root = self.__strm = None
+    def __init__(self):
+        self.__root = self.__strm = None
 
     @property
     def path(self) -> str:
         return self.__root.getFullpath()
 
     @property
-    def _stream(self) -> p3d.istream:
-        return self.__strm
+    def file(self) -> p3d.DatagramInputFile:
+        return self.__fobj
+
+    def __call__(self, f_name: p3d.Filename):
+        assert f_name.exists()
+        self.__root = f_name
+        self.__strm = p3d.IFileStream(self.path)
+        self.__fobj = p3d.DatagramInputFile()
+        assert self.__fobj.open(self.__strm, self.path)
+        return self
 
     def __enter__(self):
         LOG.debug(f'loading scene: {self.path}')
         self.__root.setBinary()
-        assert self.__root.openRead(self._stream)
-        super().__init__(self._stream)
+        assert self.__root.openRead(self.__strm)
+        super().__init__(self.__strm)
         assert super().readable()
         return self
 

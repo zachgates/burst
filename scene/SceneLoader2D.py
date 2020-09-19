@@ -8,14 +8,9 @@ from . import SceneRenderer2D
 
 class SceneLoader2D(SceneLoaderBase):
 
-    def __init__(self, f_name: p3d.Filename):
-        super().__init__(f_name)
-        self.__fobj = p3d.DatagramInputFile()
-        assert self.__fobj.open(self._stream, self.path)
-
     def _unpack(self) -> Generator:
         dg = p3d.Datagram()
-        self.__fobj.getDatagram(dg)
+        self.file.getDatagram(dg)
         dgi = p3d.DatagramIterator(dg)
 
         yield from (
