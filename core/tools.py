@@ -19,8 +19,8 @@ def getRoot() -> burst.p3d.Filename:
 def getTilePath() -> burst.p3d.DSearchPath:
     global _TILESPATH
     if _TILESPATH is None:
-        f_path = burst.p3d.Filename(getRoot(), 'tile/data')
-        _TILESPATH = burst.p3d.DSearchPath(f_path)
+        _TILESPATH = burst.p3d.DSearchPath(
+            burst.p3d.Filename(getRoot(), 'tile/data'))
     return _TILESPATH
 
 
@@ -39,8 +39,8 @@ def loadTileset(f_name: str, **rules):
 def getScenePath() -> burst.p3d.DSearchPath:
     global _SCENEPATH
     if _SCENEPATH is None:
-        f_path = burst.p3d.Filename(getRoot(), 'scene/data')
-        _SCENEPATH = burst.p3d.DSearchPath(f_path)
+        _SCENEPATH = burst.p3d.DSearchPath(
+            burst.p3d.Filename(getRoot(), 'scene/data'))
     return _SCENEPATH
 
 
