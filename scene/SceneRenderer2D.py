@@ -1,3 +1,13 @@
+"""
+The primary rendering logic of a scene, directly related to the User Interface.
+The file includes both the SceneRenderer2D object, and a secondary reference to
+the same, Scene2D.
+"""
+
+
+__all__ = ['SceneRenderer2D', 'Scene2D']
+
+
 class SceneRenderer2D(object):
 
     @classmethod
@@ -37,3 +47,6 @@ class SceneRenderer2D(object):
         np.setTexture(self.tiles.get(index))
         np.node().setName(f'{index}_{self._cm.name}')
         return np
+
+
+Scene2D = SceneRenderer2D

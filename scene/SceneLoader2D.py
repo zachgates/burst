@@ -28,4 +28,4 @@ class SceneLoader2D(burst.core.InputFileManager):
 
     def read(self):
         data = self._unpack()
-        return burst.scene.SceneRenderer2D(*data)
+        return burst.scene.Scene2D(*data)
