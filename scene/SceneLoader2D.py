@@ -1,19 +1,10 @@
-from typing import Generator
+class SceneLoader2D(burst.core.InputManager):
 
-from panda3d import core as p3d
-
-from . import SceneLoaderBase
-from . import SceneRenderer2D
-
-
-class SceneLoader2D(SceneLoaderBase):
-
-    def _unpack(self) -> Generator:
-        dg = p3d.Datagram()
+    def _unpack(self) -> tuple:
+        dg = burst.p3d.Datagram()
         self.file.getDatagram(dg)
-        dgi = p3d.DatagramIterator(dg)
-
-        yield from (
+        dgi = burst.p3d.DatagramIterator(dg)
+        return (
             # scene name
             dgi.getFixedString(0xff),
             # scene resolution
@@ -37,4 +28,4 @@ class SceneLoader2D(SceneLoaderBase):
 
     def read(self):
         data = self._unpack()
-        return SceneRenderer2D(*data)
+        return burst.scene.SceneRenderer2D(*data)

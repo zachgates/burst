@@ -1,26 +1,16 @@
 import math
 
-from typing import Optional
-
-from panda3d import core as p3d
 from direct.directnotify import DirectNotifyGlobal
-
-from ..core import PixelMatrix
-from . import Tile
-from . import AtlasRules
-
-
-LOG = DirectNotifyGlobal.directNotify.newCategory(__name__)
 
 
 class TileSet(dict):
 
     def __init__(self, f_path: str, **rules):
         super().__init__()
-        self.rules = AtlasRules(**rules)
+        self.rules = burst.tile.AtlasRules(**rules)
         if f_path:
             self.atlas = loader.loadTexture(f_path)
-            self.pixel = PixelMatrix(self.atlas)
+            self.pixel = burst.core.PixelMatrix(self.atlas)
         else:
             self.atlas = self.pixel = None
 
@@ -50,7 +40,7 @@ class TileSet(dict):
         if index:
             row = math.ceil(index / self.rules.tile_run.y)
             col = ((index - 1) % self.rules.tile_run.x) + 1
-            off = p3d.LVector2i(
+            off = burst.p3d.LVector2i(
                 x = (row - 1) \
                     * (self.size \
                        * self.rules.tile_run.y \
@@ -77,27 +67,26 @@ class TileSet(dict):
                 px_data += bytes(cell.getXyz())
                 px_data += bytes([cell.getW()])
 
-        return p3d.PTAUchar(px_data)
+        return burst.p3d.PTAUchar(px_data)
 
-    def get(self, index: int) -> Optional[p3d.Texture]:
+    def get(self, index: int) -> burst.p3d.Texture:
         """
         Returns the Texture for the n-th Tile in the TileSet.
         """
         index %= (self.count + 1)
-        name = Tile.getName(self, index)
+        name = burst.tile.Tile.getName(self, index)
 
         if name in self:
-            LOG.debug(f'loading tile from pool: {index}')
-            return self[name]
+            tile = self[name]
         else:
-            LOG.debug(f'loading tile from tilesheet: {index}')
-            tile = self[name] = Tile(name, index)
+            tile = self[name] = burst.tile.Tile(name, index)
             tile.setup2dTexture(
                 self.rules.tile_size.x,
                 self.rules.tile_size.y,
-                p3d.Texture.TUnsignedByte,
-                p3d.Texture.FRgba)
-            tile.setMagfilter(p3d.Texture.FTNearest)
+                burst.p3d.Texture.TUnsignedByte,
+                burst.p3d.Texture.FRgba)
+            tile.setMagfilter(burst.p3d.Texture.FTNearest)
             tile.setRamImage(self.__draw(index))
             tile.compressRamImage()
-            return tile
+
+        return tile

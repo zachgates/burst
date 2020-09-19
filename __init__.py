@@ -1,42 +1,45 @@
+"""
+The global burst singleton object and its metaclass. The namespace of the
+package itself becomes the namespace of the Burst class below.
+"""
+
+__all__ = ['core', 'scene', 'tile']
+
+
 class _Burst(type):
 
     def __new__(cls, name, bases, dct):
         # Use builtins to store the burst singleton.
         import builtins
-
         # Create the global burst object.
         if not hasattr(builtins, 'burst'):
             builtins.burst = super().__new__(cls, name, bases, dct)
-            builtins.burst.attach_tools()
-
+            builtins.burst.attach_modules()
+            builtins.burst.attach_toolset()
         # Only ever return the singleton object.
         return builtins.burst
 
-    def attach_tools(cls):
+    def attach_modules(cls):
+        from importlib import import_module
+        # Hook the burst modules to the global burst object.
+        for name in __all__:
+            setattr(cls, name, import_module(f'burst.{name}'))
+
+    def attach_toolset(cls):
         # The tools module is not exported from core; import it for use here.
         import burst.core.tools
-
         # Hook the core tool functions to the global burst object.
         for func in burst.core.tools.__all__:
             setattr(cls, func.__name__, staticmethod(func))
-
         # Now remove tools from core; limiting use to explicit imports only.
         del burst.core.tools
 
 
 class Burst(metaclass = _Burst):
 
-    """
-    The global burst singleton object. The module namespace becomes the
-    namespace of this class.
-    """
-
-    from panda3d import core as p3d
-    from . import core, scene, tile
-
-
     __file__ = __file__
 
+    from panda3d import core as p3d
 
     p3d.loadPrcFileData(
         """

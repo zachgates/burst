@@ -1,15 +1,13 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from ..core import RuleBase, Rule2D
-
 
 @dataclass
-class AtlasRules(RuleBase):
+class AtlasRules(burst.core.RuleBase):
 
-    tile_size: Rule2D = None
-    tile_run: Rule2D = None
-    tile_offset: Rule2D = None
+    tile_size: burst.core.Rule2D = None
+    tile_run: burst.core.Rule2D = None
+    tile_offset: burst.core.Rule2D = None
 
     def _typeCheck(self, name, type_):
         attr = getattr(self, name)

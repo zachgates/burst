@@ -1,7 +1,4 @@
-from panda3d import core as p3d
-
-
-class Tile(p3d.Texture):
+class Tile(burst.p3d.Texture):
 
     _NAMEPLATE = 'tex:{0}:ref:{1}'
 

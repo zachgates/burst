@@ -3,6 +3,9 @@ import typing
 from dataclasses import dataclass, astuple
 
 
+__all__ = ['RuleBase', 'Rule2D', 'Rule3D']
+
+
 class RuleBase:
     """
     Base class for dataclasses representing strict, typed rules.

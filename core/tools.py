@@ -1,26 +1,30 @@
-from panda3d import core as p3d
+"""
+The core tool functions, mostly for path-finding; also for loading files.
+These functions get hooked to the global burst singleton object.
+"""
 
 
 _TILESPATH = None
 _SCENEPATH = None
 
 
-def getRoot() -> p3d.Filename:
-    f_path = p3d.Filename.fromOsSpecific(burst.__file__)
-    return p3d.Filename(f_path.getDirname())
+def getRoot() -> burst.p3d.Filename:
+    f_path = burst.p3d.Filename.fromOsSpecific(burst.__file__)
+    return burst.p3d.Filename(f_path.getDirname())
 
 
 # Core TileSet Tools
 
 
-def getTilePath() -> p3d.DSearchPath:
+def getTilePath() -> burst.p3d.DSearchPath:
     global _TILESPATH
     if _TILESPATH is None:
-        _TILESPATH = p3d.DSearchPath(p3d.Filename(getRoot(), 'tile/data'))
+        f_path = burst.p3d.Filename(getRoot(), 'tile/data')
+        _TILESPATH = burst.p3d.DSearchPath(f_path)
     return _TILESPATH
 
 
-def findTileset(f_name: str) -> p3d.Filename:
+def findTileset(f_name: str) -> burst.p3d.Filename:
     return getTilePath().findFile(f_name)
 
 
@@ -32,14 +36,15 @@ def loadTileset(f_name: str, **rules):
 # Core Scene Tools
 
 
-def getScenePath() -> p3d.DSearchPath:
+def getScenePath() -> burst.p3d.DSearchPath:
     global _SCENEPATH
     if _SCENEPATH is None:
-        _SCENEPATH = p3d.DSearchPath(p3d.Filename(getRoot(), 'scene/data'))
+        f_path = burst.p3d.Filename(getRoot(), 'scene/data')
+        _SCENEPATH = burst.p3d.DSearchPath(f_path)
     return _SCENEPATH
 
 
-def findScene2D(f_name: str) -> p3d.Filename:
+def findScene2D(f_name: str) -> burst.p3d.Filename:
     return getScenePath().findFile(f_name)
 
 
