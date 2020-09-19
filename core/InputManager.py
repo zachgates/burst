@@ -1,4 +1,3 @@
-from direct.directnotify import DirectNotifyGlobal
 from direct.stdpy.file import StreamIOWrapper
 
 

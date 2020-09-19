@@ -1,7 +1,5 @@
 import math
 
-from direct.directnotify import DirectNotifyGlobal
-
 
 class TileSet(dict):
 
