@@ -1,7 +1,4 @@
-from . import core, scene, tile
-
-
-class Burst(type):
+class _Burst(type):
 
     def __new__(cls, name, bases, dct):
         # Use builtins to store the burst singleton.
@@ -27,10 +24,19 @@ class Burst(type):
         del burst.core.tools
 
 
-class Burst(metaclass = Burst):
+class Burst(metaclass = _Burst):
 
-    # Hook panda3d.core to burst.p3d
+    """
+    The global burst singleton object. The module namespace becomes the
+    namespace of this class.
+    """
+
     from panda3d import core as p3d
+    from . import core, scene, tile
+
+
+    __file__ = __file__
+
 
     p3d.loadPrcFileData(
         """
@@ -49,6 +55,3 @@ class Burst(metaclass = Burst):
         textures-square none
         textures-power-2 none
         """)
-
-
-__all__ = [core, scene, tile, Burst]
