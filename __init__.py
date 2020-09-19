@@ -32,7 +32,7 @@ class _Burst(type):
         for func in Burst.core.tools.__all__:
             setattr(cls, func.__name__, staticmethod(func))
         # Now remove tools from core; limiting use to explicit imports only.
-        del burst.core.tools
+        del Burst.core.tools
 
 
 class Burst(metaclass = _Burst):
