@@ -3,7 +3,10 @@ class SceneRenderer2D(object):
     @classmethod
     def makeAtlas(cls, name: str, data: bytes, size: tuple):
         tex = burst.p3d.Texture()
-        tex.setup2dTexture(*size, burst.p3d.Texture.TUnsignedByte, burst.p3d.Texture.FRgba)
+        tex.setup2dTexture(
+            *size,
+            burst.p3d.Texture.TUnsignedByte,
+            burst.p3d.Texture.FRgba)
         tex.setFullpath(name)
         tex.setName(name)
         tex.setRamImage(data)

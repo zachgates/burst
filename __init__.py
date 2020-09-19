@@ -23,13 +23,13 @@ class _Burst(type):
         from importlib import import_module
         # Hook the burst modules to the global burst object.
         for name in __all__:
-            setattr(cls, name, import_module(f'burst.{name}'))
+            setattr(cls, name, import_module(f'Burst.{name}'))
 
     def attach_toolset(cls):
         # The tools module is not exported from core; import it for use here.
-        import burst.core.tools
+        import Burst.core.tools
         # Hook the core tool functions to the global burst object.
-        for func in burst.core.tools.__all__:
+        for func in Burst.core.tools.__all__:
             setattr(cls, func.__name__, staticmethod(func))
         # Now remove tools from core; limiting use to explicit imports only.
         del burst.core.tools
