@@ -1,11 +1,19 @@
 import math
 
+from dataclasses import dataclass
+
 
 class TileSet(dict):
 
+    @dataclass(init=False)
+    class Rules(burst.core.RuleBase):
+        tile_size: burst.core.Rule2D = None
+        tile_run: burst.core.Rule2D = None
+        tile_offset: burst.core.Rule2D = None
+
     def __init__(self, f_path: str, **rules):
         super().__init__()
-        self.rules = burst.tile.AtlasRules(**rules)
+        self.rules = TileSet.Rules(**rules)
         if f_path:
             self.atlas = loader.loadTexture(f_path)
             self.pixel = burst.core.PixelMatrix(self.atlas)
