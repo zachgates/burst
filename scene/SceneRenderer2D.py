@@ -11,7 +11,7 @@ __all__ = ['SceneRenderer2D', 'Scene2D']
 class SceneRenderer2D(object):
 
     @classmethod
-    def makeAtlas(cls, name: str, data: bytes, size: tuple):
+    def make_atlas(cls, name: str, data: bytes, size: tuple):
         tex = burst.p3d.Texture()
         tex.setup2dTexture(
             *size,
@@ -27,17 +27,17 @@ class SceneRenderer2D(object):
                  atlas_name: str, atlas_data: bytes, atlas_size: tuple,
                  atlas_rules: dict):
         super().__init__()
-        self.adjustWindow(scene_name, scene_res)
-        self.makeAtlas(atlas_name, atlas_data, atlas_size)
+        self.adjust_window(scene_name, scene_res)
+        self.make_atlas(atlas_name, atlas_data, atlas_size)
         self.tiles = burst.tile.TileSet(atlas_name, **atlas_rules)
 
-    def adjustWindow(self, scene_name: str, scene_res: tuple):
+    def adjust_window(self, scene_name: str, scene_res: tuple):
         prop = burst.p3d.WindowProperties()
         prop.setTitle(scene_name)
         prop.setSize(scene_res)
         base.win.requestProperties(prop)
 
-    def makeTile(self, index: int) -> burst.p3d.NodePath:
+    def make_tile(self, index: int) -> burst.p3d.NodePath:
         # TEMP
         if not hasattr(self, '_cm'):
             self._cm = burst.p3d.CardMaker(f'{self.tiles.name}')

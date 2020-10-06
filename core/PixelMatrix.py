@@ -65,7 +65,9 @@ class PixelMatrix(object):
         """
         return ((point.x - 1) * self.width) + point.y
 
-    def get(self, point: burst.p3d.LPoint2i = None, index: int = 0
+    def get(self,
+            point: burst.p3d.LPoint2i = None,
+            index: int = 0,
             ) -> burst.p3d.LVector4i:
         """
         Returns the sub-values of a pixel at the supplied index or point.
