@@ -23,8 +23,8 @@ async def main(src_path, modules):
         if name in modules:
             process = await asyncio.create_subprocess_exec(
                 sys.executable, '-m', f'Burst.test.{name}',
-                stdout = asyncio.subprocess.DEVNULL,
-                stderr = asyncio.subprocess.DEVNULL,
+                # stdout = asyncio.subprocess.DEVNULL,
+                # stderr = asyncio.subprocess.DEVNULL,
                 cwd = burst.get_root().get_dirname())
             await process.wait()
 
