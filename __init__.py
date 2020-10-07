@@ -41,7 +41,7 @@ class Burst(metaclass = _Burst):
 
     from panda3d import core as p3d
 
-    p3d.loadPrcFileData(
+    p3d.load_prc_file_data(
         """
         Burst module initial PRC data:
             - win-origin: puts the window at the center of the screen.

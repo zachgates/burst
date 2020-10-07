@@ -5,6 +5,8 @@ from dataclasses import dataclass
 
 class TileSet(dict):
 
+    _NAMEPLATE = 'tex:{0}:ref:{1}'
+
     @dataclass(init=False)
     class Rules(burst.core.RuleBase):
         tile_size: burst.core.Rule2D = None
@@ -13,16 +15,16 @@ class TileSet(dict):
 
     def __init__(self, f_path: str, **rules):
         super().__init__()
-        self.rules = TileSet.Rules(**rules)
+        self.rules = self.Rules(**rules)
         if f_path:
-            self.atlas = loader.loadTexture(f_path)
+            self.atlas = loader.load_texture(f_path)
             self.pixel = burst.core.PixelMatrix(self.atlas)
         else:
             self.atlas = self.pixel = None
 
     @property
     def name(self) -> str:
-        return f"<{self.atlas.getName() if self.atlas else 'empty'}>"
+        return f"<{self.atlas.get_name() if self.atlas else 'empty'}>"
 
     @property
     def size(self) -> int:
@@ -70,29 +72,32 @@ class TileSet(dict):
         px_data = bytearray()
         for row in px_rows[::-1]:
             for cell in row:
-                px_data += bytes(cell.getXyz())
-                px_data += bytes([cell.getW()])
+                px_data += bytes(cell.get_xyz())
+                px_data += bytes([cell.get_w()])
 
         return burst.p3d.PTAUchar(px_data)
+
+    def get_child_name(self, index: int) -> str:
+        return self._NAMEPLATE.format(self.name, index)
 
     def get(self, index: int) -> burst.p3d.Texture:
         """
         Returns the Texture for the n-th Tile in the TileSet.
         """
         index %= (self.count + 1)
-        name = burst.tile.Tile.getName(self, index)
+        name = self.get_child_name(index)
 
         if name in self:
             tile = self[name]
         else:
             tile = self[name] = burst.tile.Tile(name, index)
-            tile.setup2dTexture(
+            tile.setup_2d_texture(
                 self.rules.tile_size.x,
                 self.rules.tile_size.y,
-                burst.p3d.Texture.TUnsignedByte,
-                burst.p3d.Texture.FRgba)
-            tile.setMagfilter(burst.p3d.Texture.FTNearest)
-            tile.setRamImage(self.__draw(index))
-            tile.compressRamImage()
+                burst.p3d.Texture.T_unsigned_byte,
+                burst.p3d.Texture.F_rgba)
+            tile.set_magfilter(burst.p3d.Texture.FT_nearest)
+            tile.set_ram_image(self.__draw(index))
+            tile.compress_ram_image()
 
         return tile

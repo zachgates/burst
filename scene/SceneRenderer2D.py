@@ -13,14 +13,14 @@ class SceneRenderer2D(object):
     @classmethod
     def make_atlas(cls, name: str, data: bytes, size: tuple):
         tex = burst.p3d.Texture()
-        tex.setup2dTexture(
+        tex.setup_2d_texture(
             *size,
-            burst.p3d.Texture.TUnsignedByte,
-            burst.p3d.Texture.FRgba)
-        tex.setFullpath(name)
-        tex.setName(name)
-        tex.setRamImage(data)
-        burst.p3d.TexturePool.addTexture(tex)
+            burst.p3d.Texture.T_unsigned_byte,
+            burst.p3d.Texture.F_rgba)
+        tex.set_fullpath(name)
+        tex.set_name(name)
+        tex.set_ram_image(data)
+        burst.p3d.TexturePool.add_texture(tex)
 
     def __init__(self,
                  scene_name: str, scene_res: tuple,
@@ -33,19 +33,19 @@ class SceneRenderer2D(object):
 
     def adjust_window(self, scene_name: str, scene_res: tuple):
         prop = burst.p3d.WindowProperties()
-        prop.setTitle(scene_name)
-        prop.setSize(scene_res)
-        base.win.requestProperties(prop)
+        prop.set_title(scene_name)
+        prop.set_size(scene_res)
+        base.win.request_properties(prop)
 
     def make_tile(self, index: int) -> burst.p3d.NodePath:
         # TEMP
         if not hasattr(self, '_cm'):
             self._cm = burst.p3d.CardMaker(f'{self.tiles.name}')
-            self._cm.setFrameFullscreenQuad()
+            self._cm.set_frame_fullscreen_quad()
 
-        np = hidden.attachNewNode(self._cm.generate())
-        np.setTexture(self.tiles.get(index))
-        np.node().setName(f'{index}_{self._cm.name}')
+        np = hidden.attach_new_node(self._cm.generate())
+        np.set_texture(self.tiles.get(index))
+        np.node().set_name(f'{index}_{self._cm.name}')
         return np
 
 

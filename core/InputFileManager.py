@@ -8,7 +8,7 @@ class InputFileManager(StreamIOWrapper):
 
     @property
     def path(self) -> str:
-        return self.__root.getFullpath()
+        return self.__root.get_fullpath()
 
     @property
     def file(self) -> burst.p3d.DatagramInputFile:
@@ -23,8 +23,8 @@ class InputFileManager(StreamIOWrapper):
         return self
 
     def __enter__(self):
-        self.__root.setBinary()
-        assert self.__root.openRead(self.__strm)
+        self.__root.set_binary()
+        assert self.__root.open_read(self.__strm)
         super().__init__(self.__strm)
         assert super().readable()
         return self
@@ -41,4 +41,5 @@ class InputFileManager(StreamIOWrapper):
             return b''
 
     def load(self):
+        """Implement in superclass."""
         return NotImplemented

@@ -2,29 +2,29 @@ class SceneLoader2D(burst.core.InputFileManager):
 
     def _unpack(self) -> tuple:
         dg = burst.p3d.Datagram()
-        self.file.getDatagram(dg)
+        self.file.get_datagram(dg)
         dgi = burst.p3d.DatagramIterator(dg)
         return (
             # scene name
-            dgi.getFixedString(0xff),
+            dgi.get_fixed_string(0xff),
             # scene resolution
-            self._unpackRule(dgi),
+            self._unpack_rule(dgi),
             # atlas name
-            dgi.getFixedString(0xff),
+            dgi.get_fixed_string(0xff),
             # atlas ram image
-            dgi.getBlob32(),
+            dgi.get_blob32(),
             # atlas size
-            self._unpackRule(dgi),
+            self._unpack_rule(dgi),
             # atlas rules
             {
-                'tile_size': self._unpackRule(dgi),
-                'tile_run': self._unpackRule(dgi),
-                'tile_offset': self._unpackRule(dgi),
+                'tile_size': self._unpack_rule(dgi),
+                'tile_run': self._unpack_rule(dgi),
+                'tile_offset': self._unpack_rule(dgi),
             },
         )
 
-    def _unpackRule(self, dgi) -> tuple:
-        return (dgi.getUint16(), dgi.getUint16())
+    def _unpack_rule(self, dgi) -> tuple:
+        return (dgi.get_uint16(), dgi.get_uint16())
 
     def read(self):
         data = self._unpack()

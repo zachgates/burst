@@ -18,9 +18,9 @@ def SpriteFrame(scene, name: str, frames = []) -> burst.p3d.NodePath:
 
 
 if __name__ == '__main__':
-    scene = burst.loadScene2D('sample.burst')
-    actor_node = SpriteFrame(scene, 'Actor-Foo', [275, 279, 277, 278])
-    actor_node.setFrameRate(12)
-    actor_node.pingpong(True)
-    actor_NP = aspect2d.attachNewNode(actor_node)
+    scene = burst.load_scene2d('sample.burst')
+    sprite = SpriteFrame(scene, 'Actor-Foo', [275, 279, 277, 278])
+    sprite.set_frame_rate(12)
+    sprite.pingpong(True)
+    aspect2d.attach_new_node(sprite)
     base.run()
