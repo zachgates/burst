@@ -1,7 +1,8 @@
 #!/usr/local/bin/python3.9
 
 import collections
-import re
+
+from panda3d import core as p3d
 
 from direct.gui.DirectButton import DirectButton
 from direct.gui import DirectGuiGlobals as DGG
@@ -10,11 +11,13 @@ from direct.showbase.ShowBase import ShowBase
 
 from src import nodes
 
+from src.control.FileManager import FileManager
 
-STORAGE_PATH = 'palettes/storage/streets.bam'
+
+STORAGE_PATH = 'palettes/storage/walls'
 
 
-class StreetCarousel(ShowBase):
+class WallCarousel(ShowBase):
 
     def makeArrows(self):
         controls = loader.loadModel('shuttle_controls.egg')
@@ -49,7 +52,9 @@ class StreetCarousel(ShowBase):
             )
 
     def makeScene(self):
-        self.street_pieces = collections.deque()
+        self.wall_maker = p3d.CardMaker('wall_maker')
+        self.wall_maker.setFrame(0, 1, 0, 1)
+        self.wall_pieces = collections.deque()
         self.current_piece = None
         self.current_piece_label = DirectLabel(
             parent = aspect2d,
@@ -57,34 +62,45 @@ class StreetCarousel(ShowBase):
             scale = (1.0 / 10, 1, 1.0 / 8),
             )
 
-        for node in loader.loadModel(STORAGE_PATH).getChildren():
-            if match := re.fullmatch('^street_(.*)$', node.getName()):
-                self.street_pieces.append((match.group(1), node))
+        files = list(FileManager().load(STORAGE_PATH))
+        while files:
+            tex_path = files.pop(0)
 
-        self.camera.setPos(0, -6, 210)
-        self.camera.setHpr(0, -90, 0)
-        self.disableMouse()
+            if tex_path.fname.endswith('_a'):
+                alpha_path = files.pop(0).fpath
+            else:
+                alpha_path = None
+
+            piece = self.makeWall(tex_path.fpath, alpha_path)
+            self.wall_pieces.append(piece)
 
         self.accept('arrow_right', self.rotate, extraArgs = [-1])
         self.accept('arrow_left', self.rotate, extraArgs = [1])
         self.rotate(-1)
 
+    def makeWall(self, tex_path, alpha_path):
+        tex = loader.loadTexture(tex_path, alpha_path)
+        frame = hidden.attachNewNode(self.wall_maker.generate())
+        frame.setName(tex.getName())
+        frame.setTexture(tex)
+        frame.setTransparency(p3d.TransparencyAttrib.MBinary)
+        frame.setTwoSided(True)
+        return frame
+
     def rotate(self, direction: int):
-        self.street_pieces.rotate(direction)
+        self.wall_pieces.rotate(direction)
 
         if self.current_piece:
             self.current_piece.removeNode()
             del self.current_piece
 
-        name, node = self.street_pieces[0]
-        self.current_piece_label.setText(name)
-        self.current_piece = nodes.AngularNode(render, np = node)
-        self.current_piece.setAxis(nodes.A_INTERNAL)
-        self.current_piece.setPos(-self.current_piece.getTightCenter())
+        self.current_piece = self.wall_pieces[0].copyTo(render2d)
+        self.current_piece.setPos(-0.5, 0, -0.5)
+        self.current_piece_label.setText(self.current_piece.getName())
 
 
 if __name__ == '__main__':
-    app = StreetsCarousel()
+    app = WallCarousel()
     app.makeArrows()
     app.makeScene()
     app.run()
