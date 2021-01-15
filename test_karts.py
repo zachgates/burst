@@ -7,8 +7,6 @@ from direct.showbase.ShowBase import ShowBase
 from src import nodes
 
 
-MODEL_KART_PATH = 'phase_6/models/karting/Kart3_Final.bam'
-
 SCALE_INTERVAL = 1.0 / 55
 SCALE_FACTOR = 2.75
 
@@ -16,7 +14,7 @@ SCALE_FACTOR = 2.75
 class KartDisplay(ShowBase):
 
     def makeScene(self):
-        kart_model = loader.loadModel(MODEL_KART_PATH)
+        kart_model = loader.loadModel('kart.bam')
         kart_model.setH(90)
 
         for index in range(5):
