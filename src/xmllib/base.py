@@ -1,6 +1,6 @@
 from xml.etree import ElementTree
 
-from .base import File
+from ..base import File
 
 
 class XMLFile(File):
