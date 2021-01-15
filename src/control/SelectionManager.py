@@ -16,7 +16,7 @@ class SelectionManager(DirectObject):
         self.__coll_trav = CollisionTraverser('trav-%s' % self.getNetTag())
         self.__coll_handler = CollisionHandlerQueue()
 
-        self.__selected = nodes.AngularNode(render, 'selection')
+        self.__selected = nodes.AngularNode(render, name='selection')
         self.__selected.setAxis(nodes.A_INTERNAL)
         self.__selected.setColor(1, 0, 0)
 

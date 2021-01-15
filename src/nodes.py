@@ -21,11 +21,12 @@ class AngularNode(DirectObject, NodePath):
         pyNP = np.getPythonTag(cls.__name__)
         return (pyNP if isinstance(pyNP, cls) else None)
 
-    def __init__(self, parentNP=None, name=None, np=None, mode=N_ORIG):
+    def __init__(self, parentNP=None, np=None, name=None, mode=N_COPY):
         DirectObject.__init__(self)
         NodePath.__init__(self,
-                          name or self.__class__.__name__ + '-%s' % \
-                          ('empty' if np is None else np.getName()))
+                          (name or self.__class__.__name__)
+                          + ('-%s' % ('empty' if np is None else np.getName())
+                             if np is not None else ''))
         self.setPythonTag(self.__class__.__name__, self)
 
         self.__axis = A_EXTERNAL
@@ -44,10 +45,14 @@ class AngularNode(DirectObject, NodePath):
 
         self.__nextParent = self.getParent()
         if np is not None:
-            self.attach(np, mode)
+            if isinstance(np, self.__class__):
+                self.attach(np.__nodes, mode)
+                self.setTransform(np.getTransform())
+            else:
+                self.attach(np, mode)
 
     def __iter__(self):
-        for np in self.__nodes.getChildren():
+        for np in self.getChildren():
             yield np
 
     # AngularNode helpers
@@ -76,9 +81,10 @@ class AngularNode(DirectObject, NodePath):
 
     def attach(self, np, mode=N_ORIG):
         if mode == N_ORIG:
-            np = self.getPyObj(np)
-            if np:
-                np.__nextParent = np.getParent()
+            pyNP = self.getPyObj(np)
+            if pyNP:
+                pyNP.__nextParent = pyNP.getParent()
+                np = pyNP
         elif mode == N_INST:
             np = np.instanceTo(self.getParent())
         elif mode == N_COPY:
@@ -125,25 +131,27 @@ class AngularNode(DirectObject, NodePath):
 
     def setTransform(self,
                      axis=None,
-                     topPos=None, topRot=None, topScale=None,
-                     botPos=None, botRot=None, botScale=None,
+                     topPos=None, topHpr=None, topScale=None,
+                     botPos=None, botHpr=None, botScale=None,
                      otherNP=None):
         try:
-            axis, topPos, topRot, topScale, botPos, botRot, botScale = axis
-        except TypeError:
-            self.notify.error('invalid transform')
-            return
+            axis, topPos, topHpr, topScale, botPos, botHpr, botScale = axis
+        except:
+            pass
 
         if otherNP is None: otherNP = render
         if axis: self.setAxis(axis)
-        if topPos: self.setPos(otherNP, topPos)
-        if topRot: self.setHpr(otherNP, topRot)
-        if topScale: self.setScale(otherNP, topScale)
-        if botPos: self.__nodes.setPos(botPos)
-        if botRot: self.__nodes.setPos(botRot)
-        if botScale: self.__nodes.setScale(botScale)
+        if topPos: self.setPos(*topPos)
+        if topHpr: self.setHpr(*topHpr)
+        if topScale: self.setScale(*topScale)
+        if botPos: self.__nodes.setPos(*botPos)
+        if botHpr: self.__nodes.setHpr(*botHpr)
+        if botScale: self.__nodes.setScale(*botScale)
 
     # NodePath overloads
+
+    def getChildren(self):
+        return self.__nodes.getChildren()
 
     def detachNode(self):
         pyParentNP = self.getPyObj(self.getParent())

@@ -24,7 +24,6 @@ class File(object):
 
     @classmethod
     def find_class_by_fext(cls, fext):
-        
         for type_ in type.__subclasses__(cls):
             if type_.check_fext(fext):
                 return type_
