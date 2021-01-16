@@ -1,6 +1,6 @@
-import uuid
+#!/usr/local/bin/python3.9
 
-from panda3d.core import *
+from panda3d import core as p3d
 
 from direct.showbase.DirectObject import DirectObject
 
@@ -9,116 +9,108 @@ from .. import nodes
 
 class SelectionManager(DirectObject):
 
-    def __init__(self, tag=None):
-        DirectObject.__init__(self)
-        self.__tag = str(tag) or uuid.uuid4().hex
+    def __init__(self, tag: str = None):
+        super().__init__(self)
+        self._mgr_tag = str(tag)
 
-        self.__coll_trav = CollisionTraverser('trav-%s' % self.getNetTag())
-        self.__coll_handler = CollisionHandlerQueue()
+        self.__c_ray = CollisionRay()
+        self.__c_trav = CollisionTraverser('trav-%s' % self.tag)
+        self.__c_handler = CollisionHandlerQueue()
 
-        self.__selected = nodes.AngularNode(render, name='selection')
-        self.__selected.setAxis(nodes.A_INTERNAL)
-        self.__selected.setColor(1, 0, 0)
+        mask = GeomNode.get_default_collide_mask()
+        self.__c_node = CollisionNode('mouse-%s' % self.tag)
+        self.__c_node.set_from_collide_mask(mask)
+        self.__c_node.add_solid(self.__c_ray)
 
-        self.__selector_ray = CollisionRay()
-        self.__selector_node = CollisionNode('mouse-%s' % self.getNetTag())
-        self.__selector_node.setFromCollideMask(GeomNode.getDefaultCollideMask())
-        self.__selector_node.addSolid(self.__selector_ray)
+        cam_node = base.camera.attachNewNode(self.__c_node)
+        self.__c_trav.addCollider(cam_node, self.__c_handler)
 
-        np = camera.attachNewNode(self.__selector_node)
-        self.__coll_trav.addCollider(np, self.__coll_handler)
+        self.__selection = nodes.AngularNode(render, name = 'selection')
+        self.__selection.setAxis(nodes.A_INTERNAL)
+        self.__selection.setColor(1, 0, 0)
 
-        self.__resetEvents()
+    def get_group_name(self):
+        return self._mgr_tag
 
-    def acceptAll(self):
-        self.acceptSelectors()
+    getGroupName = get_group_name
+    group = property(get_group_name)
 
-    def acceptSelectors(self):
-        # mouse handlers
-        self.accept('mouse1', self.__mouseSelect)
-        self.accept('shift-mouse1', self.__mouseSelect, [True])
-        # keyboard handlers
-        self.accept('control-a', self.__selectAll)
+    def get_selection(self):
+        return self.__selection
+
+    getSelection = get_selection
+    selection = property(get_selection)
+
+    def accept_all(self):
+        self.accept_selection_events()
+
+    acceptAll = accept_all
+
+    def accept_selection_events(self):
+        self.accept('mouse1', self.__mouse_select)
+        self.accept('shift-mouse1', self.__mouse_select, [True])
+        self.accept('control-a', self.__select_all)
         self.accept('control-d', self.reset)
-        self.accept('control-l', self.__resetEvents, [True])
-        # deletion
-        self.accept('control-backspace', self.__deleteSelection)
+        self.accept('control-backspace', self.__delete_selection)
 
-    def __resetEvents(self, wantAllEvents=False):
-        self.ignoreAll()
+    acceptSelectionEvents = accept_selection_events
 
-        if config.GetBool('events-locked', True):
-            wantAllEvents = bool(self.getAllAccepting()) or wantAllEvents
+    def __select_all(self):
+        self.reset()
+        for node in render.find_all_matches('**/=' + self.group):
+            self.select(node)
 
-        if wantAllEvents:
-            self.acceptAll()
-        else:
-            self.acceptSelectors()
+    def __delete_selection(self):
+        for node in self.selection:
+            node.remove_node()
 
-    def getNetTag(self):
-        return self.__tag
-
-    def getSelection(self):
-        return self.__selected
-
-    def getSelectedKeys(self):
-        return self.getSelection().getKeys()
-
-    def isSelected(self, np):
-        if np:
-            return np.getKey() in self.getSelectedKeys()
+    def __contains__(self, node: p3d.NodePath):
+        if node:
+            return node.getKey() in self.getSelection().getKeys()
         else:
             return False
 
-    def select(self, np):
-        return self.__selected.attach(np)
+    is_selected = isSelected = __contains__
 
-    def deselect(self, np):
-        return np.detachNode()
+    def select(self, node):
+        return self.__selection.attach(node)
+
+    def deselect(self, node):
+        return node.detach_node()
 
     def reset(self):
-        self.__resetEvents()
-        for np in self.getSelection():
-            pyNP = nodes.AngularNode.getPyObj(np)
+        for node in self.selection:
+            pyNP = nodes.AngularNode.getPyObj(node)
             self.deselect(pyNP)
 
-    def __getNodeAtMouse(self):
-        if not base.mouseWatcherNode.hasMouse():
-            return None
-
-        mpos = base.mouseWatcherNode.getMouse()
-        self.__selector_ray.setFromLens(base.camNode, mpos.getX(), mpos.getY())
-        self.__coll_trav.traverse(render)
-
-        if self.__coll_handler.getNumEntries() > 0:
-            self.__coll_handler.sortEntries()
-            np = self.__coll_handler.getEntry(0).getIntoNodePath()
-            np = np.findNetTag(self.getNetTag())
-            np = nodes.AngularNode.getPyObj(np)
-        else:
-            np = None
-
-        return np
-
-    def __mouseSelect(self, cont=False):
-        np = self.__getNodeAtMouse()
-        if not np:
-            if config.GetBool('empty-click-reset', True):
+    def __mouse_select(self, append: bool = False):
+        node = self.__get_node_at_mouse()
+        if not node:
+            if p3d.ConfigVariableBool('empty-click-reset', True):
                 self.reset()
             return
 
-        if cont and self.isSelected(np):
-            self.deselect(np)
-        elif self.isSelected(np):
+        if append and self.is_selected(node):
+            self.deselect(node)
+        elif self.is_selected(node):
             pass
         else:
-            self.select(np)
+            self.select(node)
 
-    def __selectAll(self):
-        self.reset()
-        for np in render.findAllMatches('**/=' + self.getNetTag()):
-            self.select(np)
+    def __get_node_at_mouse(self):
+        if not base.mouse_watcher_node.has_mouse():
+            return None
 
-    def __deleteSelection(self):
-        for np in self.getSelection():
-            np.removeNode()
+        mpos = base.mouse_watcher_node.get_mouse()
+        self.__c_ray.set_from_lens(base.cam_node, mpos.get_x(), mpos.get_y())
+        self.__c_trav.traverse(render)
+
+        if self.__c_handler.get_num_entries() > 0:
+            self.__c_handler.sort_entries()
+            node = self.__c_handler.get_entry(0).get_into_node_path()
+            node = node.findNetTag(self.group)
+            node = nodes.AngularNode.getPyObj(node)
+        else:
+            node = None
+
+        return node
