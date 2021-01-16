@@ -154,4 +154,4 @@ class ObjectManager(SelectionManager):
         scale = self.get_selection().get_scale()
         vector = 1.0 + vector_map.get(event_name, 0.0)
         self.get_selection().set_scale(scale * vector)
-        self.get_selection()._readjustCenter()
+        self.get_selection()._readjust_center()

@@ -22,12 +22,12 @@ class SelectionManager(DirectObject):
         self.__c_node.set_from_collide_mask(mask)
         self.__c_node.add_solid(self.__c_ray)
 
-        cam_node = base.camera.attachNewNode(self.__c_node)
-        self.__c_trav.addCollider(cam_node, self.__c_handler)
+        cam_node = base.camera.attach_new_node(self.__c_node)
+        self.__c_trav.add_collider(cam_node, self.__c_handler)
 
         self.__selection = AngularNode(parent = render, name = 'selection')
-        self.__selection.setAxis(A_INTERNAL)
-        self.__selection.setColor(1, 0, 0)
+        self.__selection.set_axis(A_INTERNAL)
+        self.__selection.set_color(1, 0, 0)
 
     def get_group_name(self):
         return self._mgr_tag
@@ -60,7 +60,7 @@ class SelectionManager(DirectObject):
 
     def __contains__(self, node: p3d.NodePath):
         if node:
-            return node.getKey() in self.getSelection().getKeys()
+            return node.getKey() in self.get_selection().getKeys()
         else:
             return False
 
@@ -74,7 +74,7 @@ class SelectionManager(DirectObject):
 
     def reset(self):
         for node in self.selection:
-            pyNP = AngularNode.getPyObj(node)
+            pyNP = AngularNode.get_class_tag(node)
             self.deselect(pyNP)
 
     def __mouse_select(self, append: bool = False):
@@ -102,8 +102,8 @@ class SelectionManager(DirectObject):
         if self.__c_handler.get_num_entries() > 0:
             self.__c_handler.sort_entries()
             node = self.__c_handler.get_entry(0).get_into_node_path()
-            node = node.findNetTag(self.group)
-            node = AngularNode.getPyObj(node)
+            node = node.find_net_tag(self.group)
+            node = AngularNode.get_class_tag(node)
         else:
             node = None
 

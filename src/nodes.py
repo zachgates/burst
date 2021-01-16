@@ -22,8 +22,8 @@ class AngularNode(DirectObject, p3d.NodePath):
     notify = DirectNotifyGlobal.directNotify.newCategory('AngularNode')
 
     @classmethod
-    def getPyObj(cls, node: p3d.NodePath):
-        obj = node.getPythonTag(cls.__name__)
+    def get_class_tag(cls, node: p3d.NodePath):
+        obj = node.get_python_tag(cls.__name__)
         return (obj if isinstance(obj, cls) else None)
 
     def __init__(self,
@@ -38,195 +38,197 @@ class AngularNode(DirectObject, p3d.NodePath):
                               ((prefix if prefix is not None
                                 else f'{self.__class__.__name__}:')
                                +
-                               (('empty' if node is None else node.getName())
+                               (('empty' if node is None else node.get_name())
                                 if node is not None else ''))
                               )
 
-        self.setPythonTag(self.__class__.__name__, self)
+        self.set_python_tag(self.__class__.__name__, self)
 
         self.__axis = A_EXTERNAL
-        self.__center = self.attachNewNode('center')
-        self.__nodes = self.attachNewNode('nodes')
-        self.__nextParent = hidden
+        self.__center = self.attach_new_node('center')
+        self.__nodes = self.attach_new_node('nodes')
+        self.__next_parent = hidden
 
         if parent is None:
             parent = hidden
 
-        obj = self.getPyObj(parent)
+        obj = self.get_class_tag(parent)
         if obj:
             obj.attach(self)
         else:
-            self.reparentTo(parent)
+            self.reparent_to(parent)
 
-        self.__nextParent = self.getParent()
+        self.__next_parent = self.get_parent()
 
         if node is not None:
             if isinstance(node, self.__class__):
                 self.attach(node.__nodes, mode)
-                self.setTransform(node.getTransform())
+                self.set_transform(node.get_transform())
             else:
                 self.attach(node, mode)
 
-    def __iter__(self) -> Iterator:
-        for np in self.getChildren():
-            yield np
+    def __iter__(self) -> Iterator[p3d.NodePath]:
+        for node in self.get_children():
+            yield node
 
     # AngularNode helpers
 
-    def getDimensions(self) -> p3d.Point3:
-        bounds = self.getTightBounds()
+    def get_dimensions(self) -> p3d.Point3:
+        bounds = self.get_tight_bounds()
         if bounds:
-            min_, max_ = self.getTightBounds()
+            min_, max_ = self.get_tight_bounds()
             return max_ - min_
         else:
             return p3d.Point3.zero()
 
-    def getCenter(self) -> p3d.Point3:
-        return self.__nodes.getBounds().getCenter()
+    def get_center(self) -> p3d.Point3:
+        return self.__nodes.get_bounds().get_center()
 
-    def getTightCenter(self) -> p3d.Point3:
-        bounds = self.getTightBounds()
+    def get_tight_center(self) -> p3d.Point3:
+        bounds = self.get_tight_bounds()
         if bounds:
             min_, max_ = bounds
-            return min_ + (self.getDimensions() / 2)
+            return min_ + (self.get_dimensions() / 2)
         else:
             return p3d.Point3.zero()
 
-    def _readjustCenter(self) -> p3d.Point3:
-        self.__center.setPos(self.getCenter())
+    def _readjust_center(self) -> p3d.Point3:
+        self.__center.set_pos(self.get_center())
 
     def attach(self, node: p3d.NodePath, mode: int = N_ORIG):
         if mode == N_ORIG:
-            obj = self.getPyObj(node)
+            obj = self.get_class_tag(node)
             if obj:
-                obj.__nextParent = obj.getParent()
+                obj.__next_parent = obj.get_parent()
                 node = obj
         elif mode == N_INST:
-            node = node.instanceTo(self.getParent())
+            node = node.instance_to(self.get_parent())
         elif mode == N_COPY:
-            node = node.copyTo(self.getParent())
+            node = node.copy_to(self.get_parent())
         else:
             self.notify.error('got invalid mode: %i' % mode)
             return
 
-        node.wrtReparentTo(self.__nodes)
-        self._readjustCenter()
+        node.wrt_reparent_to(self.__nodes)
+        self._readjust_center()
         return node
 
     # AngularNode getters
 
-    def getKeys(self) -> set:
-        return set(np.getKey() for np in self)
+    def get_keys(self) -> set:
+        return set(np.get_key() for np in self)
 
-    def getFutureParent(self) -> p3d.NodePath:
-        return self.__nextParent
+    def get_future_parent(self) -> p3d.NodePath:
+        return self.__next_parent
 
-    def getAxis(self) -> int:
+    def get_axis(self) -> int:
         return self.__axis
 
-    def getTransform(self, other: p3d.NodePath = None):
+    def get_transform(self, other: p3d.NodePath = None):
         if other is None:
             other = render
 
-        return (self.getAxis(),
+        return (self.get_axis(),
                 # top level
-                self.getPos(other),
-                self.getHpr(other),
-                self.getScale(other),
+                self.get_pos(other),
+                self.get_hpr(other),
+                self.get_scale(other),
                 # bottom level
-                self.__nodes.getPos(),
-                self.__nodes.getHpr(),
-                self.__nodes.getScale())
+                self.__nodes.get_pos(),
+                self.__nodes.get_hpr(),
+                self.__nodes.get_scale())
 
     # AngularNode setters
 
-    def setAxis(self, value: int):
-        if value == A_EXTERNAL or value == A_INTERNAL:
+    def set_axis(self, value: int):
+        if (value == A_EXTERNAL) or (value == A_INTERNAL):
             self.__axis = value
-            self._readjustCenter()
+            self._readjust_center()
         else:
             self.notify.error(f'got invalid axis: {value}')
 
-    def setTransform(self,
-                     axis: int = None,
-                     topPos: p3d.Vec3 = None,
-                     topHpr: p3d.Vec3 = None,
-                     topScale: p3d.Vec3 = None,
-                     botPos: p3d.Vec3 = None,
-                     botHpr: p3d.Vec3 = None,
-                     botScale: p3d.Vec3 = None,
-                     other: p3d.NodePath = None,
-                     ):
+    def set_transform(self,
+                      axis: int = None,
+                      top_pos: p3d.Vec3 = None,
+                      top_hpr: p3d.Vec3 = None,
+                      top_scale: p3d.Vec3 = None,
+                      bot_pos: p3d.Vec3 = None,
+                      bot_hpr: p3d.Vec3 = None,
+                      bot_scale: p3d.Vec3 = None,
+                      other: p3d.NodePath = None,
+                      ):
         try:
-            axis, topPos, topHpr, topScale, botPos, botHpr, botScale = axis
+            (axis,
+             top_pos, top_hpr, top_scale,
+             bot_pos, bot_hpr, bot_scale) = axis
         except:
             pass
 
         if other is None: other = render
-        if axis: self.setAxis(axis)
-        if topPos: self.setPos(*topPos)
-        if topHpr: self.setHpr(*topHpr)
-        if topScale: self.setScale(*topScale)
-        if botPos: self.__nodes.setPos(*botPos)
-        if botHpr: self.__nodes.setHpr(*botHpr)
-        if botScale: self.__nodes.setScale(*botScale)
+        if axis: self.set_axis(axis)
+        if top_pos: self.set_pos(*top_pos)
+        if top_hpr: self.set_hpr(*top_hpr)
+        if top_scale: self.set_scale(*top_scale)
+        if bot_pos: self.__nodes.set_pos(*bot_pos)
+        if bot_hpr: self.__nodes.set_hpr(*bot_hpr)
+        if bot_scale: self.__nodes.set_scale(*bot_scale)
 
     # NodePath overloads
 
-    def getChildren(self) -> list:
-        return self.__nodes.getChildren()
+    def get_children(self) -> list:
+        return self.__nodes.get_children()
 
-    def detachNode(self) -> p3d.NodePath:
-        self.wrtReparentTo(self.getFutureParent())
-        self.__nextParent = hidden
+    def detach_node(self) -> p3d.NodePath:
+        self.wrt_reparent_to(self.get_future_parent())
+        self.__next_parent = hidden
 
-        if obj := self.getPyObj(self.getParent()):
-            obj._readjustCenter()
+        if obj := self.get_class_tag(self.get_parent()):
+            obj._readjust_center()
 
         return self
 
-    def copyTo(self, node: p3d.NodePath):
-        return self.__nodes.copyTo(node)
+    def copy_to(self, node: p3d.NodePath):
+        return self.__nodes.copy_to(node)
 
-    def instanceTo(self, node: p3d.NodePath):
-        return self.__nodes.instanceTo(node)
+    def instance_to(self, node: p3d.NodePath):
+        return self.__nodes.instance_to(node)
 
-    def removeNode(self):
-        self.clearPythonTag(self.__class__.__name__)
-        p3d.NodePath.removeNode(self)
+    def remove_node(self):
+        self.clear_python_tag(self.__class__.__name__)
+        p3d.NodePath.remove_node(self)
 
-    def getH(self, other: p3d.NodePath = None):
-        return self.getHpr(other)[0]
+    def get_h(self, other: p3d.NodePath = None):
+        return self.get_hpr(other)[0]
 
-    def getP(self, other: p3d.NodePath = None):
-        return self.getHpr(other)[1]
+    def get_p(self, other: p3d.NodePath = None):
+        return self.get_hpr(other)[1]
 
-    def getR(self, other: p3d.NodePath = None):
-        return self.getHpr(other)[2]
+    def get_r(self, other: p3d.NodePath = None):
+        return self.get_hpr(other)[2]
 
-    def getHpr(self, other: p3d.NodePath = None):
+    def get_hpr(self, other: p3d.NodePath = None):
         if other is None:
             other = self
 
-        if self.getAxis() == A_INTERNAL:
-            return self.__center.getHpr(other)
+        if self.get_axis() == A_INTERNAL:
+            return self.__center.get_hpr(other)
         else:
-            return self.__nodes.getHpr(other)
+            return self.__nodes.get_hpr(other)
 
-    def setH(self, value: float):
-        self.setHpr(h = value)
+    def set_h(self, value: float):
+        self.set_hpr(h = value)
 
-    def setP(self, value: float):
-        self.setHpr(p = value)
+    def set_p(self, value: float):
+        self.set_hpr(p = value)
 
-    def setR(self, value: float):
-        self.setHpr(r = value)
+    def set_r(self, value: float):
+        self.set_hpr(r = value)
 
-    def setHpr(self, h: float = None, p: float = None, r: float = None):
-        if self.getAxis() == A_INTERNAL:
-            hpr = self.__center.getHpr()
+    def set_hpr(self, h: float = None, p: float = None, r: float = None):
+        if self.get_axis() == A_INTERNAL:
+            hpr = self.__center.get_hpr()
         else:
-            hpr = self.getHpr()
+            hpr = self.get_hpr()
 
         if h is None:
             h = hpr[0]
@@ -240,52 +242,52 @@ class AngularNode(DirectObject, p3d.NodePath):
             r = hpr[2]
         r %= 360
 
-        if self.getAxis() == A_INTERNAL:
-            self.__nodes.wrtReparentTo(self.__center)
-            self.__center.setHpr(h, p, r)
-            self.__nodes.wrtReparentTo(self)
+        if self.get_axis() == A_INTERNAL:
+            self.__nodes.wrt_reparent_to(self.__center)
+            self.__center.set_hpr(h, p, r)
+            self.__nodes.wrt_reparent_to(self)
         else:
-            p3d.NodePath.setHpr(self, h, p, r)
+            p3d.NodePath.set_hpr(self, h, p, r)
 
-    def getSx(self, other: p3d.NodePath = None):
-        return self.getScale(other)[0]
+    def get_sx(self, other: p3d.NodePath = None):
+        return self.get_scale(other)[0]
 
-    def getSy(self, other: p3d.NodePath = None):
-        return self.getScale(other)[1]
+    def get_sy(self, other: p3d.NodePath = None):
+        return self.get_scale(other)[1]
 
-    def getSz(self, other: p3d.NodePath = None):
-        return self.getScale(other)[2]
+    def get_sz(self, other: p3d.NodePath = None):
+        return self.get_scale(other)[2]
 
-    def getScale(self, other: p3d.NodePath = None):
+    def get_scale(self, other: p3d.NodePath = None):
         if other is None:
             other = self
 
-        return self.__nodes.getScale(other)
+        return self.__nodes.get_scale(other)
 
-    def setSx(self, value: float):
-        self.setScale(sX = value)
+    def set_sx(self, value: float):
+        self.set_scale(sx = value)
 
-    def setSy(self, value: float):
-        self.setScale(sY = value)
+    def set_sy(self, value: float):
+        self.set_scale(sy = value)
 
-    def setSz(self, value: float):
-        self.setScale(sZ = value)
+    def set_sz(self, value: float):
+        self.set_scale(sz = value)
 
-    def setScale(self, sX: float = None, sY: float = None, sZ: float = None):
-        scale = self.__nodes.getScale()
+    def set_scale(self, sx: float = None, sy: float = None, sz: float = None):
+        scale = self.__nodes.get_scale()
 
-        if sX is None:
-            sX = scale[0]
+        if sx is None:
+            sx = scale[0]
 
-        if sY is None:
-            sY = scale[1]
+        if sy is None:
+            sy = scale[1]
 
-        if sZ is None:
-            sZ = scale[2]
+        if sz is None:
+            sz = scale[2]
 
-        old = self.getCenter()
-        self.__nodes.setScale(sX, sY, sZ)
+        old = self.get_center()
+        self.__nodes.set_scale(sX, sY, sZ)
 
-        if self.getAxis() == A_INTERNAL:
-            new = self.getCenter()
-            self.setPos(self.getPos() - (new - old))
+        if self.get_axis() == A_INTERNAL:
+            new = self.get_center()
+            self.set_pos(self.get_pos() - (new - old))

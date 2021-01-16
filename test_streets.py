@@ -23,12 +23,12 @@ class StreetSlideShow(SlideShowBase):
             node = AngularNode(parent = render, node = node, prefix = '')
             node.reparent_to(render)
             node.hide()
-            node.set_pos(-node.getTightCenter())
+            node.set_pos(-node.get_tight_center())
             self.slides.append(node)
 
-        self.camera.setPos(0, -6, 210)
-        self.camera.setHpr(0, -90, 0)
-        self.disableMouse()
+        self.camera.set_pos(0, -6, 210)
+        self.camera.set_hpr(0, -90, 0)
+        self.disable_mouse()
         self.rotate(-1)
         super().run()
 

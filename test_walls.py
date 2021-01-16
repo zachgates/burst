@@ -17,7 +17,7 @@ class WallSlideShow(SlideShowBase):
     def __init__(self):
         super().__init__()
         self.wall_frame = p3d.CardMaker('wall_frame')
-        self.wall_frame.setFrame(0, 1, 0, 1)
+        self.wall_frame.set_frame(0, 1, 0, 1)
         self.file_store = FileManager()
 
     def run(self):

@@ -15,47 +15,51 @@ SCALE_FACTOR = 2.75
 
 class KartDisplay(ShowBase):
 
-    def makeScene(self):
-        kart_model = loader.loadModel('kart.bam')
-        kart_model.setH(90)
+    def make_scene(self):
+        kart_model = loader.load_model('kart.bam')
+        kart_model.set_h(90)
 
         for index in range(5):
-            kart = self.makeKart(kart_model)
-            kart.setY(index * 2.5)
-            kart.acceptOnce('space', self.moveKart, extraArgs = [kart, index])
+            kart = self.make_kart(kart_model)
+            kart.set_y(index * 2.5)
+            kart.accept_once(
+                'space',
+                self.move_kart,
+                extraArgs = [kart, index],
+                )
 
-        self.camera.setPos(25, -20, 30)
-        self.camera.setHpr(30, -45, 0)
-        self.disableMouse()
+        self.camera.set_pos(25, -20, 30)
+        self.camera.set_hpr(30, -45, 0)
+        self.disable_mouse()
 
-    def makeKart(self, model: p3d.NodePath) -> AngularNode:
+    def make_kart(self, model: p3d.NodePath) -> AngularNode:
         kart = AngularNode(parent = render, node = model)
         wheels = []
 
-        for node in kart.findAllMatches('**/wheelNode*'):
+        for node in kart.find_all_matches('**/wheelNode*'):
             wheel = AngularNode(
-                parent = node.getParent(),
+                parent = node.get_parent(),
                 node = node,
                 mode = N_ORIG,
                 )
-            wheel.setAxis(A_INTERNAL)
+            wheel.set_axis(A_INTERNAL)
             wheels.append(wheel)
 
-        kart.setPythonTag('wheels', wheels)
+        kart.set_python_tag('wheels', wheels)
         return kart
 
-    def moveKart(self, kart: AngularNode, index: int):
+    def move_kart(self, kart: AngularNode, index: int):
         def drive(mph, task):
-            for wheel in kart.getPythonTag('wheels'):
-                dimensions = wheel.getDimensions()
+            for wheel in kart.get_python_tag('wheels'):
+                dimensions = wheel.get_dimensions()
                 circumference = dimensions.x * math.pi
-                speed = (task.delayTime * mph) / circumference
-                wheel.setP(wheel.getP() + (speed * 360))
+                speed = (task.delay_time * mph) / circumference
+                wheel.set_p(wheel.get_p() + (speed * 360))
 
-            kart.setX(kart.getX() + (speed * circumference * SCALE_FACTOR))
+            kart.set_x(kart.get_x() + (speed * circumference * SCALE_FACTOR))
             return task.again
 
-        self.taskMgr.doMethodLater(
+        self.task_mgr.do_method_later(
             SCALE_INTERVAL,
             drive,
             f'drive-{index}',
@@ -66,5 +70,5 @@ class KartDisplay(ShowBase):
 
 if __name__ == '__main__':
     app = KartDisplay()
-    app.makeScene()
+    app.make_scene()
     app.run()
