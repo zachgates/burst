@@ -2,9 +2,11 @@
 
 import math
 
+from panda3d import core as p3d
+
 from direct.showbase.ShowBase import ShowBase
 
-from src import nodes
+from src.nodes import A_INTERNAL, AngularNode
 
 
 class WheelDisplay(ShowBase):
@@ -13,8 +15,8 @@ class WheelDisplay(ShowBase):
         wheel_model = loader.loadModel('wheel.bam')
 
         for index in range(5):
-            wheel = nodes.AngularNode(render, wheel_model)
-            wheel.setAxis(nodes.A_INTERNAL)
+            wheel = AngularNode(parent = render, node = wheel_model)
+            wheel.setAxis(A_INTERNAL)
             wheel.setZ(-index)
             wheel.acceptOnce(
                 'space',
@@ -28,7 +30,7 @@ class WheelDisplay(ShowBase):
         self.camera.setPos(5, -20, -1)
         self.disableMouse()
 
-    def moveWheel(self, wheel: p3d.AngularNode, index: int):
+    def moveWheel(self, wheel: AngularNode, index: int):
         def move(task):
             dimensions = wheel.getDimensions()
             circumference = dimensions.x * math.pi

@@ -32,7 +32,7 @@ class WallSlideShow(SlideShowBase):
                 alpha = self.file_store.load_file(alpha)
 
             wall = render2d.attach_new_node(self.wall_frame.generate())
-            wall.set_name(file.path.name)
+            wall.set_name(file.path.stem)
             wall.set_texture(file.load(alpha_file = alpha))
             wall.set_transparency(p3d.TransparencyAttrib.M_binary)
             wall.set_pos(-0.5, 0, -0.5)

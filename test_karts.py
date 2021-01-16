@@ -2,9 +2,11 @@
 
 import math
 
+from panda3d import core as p3d
+
 from direct.showbase.ShowBase import ShowBase
 
-from src import nodes
+from src.nodes import A_INTERNAL, N_ORIG, AngularNode
 
 
 SCALE_INTERVAL = 1.0 / 55
@@ -26,19 +28,23 @@ class KartDisplay(ShowBase):
         self.camera.setHpr(30, -45, 0)
         self.disableMouse()
 
-    def makeKart(self, model: p3d.NodePath) -> nodes.AngularNode:
-        kart = nodes.AngularNode(render, model)
+    def makeKart(self, model: p3d.NodePath) -> AngularNode:
+        kart = AngularNode(parent = render, node = model)
         wheels = []
 
-        for np in kart.findAllMatches('**/wheelNode*'):
-            wheel = nodes.AngularNode(np.getParent(), np, mode = nodes.N_ORIG)
-            wheel.setAxis(nodes.A_INTERNAL)
+        for node in kart.findAllMatches('**/wheelNode*'):
+            wheel = AngularNode(
+                parent = node.getParent(),
+                node = node,
+                mode = N_ORIG,
+                )
+            wheel.setAxis(A_INTERNAL)
             wheels.append(wheel)
 
         kart.setPythonTag('wheels', wheels)
         return kart
 
-    def moveKart(self, kart: nodes.AngularNode, index: int):
+    def moveKart(self, kart: AngularNode, index: int):
         def drive(mph, task):
             for wheel in kart.getPythonTag('wheels'):
                 dimensions = wheel.getDimensions()

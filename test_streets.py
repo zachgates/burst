@@ -8,7 +8,8 @@ from direct.gui import DirectGuiGlobals as DGG
 from direct.gui.DirectLabel import DirectLabel
 from direct.showbase.ShowBase import ShowBase
 
-from src import nodes
+from src.nodes import AngularNode
+
 from tests.SlideShowBase import SlideShowBase
 
 
@@ -19,7 +20,7 @@ class StreetSlideShow(SlideShowBase):
 
     def run(self):
         for node in loader.load_model(STREETS_PATH).get_children():
-            node = nodes.AngularNode(render, np = node)
+            node = AngularNode(parent = render, node = node, prefix = '')
             node.reparent_to(render)
             node.hide()
             node.set_pos(-node.getTightCenter())

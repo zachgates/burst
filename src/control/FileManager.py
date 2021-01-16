@@ -10,7 +10,7 @@ from panda3d import core as p3d
 
 from direct.showbase.DirectObject import DirectObject
 
-from .. import core
+from ..core import ExtensionsMixin, File, validate_extensions
 
 
 VFS = p3d.VirtualFileSystem.get_global_ptr()
@@ -20,11 +20,11 @@ for path in sys.path:
 	SEACH_PATH.append_directory(path)
 
 
-class FileManager(DirectObject, core.ExtensionsMixin):
+class FileManager(DirectObject, ExtensionsMixin):
 
     def __init__(self, /, *, extensions: Optional[list[str]] = ()):
         DirectObject.__init__(self)
-        core.ExtensionsMixin.__init__(self, *extensions)
+        ExtensionsMixin.__init__(self, *extensions)
 
     def find_file(self, path: Union[str, pathlib.Path]) -> p3d.VirtualFile:
         """
@@ -37,7 +37,7 @@ class FileManager(DirectObject, core.ExtensionsMixin):
 
     def load_file(self,
                   path: Union[str, pathlib.Path, p3d.VirtualFile],
-                  ) -> core.File:
+                  ) -> File:
         """
         Attempts to create a File object from its VirtualFile pointer.
         """
@@ -49,7 +49,7 @@ class FileManager(DirectObject, core.ExtensionsMixin):
         fext = vfile.get_filename().get_extension()
 
         if (fext in self.extensions) or not self.extensions:
-            return core.File(vfile)
+            return File(vfile)
         else:
             raise ValueError(f'cannot load filetype: {fext}')
 
@@ -58,7 +58,7 @@ class FileManager(DirectObject, core.ExtensionsMixin):
                        /, *,
                        recursive: bool = False,
                        extensions: Union[list, tuple, set] = (),
-                       ) -> list[core.File]:
+                       ) -> list[File]:
         """
         Attempts to find and load a directory of Files from the given path.
         A recursive loading flag may also be supplied, and/or a group of
@@ -73,7 +73,7 @@ class FileManager(DirectObject, core.ExtensionsMixin):
             raise NotADirectoryError(vfile.get_filename().to_os_specific())
 
         if isinstance(extensions, (list, tuple, set)):
-            extensions = core.validate_extensions(*extensions)
+            extensions = validate_extensions(*extensions)
         else:
             raise TypeError('expected list/tuple/set for extensions')
 

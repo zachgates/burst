@@ -4,7 +4,7 @@ from panda3d import core as p3d
 
 from direct.showbase.DirectObject import DirectObject
 
-from .. import nodes
+from ..nodes import A_INTERNAL, AngularNode
 
 
 class SelectionManager(DirectObject):
@@ -25,8 +25,8 @@ class SelectionManager(DirectObject):
         cam_node = base.camera.attachNewNode(self.__c_node)
         self.__c_trav.addCollider(cam_node, self.__c_handler)
 
-        self.__selection = nodes.AngularNode(render, name = 'selection')
-        self.__selection.setAxis(nodes.A_INTERNAL)
+        self.__selection = AngularNode(parent = render, name = 'selection')
+        self.__selection.setAxis(A_INTERNAL)
         self.__selection.setColor(1, 0, 0)
 
     def get_group_name(self):
@@ -74,7 +74,7 @@ class SelectionManager(DirectObject):
 
     def reset(self):
         for node in self.selection:
-            pyNP = nodes.AngularNode.getPyObj(node)
+            pyNP = AngularNode.getPyObj(node)
             self.deselect(pyNP)
 
     def __mouse_select(self, append: bool = False):
@@ -103,7 +103,7 @@ class SelectionManager(DirectObject):
             self.__c_handler.sort_entries()
             node = self.__c_handler.get_entry(0).get_into_node_path()
             node = node.findNetTag(self.group)
-            node = nodes.AngularNode.getPyObj(node)
+            node = AngularNode.getPyObj(node)
         else:
             node = None
 

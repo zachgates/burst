@@ -4,7 +4,6 @@ from typing import Callable, Optional
 
 from panda3d import core as p3d
 
-from .. import nodes
 from .SelectionManager import SelectionManager
 
 
