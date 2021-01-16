@@ -23,13 +23,13 @@ class SlideShowBase(ShowBase):
             scale = (1.0 / 10, 1, 1.0 / 8),
             )
 
-        controls = loader.loadModel('shuttle_controls.egg')
-        arrows = aspect2d.attachNewNode('gui_arrows')
-        arrows.setPos(0, 0, -0.9)
-        arrows.setScale(0.25)
+        controls = loader.load_model('shuttle_controls.egg')
+        arrows = aspect2d.attach_new_node('gui_arrows')
+        arrows.set_pos(0, 0, -0.9)
+        arrows.set_scale(0.25)
 
         arrow_left_geom = controls.find('**/51')
-        arrow_left_geom.node().removeGeom(0)
+        arrow_left_geom.node().remove_geom(0)
         arrow_left = DirectButton(
             parent = arrows,
             pos = (-5, 0, 0),
@@ -45,7 +45,7 @@ class SlideShowBase(ShowBase):
         self.accept('arrow_left-repeat', self.rotate, extraArgs = [1])
 
         arrow_right_geom = controls.find('**/52')
-        arrow_right_geom.node().removeGeom(0)
+        arrow_right_geom.node().remove_geom(0)
         arrow_right = DirectButton(
             parent = arrows,
             pos = (4, 0, 0),
