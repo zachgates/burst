@@ -4,7 +4,7 @@ from panda3d import core as p3d
 
 from direct.showbase.DirectObject import DirectObject
 
-from ..nodes import A_INTERNAL, AngularNode
+from ..nodes import AngularNode
 
 
 class SelectionManager(DirectObject):
@@ -26,7 +26,7 @@ class SelectionManager(DirectObject):
         self.__c_trav.add_collider(cam_node, self.__c_handler)
 
         self.__selection = AngularNode(parent = render, name = 'selection')
-        self.__selection.set_axis(A_INTERNAL)
+        self.__selection.set_axis(AngularNode.AXES.INTERNAL)
         self.__selection.set_color(1, 0, 0)
 
     def get_group_name(self):

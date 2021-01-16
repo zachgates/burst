@@ -1,5 +1,6 @@
 #!/usr/local/bin/python3.9
 
+import enum
 
 from typing import Iterator
 
@@ -9,15 +10,16 @@ from direct.directnotify import DirectNotifyGlobal
 from direct.showbase.DirectObject import DirectObject
 
 
-A_EXTERNAL = 0
-A_INTERNAL = 1
-
-N_ORIG = 0
-N_INST = 1
-N_COPY = 2
-
-
 class AngularNode(DirectObject, p3d.NodePath):
+
+    class AXES(enum.IntEnum):
+        EXTERNAL = 0,
+        INTERNAL = 1,
+
+    class MODES(enum.IntEnum):
+        ORIGINAL = 0,
+        INSTANCE = 1,
+        MAKECOPY = 2,
 
     notify = DirectNotifyGlobal.directNotify.newCategory('AngularNode')
 
@@ -31,7 +33,7 @@ class AngularNode(DirectObject, p3d.NodePath):
                  parent: p3d.NodePath = None,
                  node: p3d.NodePath = None,
                  prefix: str = None,
-                 mode: int = N_COPY,
+                 mode: int = MODES.MAKECOPY,
                  ):
         DirectObject.__init__(self)
         p3d.NodePath.__init__(self,
@@ -44,7 +46,7 @@ class AngularNode(DirectObject, p3d.NodePath):
 
         self.set_python_tag(self.__class__.__name__, self)
 
-        self.__axis = A_EXTERNAL
+        self.__axis = self.AXES.EXTERNAL
         self.__center = self.attach_new_node('center')
         self.__nodes = self.attach_new_node('nodes')
         self.__next_parent = hidden
@@ -95,19 +97,21 @@ class AngularNode(DirectObject, p3d.NodePath):
     def _readjust_center(self) -> p3d.Point3:
         self.__center.set_pos(self.get_center())
 
-    def attach(self, node: p3d.NodePath, mode: int = N_ORIG):
-        if mode == N_ORIG:
+    def attach(self,
+               node: p3d.NodePath,
+               mode: int = MODES.ORIGINAL,
+               ) -> p3d.NodePath:
+        if mode == self.MODES.ORIGINAL:
             obj = self.get_class_tag(node)
             if obj:
                 obj.__next_parent = obj.get_parent()
                 node = obj
-        elif mode == N_INST:
+        elif mode == self.MODES.INSTANCE:
             node = node.instance_to(self.get_parent())
-        elif mode == N_COPY:
+        elif mode == self.MODES.MAKECOPY:
             node = node.copy_to(self.get_parent())
         else:
-            self.notify.error('got invalid mode: %i' % mode)
-            return
+            raise ValueError(f'invalid mode value: {mode}')
 
         node.wrt_reparent_to(self.__nodes)
         self._readjust_center()
@@ -141,11 +145,13 @@ class AngularNode(DirectObject, p3d.NodePath):
     # AngularNode setters
 
     def set_axis(self, value: int):
-        if (value == A_EXTERNAL) or (value == A_INTERNAL):
-            self.__axis = value
-            self._readjust_center()
+        for name in self.AXES.__members__:
+            if value == getattr(self.AXES, name):
+                self.__axis = value
+                self._readjust_center()
+                break
         else:
-            self.notify.error(f'got invalid axis: {value}')
+            raise ValueError(f'invalid axis value: {value}')
 
     def set_transform(self,
                       axis: int = None,
@@ -210,7 +216,7 @@ class AngularNode(DirectObject, p3d.NodePath):
         if other is None:
             other = self
 
-        if self.get_axis() == A_INTERNAL:
+        if self.get_axis() == self.AXES.INTERNAL:
             return self.__center.get_hpr(other)
         else:
             return self.__nodes.get_hpr(other)
@@ -225,7 +231,7 @@ class AngularNode(DirectObject, p3d.NodePath):
         self.set_hpr(r = value)
 
     def set_hpr(self, h: float = None, p: float = None, r: float = None):
-        if self.get_axis() == A_INTERNAL:
+        if self.get_axis() is self.AXES.INTERNAL:
             hpr = self.__center.get_hpr()
         else:
             hpr = self.get_hpr()
@@ -242,7 +248,7 @@ class AngularNode(DirectObject, p3d.NodePath):
             r = hpr[2]
         r %= 360
 
-        if self.get_axis() == A_INTERNAL:
+        if self.get_axis() is self.AXES.INTERNAL:
             self.__nodes.wrt_reparent_to(self.__center)
             self.__center.set_hpr(h, p, r)
             self.__nodes.wrt_reparent_to(self)
@@ -288,6 +294,6 @@ class AngularNode(DirectObject, p3d.NodePath):
         old = self.get_center()
         self.__nodes.set_scale(sX, sY, sZ)
 
-        if self.get_axis() == A_INTERNAL:
+        if self.get_axis() == self.AXES.INTERNAL:
             new = self.get_center()
             self.set_pos(self.get_pos() - (new - old))

@@ -6,7 +6,7 @@ from panda3d import core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-from src.nodes import A_INTERNAL, AngularNode
+from src.nodes import AngularNode
 
 
 class WheelDisplay(ShowBase):
@@ -16,7 +16,7 @@ class WheelDisplay(ShowBase):
 
         for index in range(5):
             wheel = AngularNode(parent = render, node = wheel_model)
-            wheel.set_axis(A_INTERNAL)
+            wheel.set_axis(AngularNode.AXES.INTERNAL)
             wheel.set_z(-index)
             wheel.accept_once(
                 'space',
@@ -26,7 +26,6 @@ class WheelDisplay(ShowBase):
 
         wheel_model.reparent_to(render)
         wheel_model.set_z(1)
-
         self.camera.set_pos(5, -20, -1)
         self.disable_mouse()
 

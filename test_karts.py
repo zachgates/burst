@@ -6,7 +6,7 @@ from panda3d import core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-from src.nodes import A_INTERNAL, N_ORIG, AngularNode
+from src.nodes import AngularNode
 
 
 SCALE_INTERVAL = 1.0 / 55
@@ -40,16 +40,16 @@ class KartDisplay(ShowBase):
             wheel = AngularNode(
                 parent = node.get_parent(),
                 node = node,
-                mode = N_ORIG,
+                mode = AngularNode.MODES.ORIGINAL,
                 )
-            wheel.set_axis(A_INTERNAL)
+            wheel.set_axis(AngularNode.AXES.INTERNAL)
             wheels.append(wheel)
 
         kart.set_python_tag('wheels', wheels)
         return kart
 
     def move_kart(self, kart: AngularNode, index: int):
-        def drive(mph, task):
+        def drive_chain(mph, task):
             for wheel in kart.get_python_tag('wheels'):
                 dimensions = wheel.get_dimensions()
                 circumference = dimensions.x * math.pi
@@ -61,8 +61,8 @@ class KartDisplay(ShowBase):
 
         self.task_mgr.do_method_later(
             SCALE_INTERVAL,
-            drive,
-            f'drive-{index}',
+            drive_chain,
+            f'drive_chain-{index}',
             extraArgs = [pow(2, index) / 5.0],
             appendTask = True,
             )
