@@ -17,6 +17,12 @@ class SlideShowBase(ShowBase):
         self.setup()
 
     def setup(self):
+        self.slide_label = DirectLabel(
+            parent = aspect2d,
+            pos = (0, 0, -0.87),
+            scale = (1.0 / 10, 1, 1.0 / 8),
+            )
+
         controls = loader.loadModel('shuttle_controls.egg')
         arrows = aspect2d.attachNewNode('gui_arrows')
         arrows.setPos(0, 0, -0.9)
@@ -35,6 +41,9 @@ class SlideShowBase(ShowBase):
             extraArgs = [1],
             )
 
+        self.accept('arrow_left', self.rotate, extraArgs = [1])
+        self.accept('arrow_left-repeat', self.rotate, extraArgs = [1])
+
         arrow_right_geom = controls.find('**/52')
         arrow_right_geom.node().removeGeom(0)
         arrow_right = DirectButton(
@@ -50,14 +59,6 @@ class SlideShowBase(ShowBase):
 
         self.accept('arrow_right', self.rotate, extraArgs = [-1])
         self.accept('arrow_right-repeat', self.rotate, extraArgs = [-1])
-        self.accept('arrow_left', self.rotate, extraArgs = [1])
-        self.accept('arrow_left-repeat', self.rotate, extraArgs = [1])
-
-        self.slide_label = DirectLabel(
-            parent = aspect2d,
-            pos = (0, 0, -0.87),
-            scale = (1.0 / 10, 1, 1.0 / 8),
-            )
 
     def rotate(self, direction: int):
         self.slides[0].hide()
