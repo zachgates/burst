@@ -6,7 +6,6 @@ from typing import Iterator
 
 from panda3d import core as p3d
 
-from direct.directnotify import DirectNotifyGlobal
 from direct.showbase.DirectObject import DirectObject
 
 
@@ -20,8 +19,6 @@ class AngularNode(DirectObject, p3d.NodePath):
         ORIGINAL = 0,
         INSTANCE = 1,
         MAKECOPY = 2,
-
-    notify = DirectNotifyGlobal.directNotify.newCategory('AngularNode')
 
     @classmethod
     def get_class_tag(cls, node: p3d.NodePath):
