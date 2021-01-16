@@ -32,7 +32,7 @@ class SelectionManager(DirectObject):
     def get_group_name(self):
         return self._mgr_tag
 
-    group = property(get_group_name)
+    group_name = property(get_group_name)
 
     def get_selection(self):
         return self.__selection
@@ -51,7 +51,7 @@ class SelectionManager(DirectObject):
 
     def __select_all(self):
         self.reset()
-        for node in render.find_all_matches('**/=' + self.group):
+        for node in render.find_all_matches('**/=' + self.group_name):
             self.select(node)
 
     def __delete_selection(self):
@@ -60,7 +60,7 @@ class SelectionManager(DirectObject):
 
     def __contains__(self, node: p3d.NodePath):
         if node:
-            return node.getKey() in self.get_selection().getKeys()
+            return node.get_key() in self.get_selection().get_keys()
         else:
             return False
 
@@ -74,8 +74,8 @@ class SelectionManager(DirectObject):
 
     def reset(self):
         for node in self.selection:
-            pyNP = AngularNode.get_class_tag(node)
-            self.deselect(pyNP)
+            obj = AngularNode.get_class_tag(node)
+            self.deselect(obj)
 
     def __mouse_select(self, append: bool = False):
         node = self.__get_node_at_mouse()
@@ -102,7 +102,7 @@ class SelectionManager(DirectObject):
         if self.__c_handler.get_num_entries() > 0:
             self.__c_handler.sort_entries()
             node = self.__c_handler.get_entry(0).get_into_node_path()
-            node = node.find_net_tag(self.group)
+            node = node.find_net_tag(self.group_name)
             node = AngularNode.get_class_tag(node)
         else:
             node = None

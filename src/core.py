@@ -3,40 +3,39 @@
 import pathlib
 import re
 
-from typing import Optional, Union
+from typing import Iterable, Union
 
 from panda3d import core as p3d
 
 
-EXTENSION_EXPR = '^\.(\w+)$'
+EXTENSION_EXPR = re.compile('^\.(\w+)$')
 
 
 def validate_extensions(*extensions: str,
-                        pattern: Union[str, re.Pattern] = EXTENSION_EXPR,
+                        pattern: re.Pattern = EXTENSION_EXPR,
                         match_group: int = 1,
                         ) -> set:
     """
     Compares each extensions with the pattern expression to validate it as
     a filetype. A pattern and/or match group may be additionally specified.
     """
-    if not isinstance(pattern, (str, re.Pattern)):
-        raise ValueError('expected string or re.Pattern for pattern')
+    if not isinstance(pattern, re.Pattern):
+        raise ValueError('expected re.Pattern for pattern')
 
     if not isinstance(match_group, int):
         raise ValueError('expected integer for match_group')
 
-    fexts = set()
-
-    for fext in extensions:
-        if isinstance(fext, str):
-            if match := re.fullmatch(pattern, fext):
-                fexts.add(match.group(match_group))
+    exts = set()
+    for ext in extensions:
+        if isinstance(ext, str):
+            if match := pattern.fullmatch(ext):
+                exts.add(match.group(match_group))
             else:
-                raise ValueError(f'invalid extension: {fext!r}')
+                raise ValueError(f'invalid extension: {ext!r}')
         else:
-            raise TypeError(f'invalid extension: {fext!r}')
+            raise TypeError(f'invalid extension: {ext!r}')
 
-    return fexts
+    return exts
 
 
 class ExtensionsMixin(object):
@@ -45,7 +44,7 @@ class ExtensionsMixin(object):
     initialization.
     """
 
-    def __init__(self, *extensions):
+    def __init__(self, *extensions: str):
         super().__init__()
         self.__extensions = tuple(validate_extensions(*extensions))
 
@@ -60,9 +59,8 @@ class _File(type, ExtensionsMixin):
     def __new__(cls, name, bases, dct, **kwargs):
         return super().__new__(cls, name, bases, dct)
 
-    def __init__(cls, name, bases, dct,
-                 /, *,
-                 extensions: Union[list, tuple, set] = (),
+    def __init__(cls, name, bases, dct, /, *,
+                 extensions: Iterable = (),
                  ) -> type:
         type.__init__(cls, name, bases, dct)
         ExtensionsMixin.__init__(cls, *extensions)
@@ -70,40 +68,45 @@ class _File(type, ExtensionsMixin):
 
 class File(object, metaclass = _File):
 
-    def __new__(cls, vfile: p3d.VirtualFile):
+    def __new__(cls, path: p3d.Filename):
+        if not isinstance(path, p3d.Filename):
+            raise ValueError('expected panda3d.core.Filename for path')
+
         for typ in cls.__subclasses__():
-            if vfile.get_filename().get_extension() in typ.extensions:
-                return typ(vfile)
+            if path.get_extension() in typ.extensions:
+                return typ(path)
         else:
             return super().__new__(cls)
 
-    def __init__(self, vfile: p3d.VirtualFile):
-        if isinstance(vfile, p3d.VirtualFile):
-            super().__init__()
-            self.__vfile = vfile
-        else:
-            raise ValueError('expected panda3d.core.VirtualFile for vfile')
+    def __init__(self, path: p3d.Filename):
+        super().__init__()
+        self.__path = path
 
     def __repr__(self):
         return '{0}({1!r})'.format(self.__class__.__name__, self.path.name)
 
     def get_path(self) -> pathlib.Path:
-        return pathlib.Path(self.__vfile.get_filename().to_os_specific())
+        return pathlib.Path(self.__path.to_os_specific())
 
     path = property(get_path)
 
 
-class TexFile(File, extensions = ['.jpg', '.png', '.gif']):
+class TextureFile(File, extensions = ['.jpg', '.png', '.gif']):
 
-    def load(self, /, *, alpha_file: Optional[File] = None) -> p3d.Texture:
+    def read(self, /, *,
+             alpha: Union[str, pathlib.Path, p3d.Filename, File] = None,
+             ) -> p3d.Texture:
         """
-        Attempts to load the TexFile as a Texture. An alpha file may be
+        Attempts to load the TexFile as a Texture. An alpha File/path may be
         additionally supplied.
         """
-        if (alpha_file is not None) and not isinstance(alpha_file, File):
-            raise TypeError('expected src.core.File for alpha_file')
+        if alpha is not None:
+            if isinstance(alpha, p3d.Filename):
+                alpha = alpha.to_os_specific()
+            if isinstance(alpha, File):
+                alpha = alpha.get_path()
+
+        if (alpha is None) or isinstance(alpha, (str, pathlib.Path)):
+            return base.loader.load_texture(self.get_path(), alpha)
         else:
-            return base.loader.load_texture(
-                self.path,
-                alpha_file.path if alpha_file else None,
-                )
+            raise TypeError(f'invalid alpha: {alpha!r}')

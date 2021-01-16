@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3.9
 
-from typing import Callable, Optional
+from typing import Callable, Iterable
 
 from panda3d import core as p3d
 
@@ -61,21 +61,36 @@ class ObjectManager(SelectionManager):
         )
 
     def accept_all(self):
+        """
+        Start listening for all update events.
+        """
         super().accept_all()
         self.accept_positional_events()
         self.accept_rotational_events()
         self.accept_scaling_events()
 
     def accept_positional_events(self):
+        """
+        Start listening for positional update events.
+        """
         self.__accept_events(ADJUST_POS_EVENTS, self._adjust_position)
 
     def accept_rotational_events(self):
+        """
+        Start listening for rotational update events.
+        """
         self.__accept_events(ADJUST_HPR_EVENTS, self._adjust_rotation)
 
     def accept_scaling_events(self):
+        """
+        Start listening for scaling update events.
+        """
         self.__accept_events(ADJUST_SCALE_EVENTS, self._adjust_scaling)
 
-    def __accept_events(self, events: list, method: Callable) -> None:
+    def __accept_events(self, events: Iterable, method: Callable) -> None:
+        """
+        Initializes a group of events, hooked to the specified method.
+        """
         for event in events:
             key = p3d.ConfigVariableString(event).get_value()
             self.accept(key, method, [event, False])
@@ -106,6 +121,9 @@ class ObjectManager(SelectionManager):
             return p3d.ConfigVariableDouble(standard).get_value()
 
     def _adjust_position(self, event_name: str, precision: bool):
+        """
+        The positional adjustment event hook (default: arrow keys).
+        """
         magnitude = self.__get_magnitude(
             precision = precision,
             standard = ADJUST_POS_AMOUNT_STANDARD,
@@ -124,6 +142,9 @@ class ObjectManager(SelectionManager):
         self.get_selection().set_pos(position + vector)
 
     def _adjust_rotation(self, event_name: str, precision: bool):
+        """
+        The rotational adjustment event hook (default: A/D keys).
+        """
         magnitude = self.__get_magnitude(
             precision = precision,
             standard = ADJUST_HPR_AMOUNT_STANDARD,
@@ -140,6 +161,9 @@ class ObjectManager(SelectionManager):
         self.get_selection().set_hpr(rotation + vector)
 
     def _adjust_scaling(self, event_name: str, precision: bool):
+        """
+        The scaling adjustment event hook (default: W/S keys).
+        """
         magnitude = self.__get_magnitude(
             precision = precision,
             standard = ADJUST_SCALE_AMOUNT_STANDARD,

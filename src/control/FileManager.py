@@ -4,7 +4,7 @@ import pathlib
 import re
 import sys
 
-from typing import Iterator, Optional, Union
+from typing import Container, Iterable, Union
 
 from panda3d import core as p3d
 
@@ -15,83 +15,75 @@ from ..core import ExtensionsMixin, File, validate_extensions
 
 VFS = p3d.VirtualFileSystem.get_global_ptr()
 
-SEACH_PATH = p3d.DSearchPath()
+SEARCH_PATH = p3d.DSearchPath()
 for path in sys.path:
-	SEACH_PATH.append_directory(path)
+    SEARCH_PATH.append_directory(path)
 
 
 class FileManager(DirectObject, ExtensionsMixin):
 
-    def __init__(self, /, *, extensions: Optional[list[str]] = ()):
+    def __init__(self, *extensions: str):
         DirectObject.__init__(self)
         ExtensionsMixin.__init__(self, *extensions)
 
-    def find_file(self, path: Union[str, pathlib.Path]) -> p3d.VirtualFile:
+    def scan_path(self,
+                  path: Union[str, pathlib.Path, p3d.Filename],
+                  ) -> p3d.Filename:
         """
         Attempts to find the given path, creating a VirtualFile pointer.
         """
-        if isinstance(path, (str, pathlib.Path)):
-            return VFS.find_file(path, SEACH_PATH)
-        else:
-            raise TypeError(f'expected string or pathlib.Path for path')
+        if isinstance(path, p3d.Filename):
+            path = path.to_os_specific()
 
-    def load_file(self,
-                  path: Union[str, pathlib.Path, p3d.VirtualFile],
-                  ) -> File:
+        if isinstance(path, (str, pathlib.Path)):
+            if (file := VFS.find_file(path, SEARCH_PATH)) is not None:
+                return file.get_filename()
+            else:
+                raise FileNotFoundError(path)
+        else:
+            raise TypeError('expected string, pathlib.Path, '
+                            'or panda3d.core.Filename for path')
+
+    def load_file(self, path: p3d.Filename) -> File:
         """
         Attempts to create a File object from its VirtualFile pointer.
         """
-        if isinstance(path, p3d.VirtualFile):
-            vfile = path
+        path = self.scan_path(path)
+        if (path.get_extension() in self.extensions) or not self.extensions:
+            return File(path)
         else:
-            vfile = self.find_file(path)
+            raise ValueError(f'cannot load filetype: {path.get_extension()}')
 
-        fext = vfile.get_filename().get_extension()
-
-        if (fext in self.extensions) or not self.extensions:
-            return File(vfile)
-        else:
-            raise ValueError(f'cannot load filetype: {fext}')
-
-    def load_directory(self,
-                       path: Union[str, pathlib.Path],
-                       /, *,
+    def load_directory(self, path, /, *,
                        recursive: bool = False,
-                       extensions: Union[list, tuple, set] = (),
+                       extensions: Iterable = (),
                        ) -> list[File]:
         """
         Attempts to find and load a directory of Files from the given path.
         A recursive loading flag may also be supplied, and/or a group of
         extensions to use as a filter.
         """
-        if isinstance(path, p3d.VirtualFile):
-            vfile = path
-        else:
-            vfile = self.find_file(path)
-
-        if not vfile.is_directory():
-            raise NotADirectoryError(vfile.get_filename().to_os_specific())
-
-        if isinstance(extensions, (list, tuple, set)):
+        if isinstance(extensions, Container):
             extensions = validate_extensions(*extensions)
-        else:
-            raise TypeError('expected list/tuple/set for extensions')
+
+        if not (path := self.scan_path(path)).is_directory():
+            raise NotADirectoryError(path.to_os_specific())
 
         files = []
 
-        for vfile in VFS.scan_directory(vfile.get_filename()):
-            if vfile.is_directory() and recursive:
+        for file in VFS.scan_directory(path):
+            path = file.get_filename()
+            if path.is_directory() and recursive:
                 files += self.load_directory(
-                    vfile,
+                    path,
                     recursive = recursive,
                     extensions = extensions,
                     )
-            elif vfile.is_regular_file():
-                fext = vfile.get_filename().get_extension()
-                if extensions and (not fext in extensions):
+            elif path.is_regular_file():
+                if extensions and (path.get_extension() not in extensions):
                     continue
                 else:
-                    files.append(self.load_file(vfile))
+                    files.append(self.load_file(path))
             else:
                 raise OSError(f'invalid file: {vfile!r}')
 

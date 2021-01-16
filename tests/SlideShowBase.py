@@ -49,7 +49,9 @@ class SlideShowBase(ShowBase):
             )
 
         self.accept('arrow_right', self.rotate, extraArgs = [-1])
+        self.accept('arrow_right-repeat', self.rotate, extraArgs = [-1])
         self.accept('arrow_left', self.rotate, extraArgs = [1])
+        self.accept('arrow_left-repeat', self.rotate, extraArgs = [1])
 
         self.slide_label = DirectLabel(
             parent = aspect2d,
