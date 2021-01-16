@@ -45,14 +45,13 @@ class ExtensionsMixin(object):
     initialization.
     """
 
-    def __init__(self, extensions: Union[list, tuple, set]):
+    def __init__(self, *extensions):
         super().__init__()
         self.__extensions = tuple(validate_extensions(*extensions))
 
     def get_extensions(self) -> tuple:
         return self.__extensions
 
-    getExtensions = get_extensions
     extensions = property(get_extensions)
 
 
@@ -61,11 +60,12 @@ class _File(type, ExtensionsMixin):
     def __new__(cls, name, bases, dct, **kwargs):
         return super().__new__(cls, name, bases, dct)
 
-    def __init__(cls, name, bases, dct, /, *,
+    def __init__(cls, name, bases, dct,
+                 /, *,
                  extensions: Union[list, tuple, set] = (),
                  ) -> type:
         type.__init__(cls, name, bases, dct)
-        ExtensionsMixin.__init__(cls, extensions)
+        ExtensionsMixin.__init__(cls, *extensions)
 
 
 class File(object, metaclass = _File):
@@ -90,7 +90,6 @@ class File(object, metaclass = _File):
     def get_path(self) -> pathlib.Path:
         return pathlib.Path(self.__vfile.get_filename().to_os_specific())
 
-    getPath = get_path
     path = property(get_path)
 
 

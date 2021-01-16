@@ -32,19 +32,15 @@ class SelectionManager(DirectObject):
     def get_group_name(self):
         return self._mgr_tag
 
-    getGroupName = get_group_name
     group = property(get_group_name)
 
     def get_selection(self):
         return self.__selection
 
-    getSelection = get_selection
     selection = property(get_selection)
 
     def accept_all(self):
         self.accept_selection_events()
-
-    acceptAll = accept_all
 
     def accept_selection_events(self):
         self.accept('mouse1', self.__mouse_select)
@@ -52,8 +48,6 @@ class SelectionManager(DirectObject):
         self.accept('control-a', self.__select_all)
         self.accept('control-d', self.reset)
         self.accept('control-backspace', self.__delete_selection)
-
-    acceptSelectionEvents = accept_selection_events
 
     def __select_all(self):
         self.reset()
@@ -70,7 +64,7 @@ class SelectionManager(DirectObject):
         else:
             return False
 
-    is_selected = isSelected = __contains__
+    is_selected = __contains__
 
     def select(self, node: p3d.NodePath):
         return self.__selection.attach(node)

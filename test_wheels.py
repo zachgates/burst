@@ -28,7 +28,7 @@ class WheelDisplay(ShowBase):
         self.camera.setPos(5, -20, -1)
         self.disableMouse()
 
-    def moveWheel(self, wheel, index):
+    def moveWheel(self, wheel: p3d.AngularNode, index: int):
         def move(task):
             dimensions = wheel.getDimensions()
             circumference = dimensions.x * math.pi

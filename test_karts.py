@@ -26,7 +26,7 @@ class KartDisplay(ShowBase):
         self.camera.setHpr(30, -45, 0)
         self.disableMouse()
 
-    def makeKart(self, model):
+    def makeKart(self, model: p3d.NodePath) -> nodes.AngularNode:
         kart = nodes.AngularNode(render, model)
         wheels = []
 
@@ -38,7 +38,7 @@ class KartDisplay(ShowBase):
         kart.setPythonTag('wheels', wheels)
         return kart
 
-    def moveKart(self, kart, index):
+    def moveKart(self, kart: nodes.AngularNode, index: int):
         def drive(mph, task):
             for wheel in kart.getPythonTag('wheels'):
                 dimensions = wheel.getDimensions()

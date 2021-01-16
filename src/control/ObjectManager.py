@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3.9
 
-from typing import Callable, Optional, Union
+from typing import Callable, Optional
 
 from panda3d import core as p3d
 
@@ -67,27 +67,16 @@ class ObjectManager(SelectionManager):
         self.accept_rotational_events()
         self.accept_scaling_events()
 
-    acceptAll = accept_all
-
     def accept_positional_events(self):
         self.__accept_events(ADJUST_POS_EVENTS, self._adjust_position)
-
-    acceptPositionalEvents = accept_positional_events
 
     def accept_rotational_events(self):
         self.__accept_events(ADJUST_HPR_EVENTS, self._adjust_rotation)
 
-    acceptRotationalEvents = accept_rotational_events
-
     def accept_scaling_events(self):
         self.__accept_events(ADJUST_SCALE_EVENTS, self._adjust_scaling)
 
-    acceptScalingEvents = accept_scaling_events
-
-    def __accept_events(self,
-                        events: Union[list, tuple],
-                        method: Callable,
-                        ) -> None:
+    def __accept_events(self, events: list, method: Callable) -> None:
         for event in events:
             key = p3d.ConfigVariableString(event).get_value()
             self.accept(key, method, [event, False])
@@ -95,11 +84,12 @@ class ObjectManager(SelectionManager):
             self.accept(f'shift-{key}', method, [event, True])
             self.accept(f'shift-{key}-repeat', method, [event, True])
 
-    def __get_magnitude(self, /, *,
-                       precision: bool,
-                       standard: str,
-                       pinpoint: str = None,
-                       ) -> int:
+    def __get_magnitude(self,
+                        /, *,
+                        precision: bool,
+                        standard: str,
+                        pinpoint: str = None,
+                        ) -> int:
         """
         Accesses PRC config data to return the specified magnitude value.
         Supplying a truthy precision flag indicates that the pinpoint value is

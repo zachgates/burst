@@ -24,7 +24,7 @@ class FileManager(DirectObject, core.ExtensionsMixin):
 
     def __init__(self, /, *, extensions: Optional[list[str]] = ()):
         DirectObject.__init__(self)
-        core.ExtensionsMixin.__init__(self, extensions)
+        core.ExtensionsMixin.__init__(self, *extensions)
 
     def find_file(self, path: Union[str, pathlib.Path]) -> p3d.VirtualFile:
         """
@@ -34,8 +34,6 @@ class FileManager(DirectObject, core.ExtensionsMixin):
             return VFS.find_file(path, SEACH_PATH)
         else:
             raise TypeError(f'expected string or pathlib.Path for path')
-
-    findFile = find_file
 
     def load_file(self,
                   path: Union[str, pathlib.Path, p3d.VirtualFile],
@@ -54,8 +52,6 @@ class FileManager(DirectObject, core.ExtensionsMixin):
             return core.File(vfile)
         else:
             raise ValueError(f'cannot load filetype: {fext}')
-
-    loadFile = load_file
 
     def load_directory(self,
                        path: Union[str, pathlib.Path],
@@ -100,5 +96,3 @@ class FileManager(DirectObject, core.ExtensionsMixin):
                 raise OSError(f'invalid file: {vfile!r}')
 
         return files
-
-    loadDirectory = load_directory
