@@ -92,7 +92,7 @@ class AngularNode(DirectObject, p3d.NodePath):
             return p3d.Point3.zero()
 
     def _readjust_center(self) -> p3d.Point3:
-        self.__center.set_pos(self.get_center())
+        self.__center.set_pos(self.get_tight_center())
 
     def attach(self,
                node: p3d.NodePath,
@@ -111,7 +111,7 @@ class AngularNode(DirectObject, p3d.NodePath):
             raise ValueError(f'invalid mode value: {mode}')
 
         node.wrt_reparent_to(self.__nodes)
-        self._readjust_center()
+        # self._readjust_center()
         return node
 
     # AngularNode getters
