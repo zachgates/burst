@@ -72,10 +72,10 @@ class SelectionManager(DirectObject):
 
     is_selected = isSelected = __contains__
 
-    def select(self, node):
+    def select(self, node: p3d.NodePath):
         return self.__selection.attach(node)
 
-    def deselect(self, node):
+    def deselect(self, node: p3d.NodePath):
         return node.detach_node()
 
     def reset(self):

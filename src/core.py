@@ -63,7 +63,7 @@ class _File(type, ExtensionsMixin):
 
     def __init__(cls, name, bases, dct, /, *,
                  extensions: Union[list, tuple, set] = (),
-                 ):
+                 ) -> type:
         type.__init__(cls, name, bases, dct)
         ExtensionsMixin.__init__(cls, extensions)
 

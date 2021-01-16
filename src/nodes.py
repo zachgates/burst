@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3.9
+
 from panda3d.core import NodePath, VBase3
 
 from direct.directnotify import DirectNotifyGlobal
