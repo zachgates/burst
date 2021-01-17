@@ -6,7 +6,7 @@ from panda3d import core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-from src.nodes import AngularNode
+from libpandaworld.nodes import AngularNode
 
 
 class WheelDisplay(ShowBase):

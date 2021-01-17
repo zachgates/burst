@@ -4,7 +4,7 @@ import collections
 
 from panda3d import core as p3d
 
-from src.control.FileManager import FileManager
+from libpandaworld.control.FileManager import FileManager
 
 from tests.SlideShowBase import SlideShowBase
 

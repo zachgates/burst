@@ -8,7 +8,7 @@ from direct.gui import DirectGuiGlobals as DGG
 from direct.gui.DirectLabel import DirectLabel
 from direct.showbase.ShowBase import ShowBase
 
-from src.nodes import AngularNode
+from libpandaworld.nodes import AngularNode
 
 from tests.SlideShowBase import SlideShowBase
 

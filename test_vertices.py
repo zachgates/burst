@@ -7,7 +7,7 @@ from panda3d import core as p3d
 from direct.directbase.DirectStart import base
 from direct.interval.LerpInterval import LerpFunc
 
-from src.nodes import AngularNode
+from libpandaworld.nodes import AngularNode
 
 
 WHEEL = loader.load_model('wheel.bam')
