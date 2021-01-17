@@ -60,7 +60,7 @@ class ObjectManager(SelectionManager):
         """,
         )
 
-    def accept_all(self):
+    def ACCEPT_ALL(self):
         """
         Start listening for all update events.
         """
@@ -69,19 +69,19 @@ class ObjectManager(SelectionManager):
         self.accept_rotational_events()
         self.accept_scaling_events()
 
-    def accept_positional_events(self):
+    def ACCEPT_POSITIONAL_EVENTS(self):
         """
         Start listening for positional update events.
         """
         self.__accept_events(ADJUST_POS_EVENTS, self._adjust_position)
 
-    def accept_rotational_events(self):
+    def ACCEPT_ROTATIONAL_EVENTS(self):
         """
         Start listening for rotational update events.
         """
         self.__accept_events(ADJUST_HPR_EVENTS, self._adjust_rotation)
 
-    def accept_scaling_events(self):
+    def ACCEPT_SCALING_EVENTS(self):
         """
         Start listening for scaling update events.
         """
@@ -178,4 +178,4 @@ class ObjectManager(SelectionManager):
         scale = self.get_selection().get_scale()
         vector = 1.0 + vector_map.get(event_name, 0.0)
         self.get_selection().set_scale(scale * vector)
-        self.get_selection()._readjust_center()
+        self.get_selection().adjust_center()

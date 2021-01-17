@@ -48,10 +48,10 @@ class ExtensionsMixin(object):
         super().__init__()
         self.__extensions = tuple(validate_extensions(*extensions))
 
-    def get_extensions(self) -> tuple:
+    def GET_EXTENSIONS(self) -> tuple:
         return self.__extensions
 
-    extensions = property(get_extensions)
+    extensions = property(GET_EXTENSIONS)
 
 
 class _File(type, ExtensionsMixin):
@@ -85,10 +85,10 @@ class File(object, metaclass = _File):
     def __repr__(self):
         return '{0}({1!r})'.format(self.__class__.__name__, self.path.name)
 
-    def get_path(self) -> pathlib.Path:
+    def GET_PATH(self) -> pathlib.Path:
         return pathlib.Path(self.__path.to_os_specific())
 
-    path = property(get_path)
+    path = property(GET_PATH)
 
 
 class TextureFile(File, extensions = ['.jpg', '.png', '.gif']):

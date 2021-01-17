@@ -29,20 +29,20 @@ class SelectionManager(DirectObject):
         self.__selection.set_axis(AngularNode.AXES.INTERNAL)
         self.__selection.set_color(1, 0, 0)
 
-    def get_group_name(self):
+    def GET_GROUP_NAME(self):
         return self._mgr_tag
 
-    group_name = property(get_group_name)
+    group_name = property(GET_GROUP_NAME)
 
-    def get_selection(self):
+    def GET_SELECTION(self):
         return self.__selection
 
-    selection = property(get_selection)
+    selection = property(GET_SELECTION)
 
-    def accept_all(self):
+    def ACCEPT_ALL(self):
         self.accept_selection_events()
 
-    def accept_selection_events(self):
+    def ACCEPT_SELECTION_EVENTS(self):
         self.accept('mouse1', self.__mouse_select)
         self.accept('shift-mouse1', self.__mouse_select, [True])
         self.accept('control-a', self.__select_all)
