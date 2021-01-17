@@ -9,7 +9,7 @@ from libpandaworld.control.FileManager import FileManager
 from tests.SlideShowBase import SlideShowBase
 
 
-WALLS_PATH = 'palettes/storage/walls'
+WALLS_PATH = 'storage/palettes/walls'
 
 
 class WallSlideShow(SlideShowBase):

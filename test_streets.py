@@ -13,7 +13,7 @@ from libpandaworld.nodes import AngularNode
 from tests.SlideShowBase import SlideShowBase
 
 
-STREETS_PATH = 'palettes/storage/streets.bam'
+STREETS_PATH = 'storage/palettes/streets.bam'
 
 
 class StreetSlideShow(SlideShowBase):
