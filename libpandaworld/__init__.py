@@ -10,13 +10,8 @@ _build_class = builtins.__build_class__
 
 ctypes.pythonapi.PyEval_EvalCodeEx.restype = ctypes.py_object
 ctypes.pythonapi.PyEval_EvalCodeEx.argtypes = (
-    # code, globals, locals,
     [ctypes.py_object] * 3
-    # args, argcount,
-    # kws, kwcount,
-    # defs, defcount
     + [ctypes.c_void_p, ctypes.c_int] * 3
-    # kwdefs closure
     + [ctypes.c_void_p, ctypes.py_object]
     )
 
@@ -50,10 +45,8 @@ def build_class(body, name, *bases, **kwargs):
             ):
             if attr.isupper():
                 aliases = dct[attr] = []
-                # snake_case
-                words = [word.lower() for word in attr.split('_')]
+                (words := [])[:] = map(str.lower, attr.split('_'))
                 aliases.append('_'.join(words))
-                # camelCase
                 words[1:] = map(str.title, words[1:])
                 aliases.append(''.join(words))
 
