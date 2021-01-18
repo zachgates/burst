@@ -8,7 +8,7 @@ import contextlib
 import pathlib
 import re
 
-from typing import Iterable, Union
+from typing import Iterable
 
 from panda3d import core as p3d
 
@@ -99,27 +99,6 @@ class File(object, metaclass = _File):
         return pathlib.Path(self.__filename.to_os_specific())
 
     path = property(get_path)
-
-
-class TextureFile(File, extensions = ['.jpg', '.png', '.gif']):
-
-    def read(self, /, *,
-             alpha: Union[str, pathlib.Path, p3d.Filename, File] = None,
-             ) -> p3d.Texture:
-        """
-        Attempts to load the TexFile as a Texture. An alpha File/path may be
-        additionally supplied.
-        """
-        if alpha is not None:
-            if isinstance(alpha, p3d.Filename):
-                alpha = alpha.to_os_specific()
-            if isinstance(alpha, File):
-                alpha = alpha.get_path()
-
-        if (alpha is None) or isinstance(alpha, (str, pathlib.Path)):
-            return base.loader.load_texture(self.get_path(), alpha)
-        else:
-            raise TypeError(f'invalid alpha: {alpha!r}')
 
 
 from .FileManager import FileManager
