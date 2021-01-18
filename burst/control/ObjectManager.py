@@ -94,10 +94,7 @@ class ObjectManager(SelectionManager):
         """
         self.__accept_events(ADJUST_SCALE_EVENTS, self._adjust_scaling)
 
-    def __accept_events(self,
-                        events: Iterable[str],
-                        method: Callable,
-                        ) -> None:
+    def __accept_events(self, events: Iterable[str], method: Callable):
         """
         Initializes a group of events, hooked to the specified method.
         """

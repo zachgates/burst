@@ -1,13 +1,15 @@
 __all__ = ['SceneFile']
 
 
+from typing import Tuple
+
 from panda3d import core as p3d
 
 
 class SceneFile(burst.control.File, extensions = ['.burst']):
 
     @staticmethod
-    def _unpack_rule(dgi) -> tuple[int, int]:
+    def _unpack_rule(dgi) -> Tuple[int, int]:
         return (dgi.get_uint16(), dgi.get_uint16())
 
     def read(self):
