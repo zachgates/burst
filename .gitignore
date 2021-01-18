@@ -1,8 +1,6 @@
-*.DS_Store
-
+.DS_Store
 *.py[co]
 __pycache__/
-
-xml/
-
+.cache/
+storage/xml/
 test_xmlload.py
