@@ -60,7 +60,7 @@ class ObjectManager(SelectionManager):
         """,
         )
 
-    def ACCEPT_ALL(self):
+    def accept_all(self):
         """
         Start listening for all update events.
         """
@@ -69,19 +69,19 @@ class ObjectManager(SelectionManager):
         self.accept_rotational_events()
         self.accept_scaling_events()
 
-    def ACCEPT_POSITIONAL_EVENTS(self):
+    def accept_positional_events(self):
         """
         Start listening for positional update events.
         """
         self.__accept_events(ADJUST_POS_EVENTS, self._adjust_position)
 
-    def ACCEPT_ROTATIONAL_EVENTS(self):
+    def accept_rotational_events(self):
         """
         Start listening for rotational update events.
         """
         self.__accept_events(ADJUST_HPR_EVENTS, self._adjust_rotation)
 
-    def ACCEPT_SCALING_EVENTS(self):
+    def accept_scaling_events(self):
         """
         Start listening for scaling update events.
         """

@@ -43,32 +43,30 @@ def build_class(body, name, *bases, **kwargs):
             namespace[attr],
             (types.FunctionType, classmethod, staticmethod),
             ):
-            if attr.isupper():
-                aliases = dct[attr] = []
-                (words := [])[:] = map(str.lower, attr.split('_'))
-                aliases.append('_'.join(words))
+            if attr.startswith('_'):
+                continue
+
+            if attr.islower() and len(words := attr.split('_')) > 1:
                 words[1:] = map(str.title, words[1:])
-                aliases.append(''.join(words))
+                dct[attr] = ''.join(words)
 
 
-    for attr, aliases in dct.items():
+    for attr, alias in dct.items():
         func = namespace[attr]
-        for alias in aliases:
-            if isinstance(func, (staticmethod, classmethod)):
-                f = func
-            else:
-                f = types.FunctionType(
-                    code := func.__code__.replace(
-                        co_name = f'{name}.{alias}',
-                        ),
-                    func.__globals__,
-                    code.co_name,
-                    func.__defaults__,
-                    func.__closure__,
-                    )
-                f.__kwdefaults__ = func.__kwdefaults__
-            namespace.setdefault(alias, f)
-        del namespace[attr]
+        if isinstance(func, (staticmethod, classmethod)):
+            f = func
+        else:
+            f = types.FunctionType(
+                code := func.__code__.replace(
+                    co_name = f'{name}.{alias}',
+                    ),
+                func.__globals__,
+                code.co_name,
+                func.__defaults__,
+                func.__closure__,
+                )
+            f.__kwdefaults__ = func.__kwdefaults__
+        namespace.setdefault(alias, f)
     return metaclass.__call__(metaclass, name, bases, namespace, **kwargs)
 
 

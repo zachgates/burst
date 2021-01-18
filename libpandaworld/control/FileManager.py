@@ -26,7 +26,7 @@ class FileManager(DirectObject, ExtensionsMixin):
         DirectObject.__init__(self)
         ExtensionsMixin.__init__(self, *extensions)
 
-    def SCAN_PATH(self,
+    def scan_path(self,
                   path: Union[str, pathlib.Path, p3d.Filename],
                   ) -> p3d.Filename:
         """
@@ -44,7 +44,7 @@ class FileManager(DirectObject, ExtensionsMixin):
             raise TypeError('expected string, pathlib.Path, '
                             'or panda3d.core.Filename for path')
 
-    def LOAD_FILE(self, path: p3d.Filename) -> File:
+    def load_file(self, path: p3d.Filename) -> File:
         """
         Attempts to create a File object from its VirtualFile pointer.
         """
@@ -54,7 +54,7 @@ class FileManager(DirectObject, ExtensionsMixin):
         else:
             raise ValueError(f'cannot load filetype: {path.get_extension()}')
 
-    def LOAD_DIRECTORY(self, path, /, *,
+    def load_directory(self, path, /, *,
                        recursive: bool = False,
                        extensions: Iterable = (),
                        ) -> list[File]:
