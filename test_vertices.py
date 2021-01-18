@@ -7,7 +7,7 @@ from panda3d import core as p3d
 from direct.directbase.DirectStart import base
 from direct.interval.LerpInterval import LerpFunc
 
-from libpandaworld.nodes import AngularNode
+import tests
 
 
 WHEEL = loader.load_model('wheel.bam')
@@ -23,7 +23,7 @@ MARKER.set_scale(0.025)
 MARKER.set_texture_off(True)
 
 
-WHEEL = AngularNode(parent = render, node = WHEEL)
+WHEEL = burst.core.AngularNode(parent = render, node = WHEEL)
 MARKERS = WHEEL.attach(p3d.NodePath('markers'))
 
 
@@ -52,7 +52,7 @@ for geom_node in WHEEL.find_all_matches('**/+GeomNode'):
             marker.set_pos(point)
 
 
-WHEEL.set_axis(AngularNode.AXES.INTERNAL)
+WHEEL.set_axis(burst.core.AngularNode.AXES.INTERNAL)
 WHEEL.set_pos(-WHEEL.get_tight_center())
 ival = LerpFunc(WHEEL.set_h, 5.0, 0, 360)
 ival.loop()

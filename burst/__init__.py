@@ -1,8 +1,52 @@
-#!/usr/local/bin/python3.9
+__all__ = ['control', 'core', 'scene']
+
 
 import builtins
 import ctypes
+import importlib
+import sys
 import types
+
+from typing import Iterable
+
+from panda3d import core as p3d
+
+
+class _(type):
+
+    def __new__(cls, name, bases, dct, **kwargs):
+        """
+        Returns a global singleton object to be used in lieu of the module.
+        """
+        dct['__module__'] = None
+        name = dct['__qualname__'] = __package__
+
+        if not hasattr(builtins, name):
+            setattr(builtins, name, super().__new__(cls, name, bases, dct))
+
+        return getattr(builtins, name)
+
+    def __init__(cls, name, bases, dct, /, *,
+                 submodules = Iterable[str],
+                 ) -> type:
+        """
+        Set up the singleton by essentially mirroring the package itself.
+        """
+        super().__init__(name, bases, dct)
+
+        for _name in submodules:
+            module = importlib.import_module(f'{__package__}.{_name}')
+            setattr(cls, _name, module)
+
+        path = p3d.DSearchPath()
+        for _path in sys.path:
+            path.append_directory(_path)
+
+        cls.store = cls.control.FileManager(path)
+
+
+class _(object, metaclass = _, submodules = __all__):
+    pass
 
 
 _build_class = builtins.__build_class__

@@ -1,21 +1,36 @@
+__all__ = ['Tile', 'TileSet']
+
+
 import math
 
 from dataclasses import dataclass
+
+from panda3d import core as p3d
+
+from . import Rules
+
+
+class Tile(p3d.Texture):
+
+    def __init__(self, name: str, index: int = 0):
+        super().__init__(name)
+        self.__idx = index
+
+    def __hash__(self):
+        return self.name
+
+    @property
+    def index(self):
+        return self.__idx
 
 
 class TileSet(dict):
 
     _NAMEPLATE = 'tex:{0}:ref:{1}'
 
-    @dataclass(init=False)
-    class Rules(burst.core.RuleBase):
-        tile_size: burst.core.Rule2D = None
-        tile_run: burst.core.Rule2D = None
-        tile_offset: burst.core.Rule2D = None
-
     def __init__(self, f_path: str, **rules):
         super().__init__()
-        self.rules = self.Rules(**rules)
+        self.rules = burst.core.TileSetRules(**rules)
         if f_path:
             self.atlas = loader.load_texture(f_path)
             self.pixel = burst.core.PixelMatrix(self.atlas)
@@ -48,7 +63,7 @@ class TileSet(dict):
         if index:
             row = math.ceil(index / self.rules.tile_run.y)
             col = ((index - 1) % self.rules.tile_run.x) + 1
-            off = burst.p3d.LVector2i(
+            off = p3d.LVector2i(
                 x = (row - 1) \
                     * (self.size \
                        * self.rules.tile_run.y \
@@ -75,12 +90,12 @@ class TileSet(dict):
                 px_data += bytes(cell.get_xyz())
                 px_data += bytes([cell.get_w()])
 
-        return burst.p3d.PTAUchar(px_data)
+        return p3d.PTAUchar(px_data)
 
     def get_child_name(self, index: int) -> str:
         return self._NAMEPLATE.format(self.name, index)
 
-    def get(self, index: int) -> burst.p3d.Texture:
+    def get(self, index: int) -> p3d.Texture:
         """
         Returns the Texture for the n-th Tile in the TileSet.
         """
@@ -90,13 +105,13 @@ class TileSet(dict):
         if name in self:
             tile = self[name]
         else:
-            tile = self[name] = burst.tile.Tile(name, index)
+            tile = self[name] = Tile(name, index)
             tile.setup_2d_texture(
                 self.rules.tile_size.x,
                 self.rules.tile_size.y,
-                burst.p3d.Texture.T_unsigned_byte,
-                burst.p3d.Texture.F_rgba)
-            tile.set_magfilter(burst.p3d.Texture.FT_nearest)
+                p3d.Texture.T_unsigned_byte,
+                p3d.Texture.F_rgba)
+            tile.set_magfilter(p3d.Texture.FT_nearest)
             tile.set_ram_image(self.__draw(index))
             tile.compress_ram_image()
 

@@ -1,4 +1,13 @@
-#!/usr/local/bin/python3.9
+__all__ = [
+    'ADJUST_POS_AMOUNT_STANDARD', 'ADJUST_POS_AMOUNT_PINPOINT',
+    'ADJUST_POS_EVENTS', 'ADJUST_POS_NORTH', 'ADJUST_POS_SOUTH',
+    'ADJUST_POS_EAST', 'ADJUST_POS_WEST', 'ADJUST_HPR_AMOUNT_STANDARD'
+    'ADJUST_HPR_AMOUNT_PINPOINT', 'ADJUST_HPR_EVENTS', 'ADJUST_HPR_EAST',
+    'ADJUST_HPR_WEST', 'ADJUST_SCALE_AMOUNT_STANDARD',
+    'ADJUST_SCALE_AMOUNT_PINPOINT', 'ADJUST_SCALE_EVENTS',
+    'ADJUST_SCALE_INCREASE', 'ADJUST_SCALE_DECREASE', 'ObjectManager',
+]
+
 
 from typing import Callable, Iterable
 
@@ -87,7 +96,10 @@ class ObjectManager(SelectionManager):
         """
         self.__accept_events(ADJUST_SCALE_EVENTS, self._adjust_scaling)
 
-    def __accept_events(self, events: Iterable, method: Callable) -> None:
+    def __accept_events(self,
+                        events: Iterable[str],
+                        method: Callable,
+                        ) -> None:
         """
         Initializes a group of events, hooked to the specified method.
         """

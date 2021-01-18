@@ -1,5 +1,10 @@
-#!/usr/local/bin/python3.9
+__all__ = [
+    'validate_extensions', 'ExtensionsMixin', 'File', 'TextureFile',
+    'FileManager', 'ObjectManager', 'SelectionManager',
+]
 
+
+import contextlib
 import pathlib
 import re
 
@@ -7,12 +12,14 @@ from typing import Iterable, Union
 
 from panda3d import core as p3d
 
+from direct.stdpy.file import StreamIOWrapper
 
-EXTENSION_EXPR = re.compile('^\.(\w+)$')
+
+_EXTENSION_EXPR = re.compile('^\.(\w+)$')
 
 
 def validate_extensions(*extensions: str,
-                        pattern: re.Pattern = EXTENSION_EXPR,
+                        pattern: re.Pattern = _EXTENSION_EXPR,
                         match_group: int = 1,
                         ) -> set:
     """
@@ -60,7 +67,7 @@ class _File(type, ExtensionsMixin):
         return super().__new__(cls, name, bases, dct)
 
     def __init__(cls, name, bases, dct, /, *,
-                 extensions: Iterable = (),
+                 extensions: Iterable[str] = (),
                  ) -> type:
         type.__init__(cls, name, bases, dct)
         ExtensionsMixin.__init__(cls, *extensions)
@@ -80,13 +87,16 @@ class File(object, metaclass = _File):
 
     def __init__(self, path: p3d.Filename):
         super().__init__()
-        self.__path = path
+        self.__filename = path
 
     def __repr__(self):
         return '{0}({1!r})'.format(self.__class__.__name__, self.path.name)
 
+    def get_filename(self):
+        return p3d.Filename(self.__filename)
+
     def get_path(self) -> pathlib.Path:
-        return pathlib.Path(self.__path.to_os_specific())
+        return pathlib.Path(self.__filename.to_os_specific())
 
     path = property(get_path)
 
@@ -110,3 +120,8 @@ class TextureFile(File, extensions = ['.jpg', '.png', '.gif']):
             return base.loader.load_texture(self.get_path(), alpha)
         else:
             raise TypeError(f'invalid alpha: {alpha!r}')
+
+
+from .FileManager import FileManager
+from .ObjectManager import ObjectManager
+from .SelectionManager import SelectionManager

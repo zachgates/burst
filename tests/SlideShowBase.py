@@ -1,5 +1,3 @@
-#!/usr/local/bin/python3.9
-
 import collections
 
 from direct.gui.DirectButton import DirectButton

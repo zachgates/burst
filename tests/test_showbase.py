@@ -1,18 +1,19 @@
-import Burst
+from panda3d import core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
 
-class TestApp(ShowBase):
+class SampleScene(ShowBase):
 
     def __init__(self):
         super().__init__()
-        self._scene = burst.load_scene2d('sample.burst')
+        file = burst.store.load_file('storage/scenes/sample.burst')
+        self.scene = file.read()
 
     def run(self):
-        sprite = burst.p3d.SequenceNode('sprite')
+        sprite = p3d.SequenceNode('sprite')
         for n in (307, 308, 309, 310):
-            sprite.addChild(self._scene.make_tile(n).node())
+            sprite.add_child(self.scene.make_tile(n).node())
         sprite.set_frame_rate(12)
         sprite.pingpong(True)
         aspect2d.attach_new_node(sprite)
@@ -20,5 +21,5 @@ class TestApp(ShowBase):
 
 
 if __name__ == '__main__':
-    base = TestApp()
-    base.run()
+    app = SampleScene()
+    app.run()

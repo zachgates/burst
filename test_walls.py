@@ -4,12 +4,7 @@ import collections
 
 from panda3d import core as p3d
 
-from libpandaworld.control.FileManager import FileManager
-
-from tests.SlideShowBase import SlideShowBase
-
-
-WALLS_PATH = 'storage/palettes/walls'
+from tests import SlideShowBase
 
 
 class WallSlideShow(SlideShowBase):
@@ -18,18 +13,17 @@ class WallSlideShow(SlideShowBase):
         super().__init__()
         self.wall_frame = p3d.CardMaker('wall_frame')
         self.wall_frame.set_frame(0, 1, 0, 1)
-        self.file_store = FileManager()
 
     def run(self):
-        files = self.file_store.load_directory(
-            WALLS_PATH,
+        files = burst.store.load_directory(
+            'storage/palettes/walls',
             extensions = ['.jpg'],
             )
 
         for file in files:
             try:
                 alpha_path = file.path.with_suffix('.rgb')
-                alpha_file = self.file_store.load_file(alpha_path)
+                alpha_file = burst.store.load_file(alpha_path)
             except FileNotFoundError:
                 alpha_file = None
 

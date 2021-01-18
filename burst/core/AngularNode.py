@@ -1,4 +1,5 @@
-#!/usr/local/bin/python3.9
+__all__ = ['AngularNode']
+
 
 import enum
 

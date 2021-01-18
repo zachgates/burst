@@ -1,10 +1,25 @@
-class SceneLoader2D(burst.core.InputFileManager):
+__all__ = ['SceneFile']
 
-    def _unpack(self) -> tuple:
-        dg = burst.p3d.Datagram()
-        self.file.get_datagram(dg)
-        dgi = burst.p3d.DatagramIterator(dg)
-        return (
+
+from panda3d import core as p3d
+
+
+class SceneFile(burst.control.File, extensions = ['.burst']):
+
+    @staticmethod
+    def _unpack_rule(dgi) -> tuple[int, int]:
+        return (dgi.get_uint16(), dgi.get_uint16())
+
+    def read(self):
+        stream = p3d.IFileStream(str(self.path))
+        file = p3d.DatagramInputFile()
+        file.open(stream, self.get_path())
+
+        dg = p3d.Datagram()
+        file.get_datagram(dg)
+        dgi = p3d.DatagramIterator(dg)
+
+        return burst.scene.Scene2D(
             # scene name
             dgi.get_fixed_string(0xff),
             # scene resolution
@@ -22,10 +37,3 @@ class SceneLoader2D(burst.core.InputFileManager):
                 'tile_offset': self._unpack_rule(dgi),
             },
         )
-
-    def _unpack_rule(self, dgi) -> tuple:
-        return (dgi.get_uint16(), dgi.get_uint16())
-
-    def read(self):
-        data = self._unpack()
-        return burst.scene.Scene2D(*data)
