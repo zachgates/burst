@@ -18,26 +18,24 @@ from .SelectionManager import SelectionManager
 
 ADJUST_POS_AMOUNT_STANDARD = 'positional_magnitude_standard'
 ADJUST_POS_AMOUNT_PINPOINT = 'positional_magnitude_pinpoint'
+ADJUST_POS_NORTH = 'event_move_north'
+ADJUST_POS_SOUTH = 'event_move_south'
+ADJUST_POS_EAST = 'event_move_east'
+ADJUST_POS_WEST = 'event_move_west'
 ADJUST_POS_EVENTS = [
-    (ADJUST_POS_NORTH := 'event_move_north'),
-    (ADJUST_POS_SOUTH := 'event_move_south'),
-    (ADJUST_POS_EAST := 'event_move_east'),
-    (ADJUST_POS_WEST := 'event_move_west'),
-]
+    ADJUST_POS_NORTH, ADJUST_POS_SOUTH, ADJUST_POS_EAST, ADJUST_POS_WEST]
 
 ADJUST_HPR_AMOUNT_STANDARD = 'rotational_magnitude_standard'
 ADJUST_HPR_AMOUNT_PINPOINT = 'rotational_magnitude_pinpoint'
-ADJUST_HPR_EVENTS = [
-    (ADJUST_HPR_EAST := 'event_rotate_east'),
-    (ADJUST_HPR_WEST := 'event_rotate_west'),
-]
+ADJUST_HPR_EAST = 'event_rotate_east'
+ADJUST_HPR_WEST = 'event_rotate_west'
+ADJUST_HPR_EVENTS = [ADJUST_HPR_EAST, ADJUST_HPR_WEST]
 
 ADJUST_SCALE_AMOUNT_STANDARD = 'scaling_magnitude_standard'
 ADJUST_SCALE_AMOUNT_PINPOINT = 'scaling_magnitude_pinpoint'
-ADJUST_SCALE_EVENTS = [
-    (ADJUST_SCALE_INCREASE := 'event_scale_increase'),
-    (ADJUST_SCALE_DECREASE := 'event_scale_decrease')
-]
+ADJUST_SCALE_INCREASE = 'event_scale_increase'
+ADJUST_SCALE_DECREASE = 'event_scale_decrease'
+ADJUST_SCALE_EVENTS = [ADJUST_SCALE_INCREASE, ADJUST_SCALE_DECREASE]
 
 
 class ObjectManager(SelectionManager):
@@ -110,8 +108,7 @@ class ObjectManager(SelectionManager):
             self.accept(f'shift-{key}', method, [event, True])
             self.accept(f'shift-{key}-repeat', method, [event, True])
 
-    def __get_magnitude(self,
-                        /, *,
+    def __get_magnitude(self, *,
                         precision: bool,
                         standard: str,
                         pinpoint: str = None,

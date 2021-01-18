@@ -30,8 +30,7 @@ class AngularNode(DirectObject, p3d.NodePath):
         obj = node.get_python_tag(cls.__name__)
         return (obj if isinstance(obj, cls) else None)
 
-    def __init__(self,
-                 /, *,
+    def __init__(self, *,
                  parent: p3d.NodePath = None,
                  node: p3d.NodePath = None,
                  prefix: str = None,
@@ -190,7 +189,8 @@ class AngularNode(DirectObject, p3d.NodePath):
         self.wrt_reparent_to(self.get_future_parent())
         self.__next_parent = hidden
 
-        if obj := self.get_class_tag(self.get_parent()):
+        obj = self.get_class_tag(self.get_parent())
+        if obj:
             obj.adjust_center()
 
         return self

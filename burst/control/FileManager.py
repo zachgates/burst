@@ -38,7 +38,8 @@ class FileManager(DirectObject, ExtensionsMixin):
             path = path.to_os_specific()
 
         if isinstance(path, (str, pathlib.Path)):
-            if (file := VFS.find_file(path, self.search_path)) is not None:
+            file = VFS.find_file(path, self.search_path)
+            if file:
                 return file.get_filename()
             else:
                 raise FileNotFoundError(path)
@@ -56,7 +57,7 @@ class FileManager(DirectObject, ExtensionsMixin):
         else:
             raise ValueError(f'cannot load filetype: {path.get_extension()}')
 
-    def load_directory(self, path, /, *,
+    def load_directory(self, path, *,
                        recursive: bool = False,
                        extensions: Iterable[str] = (),
                        ) -> list[File]:
@@ -68,7 +69,8 @@ class FileManager(DirectObject, ExtensionsMixin):
         if isinstance(extensions, Container):
             extensions = validate_extensions(*extensions)
 
-        if not (path := self.scan_path(path)).is_directory():
+        path = self.scan_path(path)
+        if not path.is_directory():
             raise NotADirectoryError(path.to_os_specific())
 
         files = []
