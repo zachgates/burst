@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.9
+#!/usr/local/bin/python3
 
 import math
 
@@ -7,6 +7,7 @@ from panda3d import core as p3d
 from direct.showbase.ShowBase import ShowBase
 
 from burst.core import AngularNode
+from . import make_label
 
 
 SCALE_INTERVAL = 1.0 / 55
@@ -31,6 +32,10 @@ class KartDisplay(ShowBase):
         self.camera.set_pos(25, -20, 30)
         self.camera.set_hpr(30, -45, 0)
         self.disable_mouse()
+
+        self.label = make_label()
+        self.label.setText('press the space bar')
+        self.accept_once('space', self.label.remove_node)
 
     def make_kart(self, model: p3d.NodePath) -> AngularNode:
         kart = AngularNode(parent = render, node = model)

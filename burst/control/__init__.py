@@ -102,6 +102,6 @@ class File(object, metaclass = _File):
     path = property(get_path)
 
 
-from .FileManager import FileManager
-from .ObjectManager import ObjectManager
-from .SelectionManager import SelectionManager
+from .FileManager import *
+from .ObjectManager import *
+from .SelectionManager import *

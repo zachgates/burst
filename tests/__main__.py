@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.9 -m tests
+#!/usr/local/bin/python3 -m tests
 
 import asyncio
 import pathlib

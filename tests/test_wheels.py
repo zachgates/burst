@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.9
+#!/usr/local/bin/python3
 
 import math
 
@@ -7,6 +7,7 @@ from panda3d import core as p3d
 from direct.showbase.ShowBase import ShowBase
 
 from burst.core import AngularNode
+from . import make_label
 
 
 class WheelDisplay(ShowBase):
@@ -31,6 +32,10 @@ class WheelDisplay(ShowBase):
         wheel_model.set_z(1)
         self.camera.set_pos(5, -20, -1)
         self.disable_mouse()
+
+        self.label = make_label()
+        self.label.setText('press the space bar')
+        self.accept_once('space', self.label.remove_node)
 
     def move_wheel(self, wheel: AngularNode, index: int):
         def move(task):

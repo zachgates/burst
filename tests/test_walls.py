@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.9
+#!/usr/local/bin/python3
 
 import collections
 
@@ -9,16 +9,14 @@ from . import SlideShowBase
 
 class WallSlideShow(SlideShowBase):
 
-    def __init__(self):
-        super().__init__()
-        self.wall_frame = p3d.CardMaker('wall_frame')
-        self.wall_frame.set_frame(0, 1, 0, 1)
-
     def run(self):
         files = burst.store.load_directory(
             'tests/data/palettes/walls',
             extensions = ['.jpg'],
             )
+
+        frame = p3d.CardMaker('wall_frame')
+        frame.set_frame(0, 1, 0, 1)
 
         for file in files:
             try:
@@ -27,7 +25,7 @@ class WallSlideShow(SlideShowBase):
             except FileNotFoundError:
                 alpha_file = None
 
-            wall = render2d.attach_new_node(self.wall_frame.generate())
+            wall = render2d.attach_new_node(frame.generate())
             wall.set_pos(-0.5, 0, -0.5)
             wall.set_name(file.path.stem)
             wall.set_texture(file.read(alpha = alpha_file))

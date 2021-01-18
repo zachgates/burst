@@ -1,9 +1,20 @@
+__all__ = ['make_label', 'SlideShowBase']
+
+
 import collections
 
 from direct.gui.DirectButton import DirectButton
 from direct.gui import DirectGuiGlobals as DGG
 from direct.gui.DirectLabel import DirectLabel
 from direct.showbase.ShowBase import ShowBase
+
+
+def make_label():
+    return DirectLabel(
+        parent = aspect2d,
+        pos = (0, 0, -0.87),
+        scale = (1.0 / 10, 1, 1.0 / 8),
+        )
 
 
 class SlideShowBase(ShowBase):
@@ -15,11 +26,7 @@ class SlideShowBase(ShowBase):
         self.setup()
 
     def setup(self):
-        self.slide_label = DirectLabel(
-            parent = aspect2d,
-            pos = (0, 0, -0.87),
-            scale = (1.0 / 10, 1, 1.0 / 8),
-            )
+        self.slide_label = make_label()
 
         controls = loader.load_model('shuttle_controls.egg')
         arrows = aspect2d.attach_new_node('gui_arrows')

@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3.9
+#!/usr/local/bin/python3
 
 from burst.core import AngularNode
 from . import SlideShowBase

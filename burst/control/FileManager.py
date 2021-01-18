@@ -5,7 +5,7 @@ import pathlib
 import re
 import sys
 
-from typing import Container, Iterable, Union
+from typing import Container, Iterable, List, Union
 
 from panda3d import core as p3d
 
@@ -60,7 +60,7 @@ class FileManager(DirectObject, ExtensionsMixin):
     def load_directory(self, path, *,
                        recursive: bool = False,
                        extensions: Iterable[str] = (),
-                       ) -> list[File]:
+                       ) -> List[File]:
         """
         Attempts to find and load a directory of Files from the given path.
         A recursive loading flag may also be supplied, and/or a group of

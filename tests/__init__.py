@@ -1,6 +1,6 @@
 __all__ = ['SlideShowBase']
 
 
-from .SlideShowBase import SlideShowBase
+from .gui import *
 
 import burst

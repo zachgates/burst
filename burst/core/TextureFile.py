@@ -1,5 +1,6 @@
 __all__ = ['TextureFile']
 
+
 import pathlib
 
 from typing import Union
