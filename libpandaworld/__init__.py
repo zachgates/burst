@@ -19,8 +19,8 @@ ctypes.pythonapi.PyEval_EvalCodeEx.argtypes = (
 def build_class(body, name, *bases, **kwargs):
     """
     Post-processing for classes defined in this module. Any method defined in
-    ALL_CAPS will be processed into both snake_case and camelCase aliases.
-    This is particularly useful when subclassing C-based types; i.e. NodePath,
+    snake_case will be automatically aliased to camelCase as well. This is
+    particularly useful when subclassing C-based types; i.e. NodePath,
     insomuch as it effectively overrides both entry points provided by Panda.
     """
     if not (
