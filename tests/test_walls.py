@@ -4,7 +4,7 @@ import collections
 
 from panda3d import core as p3d
 
-from tests import SlideShowBase
+from . import SlideShowBase
 
 
 class WallSlideShow(SlideShowBase):
@@ -16,7 +16,7 @@ class WallSlideShow(SlideShowBase):
 
     def run(self):
         files = burst.store.load_directory(
-            'storage/palettes/walls',
+            'tests/data/palettes/walls',
             extensions = ['.jpg'],
             )
 

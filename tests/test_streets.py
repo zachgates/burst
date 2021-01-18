@@ -1,14 +1,15 @@
 #!/usr/local/bin/python3.9
 
-from tests import SlideShowBase
+from burst.core import AngularNode
+from . import SlideShowBase
 
 
 class StreetSlideShow(SlideShowBase):
 
     def run(self):
-        streets = loader.load_model('storage/palettes/streets.bam')
+        streets = loader.load_model('tests/data/palettes/streets.bam')
         for node in streets.get_children():
-            node = burst.core.AngularNode(
+            node = AngularNode(
                 parent = render,
                 node = node,
                 prefix = '',

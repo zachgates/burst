@@ -18,7 +18,7 @@ def SpriteFrame(scene, name: str, frames = []) -> p3d.NodePath:
 
 
 if __name__ == '__main__':
-    scene = burst.store.load_file('storage/scenes/sample.burst').read()
+    scene = burst.store.load_file('tests/data/scenes/sample.burst').read()
     sprite = SpriteFrame(scene, 'Actor-Foo', [275, 279, 277, 278])
     sprite.set_frame_rate(12)
     sprite.pingpong(True)

@@ -2,15 +2,9 @@
 
 import asyncio
 import pathlib
-import re
 import sys
 
 from panda3d import core as p3d
-
-from direct.stdpy import file as stdpy
-
-
-_INCLUDE = re.compile('test_([a-zA-Z_][a-zA-Z0-9_]+)', re.IGNORECASE)
 
 
 p3d.load_prc_file_data(
@@ -28,7 +22,7 @@ p3d.load_prc_file_data(
 
 async def find_modules(src_path):
     for file in burst.store.load_directory(src_path):
-        if _INCLUDE.fullmatch(file.path.stem):
+        if file.path.stem.startswith('test_'):
             yield file
 
 

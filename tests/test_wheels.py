@@ -6,20 +6,20 @@ from panda3d import core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-import tests
+from burst.core import AngularNode
 
 
 class WheelDisplay(ShowBase):
 
     def make_scene(self):
-        wheel_model = loader.load_model('wheel.bam')
+        wheel_model = loader.load_model('tests/data/models/wheel.bam')
 
         for index in range(5):
-            wheel = burst.core.AngularNode(
+            wheel = AngularNode(
                 parent = render,
                 node = wheel_model,
                 )
-            wheel.set_axis(burst.core.AngularNode.AXES.INTERNAL)
+            wheel.set_axis(AngularNode.AXES.INTERNAL)
             wheel.set_z(-index)
             wheel.accept_once(
                 'space',
@@ -32,7 +32,7 @@ class WheelDisplay(ShowBase):
         self.camera.set_pos(5, -20, -1)
         self.disable_mouse()
 
-    def move_wheel(self, wheel: burst.core.AngularNode, index: int):
+    def move_wheel(self, wheel: AngularNode, index: int):
         def move(task):
             dimensions = wheel.get_dimensions()
             circumference = dimensions.x * math.pi

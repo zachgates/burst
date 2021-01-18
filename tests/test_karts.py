@@ -6,7 +6,7 @@ from panda3d import core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-import tests
+from burst.core import AngularNode
 
 
 SCALE_INTERVAL = 1.0 / 55
@@ -16,7 +16,7 @@ SCALE_FACTOR = 2.75
 class KartDisplay(ShowBase):
 
     def make_scene(self):
-        kart_model = loader.load_model('kart.bam')
+        kart_model = loader.load_model('tests/data/models/kart.bam')
         kart_model.set_h(90)
 
         for index in range(5):
@@ -32,23 +32,23 @@ class KartDisplay(ShowBase):
         self.camera.set_hpr(30, -45, 0)
         self.disable_mouse()
 
-    def make_kart(self, model: p3d.NodePath) -> burst.core.AngularNode:
-        kart = burst.core.AngularNode(parent = render, node = model)
+    def make_kart(self, model: p3d.NodePath) -> AngularNode:
+        kart = AngularNode(parent = render, node = model)
         wheels = []
 
         for node in kart.find_all_matches('**/wheelNode*'):
-            wheel = burst.core.AngularNode(
+            wheel = AngularNode(
                 parent = node.get_parent(),
                 node = node,
-                mode = burst.core.AngularNode.MODES.ORIGINAL,
+                mode = AngularNode.MODES.ORIGINAL,
                 )
-            wheel.set_axis(burst.core.AngularNode.AXES.INTERNAL)
+            wheel.set_axis(AngularNode.AXES.INTERNAL)
             wheels.append(wheel)
 
         kart.set_python_tag('wheels', wheels)
         return kart
 
-    def move_kart(self, kart: burst.core.AngularNode, index: int):
+    def move_kart(self, kart: AngularNode, index: int):
         def drive_chain(mph, task):
             for wheel in kart.get_python_tag('wheels'):
                 dimensions = wheel.get_dimensions()

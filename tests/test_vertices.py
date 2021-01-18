@@ -7,10 +7,10 @@ from panda3d import core as p3d
 from direct.directbase.DirectStart import base
 from direct.interval.LerpInterval import LerpFunc
 
-import tests
+from burst.core import AngularNode
 
 
-WHEEL = loader.load_model('wheel.bam')
+WHEEL = loader.load_model('tests/data/models/wheel.bam')
 # WHEEL.set_transparency(p3d.TransparencyAttrib.M_alpha)
 # WHEEL.set_alpha_scale(0.25)
 WHEEL.set_render_mode_wireframe()
@@ -23,7 +23,7 @@ MARKER.set_scale(0.025)
 MARKER.set_texture_off(True)
 
 
-WHEEL = burst.core.AngularNode(parent = render, node = WHEEL)
+WHEEL = AngularNode(parent = render, node = WHEEL)
 MARKERS = WHEEL.attach(p3d.NodePath('markers'))
 
 
@@ -52,7 +52,7 @@ for geom_node in WHEEL.find_all_matches('**/+GeomNode'):
             marker.set_pos(point)
 
 
-WHEEL.set_axis(burst.core.AngularNode.AXES.INTERNAL)
+WHEEL.set_axis(AngularNode.AXES.INTERNAL)
 WHEEL.set_pos(-WHEEL.get_tight_center())
 ival = LerpFunc(WHEEL.set_h, 5.0, 0, 360)
 ival.loop()
