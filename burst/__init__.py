@@ -12,22 +12,29 @@ from typing import Iterable
 from panda3d import core as p3d
 
 
+_builtins__build_class__ = builtins.__build_class__
+
+
+ctypes.pythonapi.PyEval_EvalCodeEx.restype = ctypes.py_object
+ctypes.pythonapi.PyEval_EvalCodeEx.argtypes = (
+    [ctypes.py_object] * 3
+    + [ctypes.c_void_p, ctypes.c_int] * 3
+    + [ctypes.c_void_p, ctypes.py_object]
+    )
+
+
 class _(type):
 
     def __new__(cls, name, bases, dct, **kwargs):
         """
         Returns a global singleton object to be used in lieu of the module.
         """
-        dct['__module__'] = None
-        name = dct['__qualname__'] = __package__
-
         if not hasattr(builtins, name):
             setattr(builtins, name, super().__new__(cls, name, bases, dct))
-
         return getattr(builtins, name)
 
     def __init__(cls, name, bases, dct, /, *,
-                 submodules = Iterable[str],
+                 submodules: Iterable[str],
                  ) -> type:
         """
         Set up the singleton by essentially mirroring the package itself.
@@ -40,24 +47,14 @@ class _(type):
 
         path = p3d.DSearchPath()
         for _path in sys.path:
-            path.append_directory(_path)
+            path.append_directory(p3d.Filename.from_os_specific(_path))
 
         cls.store = cls.control.FileManager(path)
 
 
-class _(object, metaclass = _, submodules = __all__):
+
+class burst(object, metaclass = _, submodules = __all__):
     pass
-
-
-_build_class = builtins.__build_class__
-
-
-ctypes.pythonapi.PyEval_EvalCodeEx.restype = ctypes.py_object
-ctypes.pythonapi.PyEval_EvalCodeEx.argtypes = (
-    [ctypes.py_object] * 3
-    + [ctypes.c_void_p, ctypes.c_int] * 3
-    + [ctypes.c_void_p, ctypes.py_object]
-    )
 
 
 def build_class(body, name, *bases, **kwargs):
@@ -71,7 +68,7 @@ def build_class(body, name, *bases, **kwargs):
         (spec := body.__globals__.get('__spec__'))
         and (spec.name.split('.')[0] == __package__)
         ):
-        return _build_class(body, name, *bases, **kwargs)
+        return _builtins__build_class__(body, name, *bases, **kwargs)
     else:
         metaclass = kwargs.pop('metaclass', type)
         namespace = metaclass.__prepare__(name, bases, **kwargs)
