@@ -10,13 +10,13 @@ from . import SlideShowBase
 class WallSlideShow(SlideShowBase):
 
     def run(self):
+        frame = p3d.CardMaker('wall_frame')
+        frame.set_frame(0, 1, 0, 1)
+
         files = burst.store.load_directory(
             'tests/data/palettes/walls',
             extensions = ['.jpg'],
             )
-
-        frame = p3d.CardMaker('wall_frame')
-        frame.set_frame(0, 1, 0, 1)
 
         for file in files:
             try:

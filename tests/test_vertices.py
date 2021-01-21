@@ -1,7 +1,5 @@
 #!/usr/local/bin/python3
 
-from pprint import pprint
-
 from panda3d import core as p3d
 
 from direct.directbase.DirectStart import base
@@ -32,10 +30,10 @@ for geom_node in WHEEL.find_all_matches('**/+GeomNode'):
         geom = geom_node.node().get_geom(n)
         data = geom.get_vertex_data()
 
-        for k in range(geom.get_num_primitives()):
-            prim = geom.get_primitive(k)
-            prim = prim.decompose()
-            # print(prim)
+        # for k in range(geom.get_num_primitives()):
+        #     prim = geom.get_primitive(k)
+        #     prim = prim.decompose()
+        #     ...
 
         vertex = p3d.GeomVertexReader(data, 'vertex')
         points = dict()

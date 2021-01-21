@@ -16,64 +16,68 @@ SCALE_FACTOR = 2.75
 
 class KartDisplay(ShowBase):
 
-    def make_scene(self):
-        kart_model = loader.load_model('tests/data/models/kart.bam')
-        kart_model.set_h(90)
-
-        for index in range(5):
-            kart = self.make_kart(kart_model)
-            kart.set_y(index * 2.5)
-            kart.accept_once(
-                'space',
-                self.move_kart,
-                extraArgs = [kart, index],
-                )
-
-        self.camera.set_pos(25, -20, 30)
-        self.camera.set_hpr(30, -45, 0)
-        self.disable_mouse()
-
+    def __init__(self):
+        super().__init__()
         self.label = make_label()
         self.label.setText('press the space bar')
-        self.accept_once('space', self.label.remove_node)
+        self.label.show()
 
-    def make_kart(self, model: p3d.NodePath) -> AngularNode:
-        kart = AngularNode(parent = render, node = model)
-        wheels = []
+        self._model = loader.load_model('tests/data/models/kart.bam')
+        self._model.set_h(90)
 
-        for node in kart.find_all_matches('**/wheelNode*'):
-            wheel = AngularNode(
-                parent = node.get_parent(),
-                node = node,
-                mode = AngularNode.MODES.ORIGINAL,
-                )
-            wheel.set_axis(AngularNode.AXES.INTERNAL)
-            wheels.append(wheel)
+        self.karts = []
+        for index in range(5):
+            kart = AngularNode(parent = render, node = self._model)
+            kart.set_y(index * 2.5)
+            kart.set_python_tag('wheels', wheels := [])
+            self.karts.append(kart)
 
-        kart.set_python_tag('wheels', wheels)
-        return kart
+            for node in kart.find_all_matches('**/wheelNode*'):
+                wheel = AngularNode(
+                    parent = node.get_parent(),
+                    node = node,
+                    mode = AngularNode.MODES.ORIGINAL,
+                    )
+                wheel.set_axis(AngularNode.AXES.INTERNAL)
+                wheels.append(wheel)
 
-    def move_kart(self, kart: AngularNode, index: int):
-        def drive_chain(mph, task):
-            for wheel in kart.get_python_tag('wheels'):
-                dimensions = wheel.get_dimensions()
-                circumference = dimensions.x * math.pi
-                speed = (task.delay_time * mph) / circumference
-                wheel.set_p(wheel.get_p() + (speed * 360))
+        self.disable_mouse()
+        self.camera.set_pos(30, -20, 25)
+        self.camera.set_hpr(35, -40, 0)
+        self.accept('space', self.toggle)
 
-            kart.set_x(kart.get_x() + (speed * circumference * SCALE_FACTOR))
-            return task.again
+    @staticmethod
+    def drive_task(kart: AngularNode, index: int, mph: int, task):
+        for wheel in kart.get_python_tag('wheels'):
+            dimensions = wheel.get_dimensions()
+            circumference = dimensions.x * math.pi
+            speed = (task.delay_time * mph) / circumference
+            wheel.set_p(wheel.get_p() + (speed * 360))
 
-        self.task_mgr.do_method_later(
-            SCALE_INTERVAL,
-            drive_chain,
-            f'drive_chain-{index}',
-            extraArgs = [pow(2, index) / 5.0],
-            appendTask = True,
-            )
+        kart.set_x(kart.get_x() + (speed * circumference * SCALE_FACTOR))
+
+        if task.time > SCALE_FACTOR:
+            return task.done
+        return task.cont
+
+    def toggle(self):
+        if self.label.is_hidden():
+            self.label.show()
+            self.task_mgr.removeTasksMatching('kart-*')
+            for kart in self.karts:
+                kart.set_x(0)
+        else:
+            self.label.hide()
+            for index, kart in enumerate(self.karts):
+                self.task_mgr.do_method_later(
+                    SCALE_INTERVAL,
+                    self.drive_task,
+                    f'kart-{index}',
+                    extraArgs = [kart, index, pow(2, index) / 5.0],
+                    appendTask = True,
+                    )
 
 
 if __name__ == '__main__':
     app = KartDisplay()
-    app.make_scene()
     app.run()
