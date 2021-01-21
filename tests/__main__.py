@@ -37,4 +37,9 @@ async def main(src_path):
 
 
 if __name__ == '__main__':
-    asyncio.run(main(pathlib.Path(__file__).parent))
+    try:
+        loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(loop)
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    finally:
+        asyncio.run(main(pathlib.Path(__file__).parent))
