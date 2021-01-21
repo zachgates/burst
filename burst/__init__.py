@@ -87,7 +87,8 @@ def build_class(body, name, *bases, **kwargs):
             if attr.startswith('_'):
                 continue
 
-            if attr.islower() and len(words := attr.split('_')) > 1:
+            if attr.islower() and attr.count('_'):
+                words = attr.split('_')
                 words[1:] = map(str.title, words[1:])
                 dct[attr] = ''.join(words)
 
