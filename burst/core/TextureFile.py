@@ -11,7 +11,7 @@ from panda3d import core as p3d
 class TextureFile(burst.control.File,
                   extensions = ['.jpg', '.png', '.gif']):
 
-    def read(self, *,
+    def read(self, /, *,
              alpha: Union[str, pathlib.Path, p3d.Filename,
                           burst.control.File] = None,
              ) -> p3d.Texture:

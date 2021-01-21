@@ -16,14 +16,12 @@ class RuleBase:
 
     def __init__(self, **kwargs):
         for key, default, type_ in self._check_arg_types():
-            if key not in kwargs:
+            if (val := kwargs.get(key)) is None:
                 val = type_()
+            elif isinstance(val, Iterable):
+                val = type_(*val)
             else:
-                val = kwargs.get(key)
-                if isinstance(val, Iterable):
-                    val = type_(*val)
-                else:
-                    val = type_(val)
+                val = type_(val)
 
             self.__setattr__(key, val)
 

@@ -35,8 +35,7 @@ def validate_extensions(*extensions: str,
     exts = set()
     for ext in extensions:
         if isinstance(ext, str):
-            match = pattern.fullmatch(ext)
-            if match:
+            if match := pattern.fullmatch(ext):
                 exts.add(match.group(match_group))
             else:
                 raise ValueError(f'invalid extension: {ext!r}')
@@ -67,7 +66,7 @@ class _File(type, ExtensionsMixin):
     def __new__(cls, name, bases, dct, **kwargs):
         return super().__new__(cls, name, bases, dct)
 
-    def __init__(cls, name, bases, dct, *,
+    def __init__(cls, name, bases, dct, /, *,
                  extensions: Iterable[str] = (),
                  ) -> type:
         type.__init__(cls, name, bases, dct)

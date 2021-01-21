@@ -26,7 +26,7 @@ class _(type):
 
         return getattr(builtins, name)
 
-    def __init__(cls, name, bases, dct, *,
+    def __init__(cls, name, bases, dct, /, *,
                  submodules = Iterable[str],
                  ) -> type:
         """
@@ -67,9 +67,12 @@ def build_class(body, name, *bases, **kwargs):
     particularly useful when subclassing C-based types; i.e. NodePath,
     insomuch as it effectively overrides both entry points provided by Panda.
     """
-    spec = body.__globals__.get('__spec__')
-
-    if spec and (spec.name.split('.')[0] == __package__):
+    if not (
+        (spec := body.__globals__.get('__spec__'))
+        and (spec.name.split('.')[0] == __package__)
+        ):
+        return _build_class(body, name, *bases, **kwargs)
+    else:
         metaclass = kwargs.pop('metaclass', type)
         namespace = metaclass.__prepare__(name, bases, **kwargs)
         classcell = ctypes.pythonapi.PyEval_EvalCodeEx(
@@ -77,8 +80,6 @@ def build_class(body, name, *bases, **kwargs):
             None, 0, None, 0, None, 0,
             None, body.__closure__,
             )
-    else:
-        return _build_class(body, name, *bases, **kwargs)
 
     dct = {}
     for attr in namespace:
@@ -89,8 +90,7 @@ def build_class(body, name, *bases, **kwargs):
             if attr.startswith('_'):
                 continue
 
-            words = attr.split('_')
-            if attr.islower() and len(words) > 1:
+            if attr.islower() and len(words := attr.split('_')) > 1:
                 words[1:] = map(str.title, words[1:])
                 dct[attr] = ''.join(words)
 
@@ -100,11 +100,12 @@ def build_class(body, name, *bases, **kwargs):
         if isinstance(func, (staticmethod, classmethod)):
             f = func
         else:
-            co = func.__code__.replace(co_name = f'{name}.{alias}')
             f = types.FunctionType(
-                co,
+                code := func.__code__.replace(
+                    co_name = f'{name}.{alias}',
+                    ),
                 func.__globals__,
-                co.co_name,
+                code.co_name,
                 func.__defaults__,
                 func.__closure__,
                 )

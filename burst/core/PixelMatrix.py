@@ -81,9 +81,7 @@ class PixelMatrix(object):
             point.x %= (self.height + 1)
             point.y %= (self.width + 1)
 
-        index = self._norm_index_from_pos(point)
-
-        if index == 0:
+        if (index := self._norm_index_from_pos(point)) == 0:
             return self._BLANK
         else:
             return self.__calc_pixel_by_index(index - 1)
