@@ -34,12 +34,12 @@ class FileManager(DirectObject, ExtensionsMixin):
         """
         Attempts to find the given path, creating a VirtualFile pointer.
         """
-        if isinstance(path, p3d.Filename):
-            path = path.to_os_specific()
-
         if isinstance(path, (str, pathlib.Path)):
-            if (file := VFS.find_file(path, self.search_path)) is not None:
-                return file.get_filename()
+            path = p3d.Filename.from_os_specific(str(path))
+
+        if isinstance(path, p3d.Filename):
+            if VFS.resolve_filename(path, self.search_path):
+                return path
             else:
                 raise FileNotFoundError(path)
         else:
@@ -51,6 +51,7 @@ class FileManager(DirectObject, ExtensionsMixin):
         Attempts to create a File object from its VirtualFile pointer.
         """
         path = self.scan_path(path)
+
         if (path.get_extension() in self.extensions) or not self.extensions:
             return File(path)
         else:
