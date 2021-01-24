@@ -47,7 +47,8 @@ class _(type):
 
         path = p3d.DSearchPath()
         for _path in sys.path:
-            path.append_directory(p3d.Filename.from_os_specific(_path))
+            _path = p3d.Filename.from_os_specific(_path)
+            path.append_directory(_path)
 
         cls.store = cls.control.FileManager(path)
 

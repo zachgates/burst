@@ -1,6 +1,6 @@
 from panda3d import core as p3d
 
-import direct.directbase.DirectStart
+from direct.directbase.DirectStart import base
 
 
 def StaticFrame(scene, index: int) -> p3d.NodePath:

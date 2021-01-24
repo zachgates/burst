@@ -13,6 +13,7 @@ WHEEL = loader.load_model('tests/data/models/wheel.bam')
 # WHEEL.set_alpha_scale(0.25)
 WHEEL.set_render_mode_wireframe()
 WHEEL.set_render_mode_thickness(8)
+WHEEL.set_two_sided(True)
 
 
 MARKER = loader.load_model('smiley.egg').get_child(0)
