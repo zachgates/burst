@@ -1,6 +1,8 @@
 .DS_Store
 *.py[co]
 __pycache__/
-.cache/
-storage/xml/
-test_xmlload.py
+
+burst/.cache/
+
+tests/test_bamcache.py
+tests/test_xmlload.py

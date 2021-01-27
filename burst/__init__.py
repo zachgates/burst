@@ -4,6 +4,7 @@ __all__ = ['control', 'core', 'scene']
 import builtins
 import ctypes
 import importlib
+import pathlib
 import sys
 import types
 
@@ -55,7 +56,7 @@ class _(type):
 
 
 class burst(object, metaclass = _, submodules = __all__):
-    pass
+    __path__ = pathlib.Path(__file__).parent
 
 
 def build_class(body, name, *bases, **kwargs):
