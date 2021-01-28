@@ -1,45 +1,50 @@
 #!/usr/local/bin/python3 -m tests
 
 import asyncio
-import pathlib
+import signal
 import sys
 
-from panda3d import core as p3d
+from . import __all__
 
 
-p3d.load_prc_file_data(
-    '',
-    """
-    load-display pandagl
-    win-origin -2 -2
-    win-size 1 1
-    fullscreen #f
-    notify-level info
-    textures-square none
-    textures-power-2 none
-    """)
+class TestChain(object):
+
+    def __init__(self):
+        self._tasks = asyncio.Queue()
+        for name in __all__:
+            self._tasks.put_nowait(
+                (name, asyncio.create_subprocess_exec(
+                    sys.executable, '-m', f'tests.{name}',
+                    # stdout = asyncio.subprocess.DEVNULL,
+                    # stderr = asyncio.subprocess.DEVNULL,
+                    )))
+
+    def write_header(self, msg: str):
+        print('=' * 36, f'||{msg:^32s}||', '=' * 36, sep = '\n')
+
+    async def start(self):
+        while self._tasks.qsize() > 0:
+            name, task = await self._tasks.get()
+            self.write_header(f'Running: {name}')
+            proc = await task
+            await proc.wait()
+            self._tasks.task_done()
+
+    def stop(self):
+        while self._tasks.qsize() > 0:
+            name, task = self._tasks.get_nowait()
+            self.write_header(f'Skipping: {name}')
+            task.close()
+            self._tasks.task_done()
 
 
-async def find_modules(src_path):
-    for file in burst.store.load_directory(src_path):
-        if file.path.stem.startswith('test_'):
-            yield file
-
-
-async def main(src_path):
-    async for file in find_modules(src_path):
-        process = await asyncio.create_subprocess_exec(
-            sys.executable, '-m', f'tests.{file.path.stem}',
-            # stdout = asyncio.subprocess.DEVNULL,
-            # stderr = asyncio.subprocess.DEVNULL,
-            )
-        await process.wait()
-
-
-if __name__ == '__main__':
-    try:
-        loop = asyncio.ProactorEventLoop()
-        asyncio.set_event_loop(loop)
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-    finally:
-        asyncio.run(main(pathlib.Path(__file__).parent))
+try:
+    asyncio.set_event_loop(asyncio.ProactorEventLoop())
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+except AttributeError:
+    pass
+finally:
+    test = TestChain()
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(signal.SIGINT, test.stop)
+    loop.run_until_complete(test.start())
