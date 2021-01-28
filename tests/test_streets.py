@@ -1,7 +1,6 @@
-#!/usr/local/bin/python3
-
 from burst.core import AngularNode
-from . import SlideShowBase
+
+from .gui import SlideShowBase
 
 
 class StreetSlideShow(SlideShowBase):

@@ -5,7 +5,7 @@ import pathlib
 
 from typing import Union
 
-from panda3d import core as p3d
+import panda3d.core as p3d
 
 
 class TextureFile(burst.control.File,

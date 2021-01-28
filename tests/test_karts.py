@@ -1,13 +1,12 @@
-#!/usr/local/bin/python3
-
 import math
 
-from panda3d import core as p3d
+import panda3d.core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
 from burst.core import AngularNode
-from . import make_label
+
+from .gui import make_label
 
 
 SCALE_INTERVAL = 1.0 / 55

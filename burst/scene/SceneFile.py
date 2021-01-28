@@ -3,7 +3,7 @@ __all__ = ['SceneFile']
 
 from typing import Tuple
 
-from panda3d import core as p3d
+import panda3d.core as p3d
 
 
 class SceneFile(burst.control.File, extensions = ['.burst']):

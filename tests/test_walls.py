@@ -1,10 +1,8 @@
-#!/usr/local/bin/python3
-
 import collections
 
-from panda3d import core as p3d
+import panda3d.core as p3d
 
-from . import SlideShowBase
+from .gui import SlideShowBase
 
 
 class WallSlideShow(SlideShowBase):

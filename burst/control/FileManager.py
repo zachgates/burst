@@ -7,7 +7,7 @@ import sys
 
 from typing import Container, Iterable, List, Union
 
-from panda3d import core as p3d
+import panda3d.core as p3d
 
 from direct.showbase.DirectObject import DirectObject
 

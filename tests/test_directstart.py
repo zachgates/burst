@@ -1,4 +1,4 @@
-from panda3d import core as p3d
+import panda3d.core as p3d
 
 from direct.directbase.DirectStart import base
 

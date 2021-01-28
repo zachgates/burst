@@ -10,7 +10,7 @@ import types
 
 from typing import Iterable
 
-from panda3d import core as p3d
+import panda3d.core as p3d
 
 
 _builtins__build_class__ = builtins.__build_class__

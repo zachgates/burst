@@ -1,7 +1,7 @@
 __all__ = ['SceneRenderer2D', 'Scene2D']
 
 
-from panda3d import core as p3d
+import panda3d.core as p3d
 
 
 class SceneRenderer2D(object):
