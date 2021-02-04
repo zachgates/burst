@@ -1,4 +1,4 @@
-__all__ = ['SceneFile']
+__all__ = ['SceneFile2D']
 
 
 from typing import Tuple
@@ -6,7 +6,7 @@ from typing import Tuple
 import panda3d.core as p3d
 
 
-class SceneFile(burst.control.File, extensions = ['.burst']):
+class SceneFile2D(burst.control.File, extensions = ['.burst2d']):
 
     @staticmethod
     def _unpack_rule(dgi) -> Tuple[int, int]:

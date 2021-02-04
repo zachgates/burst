@@ -7,7 +7,7 @@ class SampleScene(ShowBase):
 
     def __init__(self):
         super().__init__()
-        file = burst.store.load_file('tests/data/scenes/sample.burst')
+        file = burst.store.load_file('tests/data/scenes/sample.burst2d')
         self.scene = file.read()
 
     def run(self):
