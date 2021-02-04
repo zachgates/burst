@@ -4,11 +4,12 @@ __all__ = [
 ]
 
 
+import abc
 import contextlib
 import pathlib
 import re
 
-from typing import Iterable
+from typing import Any, Iterable
 
 import panda3d.core as p3d
 
@@ -59,7 +60,7 @@ class ExtensionsMixin(object):
     extensions = property(get_extensions)
 
 
-class _File(type, ExtensionsMixin):
+class _File(abc.ABCMeta, ExtensionsMixin):
 
     def __new__(cls, name, bases, dct, **kwargs):
         return super().__new__(cls, name, bases, dct)
@@ -67,7 +68,7 @@ class _File(type, ExtensionsMixin):
     def __init__(cls, name, bases, dct, /, *,
                  extensions: Iterable[str] = (),
                  ) -> type:
-        type.__init__(cls, name, bases, dct)
+        abc.ABCMeta.__init__(cls, name, bases, dct)
         ExtensionsMixin.__init__(cls, *extensions)
 
 
@@ -97,6 +98,10 @@ class File(object, metaclass = _File):
         return pathlib.Path(self.__filename.to_os_specific())
 
     path = property(get_path)
+
+    @abc.abstractmethod
+    def read(self) -> Any:
+        raise NotImplementedError()
 
 
 from .FileManager import *
