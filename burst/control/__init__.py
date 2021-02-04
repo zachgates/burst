@@ -12,8 +12,6 @@ from typing import Iterable
 
 import panda3d.core as p3d
 
-from direct.stdpy.file import StreamIOWrapper
-
 
 _EXTENSION_EXPR = re.compile('^\.(\w+)$')
 

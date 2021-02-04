@@ -78,9 +78,11 @@ class TileSet(dict):
 
             for row in range(self.rules.tile_size.y):
                 offset = (off.x + off.y + 1)
-                off.y += (self.rules.tile_run.x * self.rules.tile_size.x) \
-                         + (self.rules.tile_run.x - 1) \
-                         * self.rules.tile_offset.x
+                off.y += (
+                    (self.rules.tile_run.x * self.rules.tile_size.x)
+                    + (self.rules.tile_run.x - 1)
+                    * self.rules.tile_offset.x
+                    )
                 px_rows.append([self.pixel.get(index = offset + col)
                                 for col in range(self.rules.tile_size.x)])
 
@@ -110,7 +112,8 @@ class TileSet(dict):
                 self.rules.tile_size.x,
                 self.rules.tile_size.y,
                 p3d.Texture.T_unsigned_byte,
-                p3d.Texture.F_rgba)
+                p3d.Texture.F_rgba,
+                )
             tile.set_magfilter(p3d.Texture.FT_nearest)
             tile.set_ram_image(self.__draw(index))
             tile.compress_ram_image()
