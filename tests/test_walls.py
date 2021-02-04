@@ -17,16 +17,10 @@ class WallSlideShow(SlideShowBase):
             )
 
         for file in files:
-            try:
-                alpha_path = file.path.with_suffix('.rgb')
-                alpha_file = burst.store.load_file(alpha_path)
-            except FileNotFoundError:
-                alpha_file = None
-
             wall = render2d.attach_new_node(frame.generate())
             wall.set_pos(-0.5, 0, -0.5)
             wall.set_name(file.path.stem)
-            wall.set_texture(file.read(alpha = alpha_file))
+            wall.set_texture(file.read(alpha = True))
             wall.set_transparency(p3d.TransparencyAttrib.M_binary)
             wall.hide()
             self.slides.append(wall)
