@@ -3,8 +3,10 @@ __all__ = ['SceneRenderer2D', 'Scene2D']
 
 import panda3d.core as p3d
 
+from . import SceneRendererBase
 
-class SceneRenderer2D(object):
+
+class SceneRenderer2D(SceneRendererBase):
 
     @classmethod
     def make_atlas(cls, name: str, data: bytes, size: tuple):
@@ -19,19 +21,13 @@ class SceneRenderer2D(object):
         p3d.TexturePool.add_texture(tex)
 
     def __init__(self,
-                 scene_name: str, scene_res: tuple,
+                 title: str, resolution: tuple,
                  atlas_name: str, atlas_data: bytes, atlas_size: tuple,
-                 atlas_rules: dict):
-        super().__init__()
-        self.adjust_window(scene_name, scene_res)
+                 atlas_rules: dict,
+                 ):
+        super().__init__(title, resolution)
         self.make_atlas(atlas_name, atlas_data, atlas_size)
         self.tiles = burst.core.TileSet(atlas_name, **atlas_rules)
-
-    def adjust_window(self, scene_name: str, scene_res: tuple):
-        prop = p3d.WindowProperties()
-        prop.set_title(scene_name)
-        prop.set_size(scene_res)
-        base.win.request_properties(prop)
 
     def make_tile(self, index: int) -> p3d.NodePath:
         # TEMP

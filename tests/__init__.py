@@ -6,6 +6,7 @@ __all__ = [
     'test_streets',
     'test_walls',
     'test_vertices',
+    'test_json',
 ]
 
 

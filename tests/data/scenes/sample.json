@@ -1,0 +1,44 @@
+{
+	"_id": "601ba8ac64e264df4b417d56",
+	"index": 0,
+	"guid": "5282ded8-c612-4aa5-bfe7-e8118bddfee7",
+	"isActive": false,
+	"balance": "$3,531.17",
+	"picture": "http://placehold.it/32x32",
+	"age": 33,
+	"eyeColor": "brown",
+	"name": "Sloan Davidson",
+	"gender": "male",
+	"company": "MAXEMIA",
+	"email": "sloandavidson@maxemia.com",
+	"phone": "+1 (993) 587-2080",
+	"address": "556 Stuyvesant Avenue, Templeton, Iowa, 1644",
+	"about": "Aute labore nisi do non occaecat sunt aliquip aute voluptate eu duis. Irure fugiat officia consectetur magna. Non id culpa laborum aliquip. Dolore do sint nisi dolor. Et dolore nulla minim sit quis nostrud anim enim sunt id. Laborum do tempor sint qui enim commodo amet cillum pariatur deserunt dolore ut sunt. Lorem eiusmod aute eu anim sit.\r\n",
+	"registered": "2020-03-23T08:25:19 +05:00",
+	"latitude": 9.572258,
+	"longitude": 74.030765,
+	"tags": [
+		"cupidatat",
+		"ad",
+		"magna",
+		"eu",
+		"aute",
+		"et",
+		"pariatur"
+	],
+	"friends": [{
+			"id": 0,
+			"name": "Candice Church"
+		},
+		{
+			"id": 1,
+			"name": "Delores Meyer"
+		},
+		{
+			"id": 2,
+			"name": "Mercer Wilkerson"
+		}
+	],
+	"greeting": "Hello, Sloan Davidson! You have 3 unread messages.",
+	"favoriteFruit": "banana"
+}
