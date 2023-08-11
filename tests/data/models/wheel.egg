@@ -1,7 +1,7 @@
 <CoordinateSystem> { Z-Up }
 
 <Texture> phase_6_palette_3cmla_1 {
-  "models/tex/phase_6_palette_3cmla_1.jpg"
+  "tests/data/models/tex/phase_6_palette_3cmla_1.jpg"
   <Scalar> format { rgb }
   <Scalar> wrapu { repeat }
   <Scalar> wrapv { repeat }
@@ -10,8 +10,8 @@
   <Scalar> envtype { modulate }
 }
 <Texture> kart_Rim_14 {
-  "models/tex/kart_Rim_14.jpg"
-  <Scalar> alpha-file { "models/tex/kart_Rim_14_a.rgb" }
+  "tests/data/models/tex/kart_Rim_14.jpg"
+  <Scalar> alpha-file { "tests/data/models/tex/kart_Rim_14_a.rgb" }
   <Scalar> format { rgba }
   <Scalar> wrapu { repeat }
   <Scalar> wrapv { repeat }
