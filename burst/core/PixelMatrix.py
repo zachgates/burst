@@ -13,12 +13,11 @@ from burst.core import Rule2D
 class PixelMatrix(object):
 
     _BLANK = p3d.LVector4i.zero()
-    _FORMAT = 'BGRA'
 
     def __init__(self, tex: p3d.Texture):
         if tex and tex.has_ram_image():
             width, height = (tex.get_x_size(), tex.get_y_size())
-            data = tex.get_ram_image_as(self._FORMAT)
+            data = tex.get_ram_image_as('BGRA')
         else:
             width = height = 0
             data = bytes()
@@ -45,7 +44,7 @@ class PixelMatrix(object):
         if self.data:
             point = self.__calc_pos_from_index(index)
             index = self._norm_index_from_pos(point) - 1
-            px_size = len(self._FORMAT)
+            px_size = 4 # BGRA
             px_data = self.data[index * px_size : index * px_size + px_size]
             return p3d.LVector4i(*px_data)
         else:
@@ -58,7 +57,8 @@ class PixelMatrix(object):
         """
         return p3d.LPoint2i(
             x = self.height - math.floor(index / self.width),
-            y = (index % self.width) + 1)
+            y = (index % self.width) + 1,
+            )
 
     def _norm_pos_from_index(self, index: int) -> p3d.LPoint2i:
         """
@@ -76,16 +76,12 @@ class PixelMatrix(object):
         """
         return ((point.x - 1) * self.width) + point.y
 
-    def get(self, point: p3d.LPoint2i = None, index: int = 0) -> p3d.LVector4i:
+    def get(self, index: int = 0) -> p3d.LVector4i:
         """
         Returns the sub-values of a pixel at the supplied index or point.
         """
-        if index or (point is None):
-            index %= (self.width * self.height) + 1
-            point = self._norm_pos_from_index(index)
-        else:
-            point.x %= (self.height + 1)
-            point.y %= (self.width + 1)
+        index %= (self.width * self.height) + 1
+        point = self._norm_pos_from_index(index)
 
         if (index := self._norm_index_from_pos(point)) == 0:
             return self._BLANK

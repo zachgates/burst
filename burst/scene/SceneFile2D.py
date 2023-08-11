@@ -20,7 +20,7 @@ class SceneFile2D(File, extensions = ['.burst2d']):
         dg.add_fixed_string('new scene', 0xff)
         dg.add_uint16(512)
         dg.add_uint16(512)
-        dg.add_fixed_string(scene.tiles.atlas.get_name(), 0xff)
+        dg.add_fixed_string(scene.tiles.name, 0xff)
         dg.add_blob32(scene.tiles.pixel.data.tobytes())
         dg.add_uint16(scene.tiles.pixel.width)
         dg.add_uint16(scene.tiles.pixel.height)

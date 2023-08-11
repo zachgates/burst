@@ -37,11 +37,13 @@ class SceneRenderer2D(SceneRendererBase):
         self._cm = p3d.CardMaker(f'{self.tiles.name}')
         self._cm.set_frame_fullscreen_quad()
 
-    def make_tile(self, index: int) -> p3d.NodePath:
-        # TEMP
+    def make_tile(self, cell: tuple[int, int]) -> p3d.NodePath:
+        if len(cell) != 2:
+            raise ValueError(f'bad value for cell: {cell!r}')
+
         np = hidden.attach_new_node(self._cm.generate())
-        np.set_texture(self.tiles.get(index))
-        np.node().set_name(f'{index}_{self._cm.name}')
+        np.set_texture(tile := self.tiles.get(p3d.LPoint2i(cell)))
+        np.node().set_name(tile.get_name())
         return np
 
 
