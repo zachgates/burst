@@ -15,6 +15,7 @@ class SceneFile2D(File, extensions = ['.burst2d']):
     def _unpack_rule(dgi) -> tuple[int, int]:
         return (dgi.get_uint16(), dgi.get_uint16())
 
+    # TEMP
     def write(self, path: str, scene: Scene2D):
         dg = p3d.Datagram()
         dg.add_fixed_string('new scene', 0xff)
