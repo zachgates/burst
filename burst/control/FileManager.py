@@ -1,50 +1,67 @@
-__all__ = ['FileManager']
+__all__ = [
+    'VFS',
+    'FileManager',
+]
 
 
 import pathlib
 import re
 import sys
-
-from typing import Container, Iterable, List, Union
+import typing
 
 import panda3d.core as p3d
 
 from direct.showbase.DirectObject import DirectObject
 
-from . import ExtensionsMixin, File, validate_extensions
+from burst.control import validate_extensions, ExtensionsMixin, File
 
 
 VFS = p3d.VirtualFileSystem.get_global_ptr()
 
 
+def normalize_path(path: typing.Union[str, pathlib.Path, p3d.Filename]):
+    if isinstance(path, (str, pathlib.Path)):
+        path = p3d.Filename.from_os_specific(str(path))
+
+    if isinstance(path, p3d.Filename):
+        return path
+    else:
+        raise TypeError('expected string, pathlib.Path, '
+                        'or panda3d.core.Filename for path')
+
+
 class FileManager(DirectObject, ExtensionsMixin):
 
-    def __init__(self, search_path: p3d.DSearchPath, *extensions: str):
+    def __init__(self,
+                 search_path: p3d.DSearchPath,
+                 # extensions: list[str] = [],
+                 ):
+
         DirectObject.__init__(self)
-        ExtensionsMixin.__init__(self, *extensions)
+        # ExtensionsMixin.__init__(self, extensions)
 
         if isinstance(search_path, p3d.DSearchPath):
             self.search_path = search_path
         else:
             raise TypeError('expected panda3d.core.DSearchPath for path')
 
+    def add_search_path(self,
+                        path: typing.Union[str, pathlib.Path, p3d.Filename],
+                        ):
+        self.search_path.append_directory(normalize_path(path))
+
     def scan_path(self,
-                  path: Union[str, pathlib.Path, p3d.Filename],
+                  path: typing.Union[str, pathlib.Path, p3d.Filename],
                   ) -> p3d.Filename:
         """
         Attempts to find the given path, creating a VirtualFile pointer.
         """
-        if isinstance(path, (str, pathlib.Path)):
-            path = p3d.Filename.from_os_specific(str(path))
-
-        if isinstance(path, p3d.Filename):
-            if VFS.resolve_filename(path, self.search_path):
-                return path
-            else:
-                raise FileNotFoundError(path)
+        if VFS.resolve_filename(path := normalize_path(path),
+                                self.search_path,
+                                ):
+            return path
         else:
-            raise TypeError('expected string, pathlib.Path, '
-                            'or panda3d.core.Filename for path')
+            raise FileNotFoundError(path)
 
     def load_file(self, path: p3d.Filename) -> File:
         """
@@ -52,22 +69,22 @@ class FileManager(DirectObject, ExtensionsMixin):
         """
         path = self.scan_path(path)
 
-        if (path.get_extension() in self.extensions) or not self.extensions:
-            return File(path)
-        else:
-            raise ValueError(f'cannot load filetype: {path.get_extension()}')
+        # if (path.get_extension() in self.extensions) or not self.extensions:
+        return File(path)
+        # else:
+        #     raise ValueError(f'cannot load filetype: {path.get_extension()}')
 
     def load_directory(self, path, /, *,
                        recursive: bool = False,
-                       extensions: Iterable[str] = (),
-                       ) -> List[File]:
+                       extensions: typing.Iterable[str] = (),
+                       ) -> list[File]:
         """
         Attempts to find and load a directory of Files from the given path.
         A recursive loading flag may also be supplied, and/or a group of
         extensions to use as a filter.
         """
-        if isinstance(extensions, Container):
-            extensions = validate_extensions(*extensions)
+        if isinstance(extensions, typing.Container):
+            extensions = validate_extensions(extensions)
 
         if not (path := self.scan_path(path)).is_directory():
             raise NotADirectoryError(path.to_os_specific())
@@ -75,15 +92,16 @@ class FileManager(DirectObject, ExtensionsMixin):
         files = []
 
         for file in VFS.scan_directory(path):
-            path = file.get_filename()
-            if path.is_directory() and recursive:
-                files += self.load_directory(
-                    path,
-                    recursive = recursive,
-                    extensions = extensions,
-                    )
-            elif path.is_directory():
-                continue
+            if (path := file.get_filename()).is_directory():
+                if recursive:
+                    files.extend(
+                        self.load_directory(
+                            path,
+                            recursive = recursive,
+                            extensions = extensions,
+                            ))
+                else:
+                    continue
             elif path.is_regular_file():
                 if extensions and (path.get_extension() not in extensions):
                     continue

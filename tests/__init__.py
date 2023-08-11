@@ -11,3 +11,7 @@ __all__ = [
 
 
 import burst
+import pathlib
+
+
+burst.store.add_search_path(pathlib.Path(__file__).with_name('data'))

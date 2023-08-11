@@ -1,9 +1,12 @@
-__all__ = ['SceneRenderer2D', 'Scene2D']
+__all__ = [
+    'SceneRenderer2D', 'Scene2D',
+]
 
 
 import panda3d.core as p3d
 
-from . import SceneRendererBase
+from burst.core import TileSet
+from burst.scene import SceneRendererBase
 
 
 class SceneRenderer2D(SceneRendererBase):
@@ -14,7 +17,8 @@ class SceneRenderer2D(SceneRendererBase):
         tex.setup_2d_texture(
             *size,
             p3d.Texture.T_unsigned_byte,
-            p3d.Texture.F_rgba)
+            p3d.Texture.F_rgba,
+            )
         tex.set_fullpath(name)
         tex.set_name(name)
         tex.set_ram_image(data)
@@ -26,15 +30,15 @@ class SceneRenderer2D(SceneRendererBase):
                  atlas_rules: dict,
                  ):
         super().__init__(title, resolution)
+
         self.make_atlas(atlas_name, atlas_data, atlas_size)
-        self.tiles = burst.core.TileSet(atlas_name, **atlas_rules)
+        self.tiles = TileSet(atlas_name, **atlas_rules)
+
+        self._cm = p3d.CardMaker(f'{self.tiles.name}')
+        self._cm.set_frame_fullscreen_quad()
 
     def make_tile(self, index: int) -> p3d.NodePath:
         # TEMP
-        if not hasattr(self, '_cm'):
-            self._cm = p3d.CardMaker(f'{self.tiles.name}')
-            self._cm.set_frame_fullscreen_quad()
-
         np = hidden.attach_new_node(self._cm.generate())
         np.set_texture(self.tiles.get(index))
         np.node().set_name(f'{index}_{self._cm.name}')

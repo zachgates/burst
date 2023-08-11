@@ -1,7 +1,13 @@
-__all__ = ['make_label', 'SlideShowBase']
+__all__ = [
+    'make_label',
+    'SlideShowBase',
+]
 
 
+import burst
 import collections
+
+from panda3d import core as p3d
 
 from direct.gui.DirectButton import DirectButton
 from direct.gui import DirectGuiGlobals as DGG
@@ -19,48 +25,44 @@ def make_label():
 
 class SlideShowBase(ShowBase):
 
-    def __init__(self):
-        super().__init__(self)
-        self.slides = collections.deque()
-        self.slide_label = None
-        self.setup()
+    def make_arrow(self,
+                   geom: p3d.GeomNode,
+                   pos: tuple[int],
+                   extraArgs: list,
+                   ):
 
-    def setup(self):
-        self.slide_label = make_label()
-
-        controls = loader.load_model('shuttle_controls.egg')
-        arrows = aspect2d.attach_new_node('gui_arrows')
-        arrows.set_pos(0, 0, -0.9)
-        arrows.set_scale(0.25)
-
-        arrow_left_geom = controls.find('**/51')
-        arrow_left_geom.node().remove_geom(0)
-        arrow_left = DirectButton(
-            parent = arrows,
-            pos = (-5, 0, 0),
-            geom = arrow_left_geom,
+        return DirectButton(
+            parent = self.arrows,
+            pos = pos,
+            geom = geom,
             geom_color = (0.8, 0, 0.1, 1),
             frameColor = (0, 0.5, 1, 1),
             pressEffect = True,
             command = self.rotate,
-            extraArgs = [1],
+            extraArgs = extraArgs,
             )
+
+    def __init__(self):
+        super().__init__(self)
+
+        self.slides = collections.deque()
+        self.slide_label = make_label()
+
+        controls = burst.store.load_file('shuttle_controls.egg').read()
+        self.arrows = aspect2d.attach_new_node('gui_arrows')
+        self.arrows.set_pos(0, 0, -0.9)
+        self.arrows.set_scale(0.25)
+
+        arrow_left_geom = controls.find('**/51')
+        arrow_left_geom.node().remove_geom(0)
+        self.make_arrow(arrow_left_geom, pos = (-5, 0, 0), extraArgs = [1])
 
         self.accept('arrow_left', self.rotate, extraArgs = [1])
         self.accept('arrow_left-repeat', self.rotate, extraArgs = [1])
 
         arrow_right_geom = controls.find('**/52')
         arrow_right_geom.node().remove_geom(0)
-        arrow_right = DirectButton(
-            parent = arrows,
-            pos = (4, 0, 0),
-            geom = arrow_right_geom,
-            geom_color = (0.8, 0, 0.1, 1),
-            frameColor = (0, 0.5, 1, 1),
-            pressEffect = True,
-            command = self.rotate,
-            extraArgs = [-1],
-            )
+        self.make_arrow(arrow_right_geom, pos = (4, 0, 0), extraArgs = [-1])
 
         self.accept('arrow_right', self.rotate, extraArgs = [-1])
         self.accept('arrow_right-repeat', self.rotate, extraArgs = [-1])

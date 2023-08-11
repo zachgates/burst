@@ -1,21 +1,27 @@
-__all__ = ['SceneFile3D']
+__all__ = [
+    'JSONFile',
+    'SceneFile3D',
+]
 
 
+import burst
 import json
 
 import panda3d.core as p3d
 
 from direct.stdpy.file import open
 
+from burst.control import File
 
-class JSONFile(burst.control.File, extensions = ['.json']):
+
+class JSONFile(File, extensions = ['.json']):
 
     def read(self) -> dict:
         with open(self.path) as file:
             return json.load(file)
 
 
-class SceneFile3D(burst.control.File, extensions = ['.burst3d']):
+class SceneFile3D(File, extensions = ['.burst3d']):
 
     # TODO: bake the assets (models, textures, layout) into the file itself
 

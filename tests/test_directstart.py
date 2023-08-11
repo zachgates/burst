@@ -1,3 +1,5 @@
+import burst
+
 import panda3d.core as p3d
 
 from direct.directbase.DirectStart import base
@@ -12,8 +14,8 @@ def SpriteFrame(scene, name: str, frames = []) -> p3d.NodePath:
     """Simple factory for animated frames."""
     node = p3d.SequenceNode(name)
     for index in frames:
-        tile_node = StaticFrame(scene, index)
-        node.add_child(tile_node.node())
+        np = StaticFrame(scene, index)
+        node.add_child(np.node())
     return node
 
 

@@ -1,19 +1,33 @@
 __all__ = [
-    'ADJUST_POS_AMOUNT_STANDARD', 'ADJUST_POS_AMOUNT_PINPOINT',
-    'ADJUST_POS_EVENTS', 'ADJUST_POS_NORTH', 'ADJUST_POS_SOUTH',
-    'ADJUST_POS_EAST', 'ADJUST_POS_WEST', 'ADJUST_HPR_AMOUNT_STANDARD',
-    'ADJUST_HPR_AMOUNT_PINPOINT', 'ADJUST_HPR_EVENTS', 'ADJUST_HPR_EAST',
-    'ADJUST_HPR_WEST', 'ADJUST_SCALE_AMOUNT_STANDARD',
-    'ADJUST_SCALE_AMOUNT_PINPOINT', 'ADJUST_SCALE_EVENTS',
-    'ADJUST_SCALE_INCREASE', 'ADJUST_SCALE_DECREASE', 'ObjectManager',
+    'ADJUST_POS_AMOUNT_STANDARD',
+    'ADJUST_POS_AMOUNT_PINPOINT',
+    'ADJUST_POS_EVENTS',
+    'ADJUST_POS_NORTH',
+    'ADJUST_POS_SOUTH',
+    'ADJUST_POS_EAST',
+    'ADJUST_POS_WEST',
+
+    'ADJUST_HPR_AMOUNT_STANDARD',
+    'ADJUST_HPR_AMOUNT_PINPOINT',
+    'ADJUST_HPR_EVENTS',
+    'ADJUST_HPR_EAST',
+    'ADJUST_HPR_WEST',
+
+    'ADJUST_SCALE_AMOUNT_STANDARD',
+    'ADJUST_SCALE_AMOUNT_PINPOINT',
+    'ADJUST_SCALE_EVENTS',
+    'ADJUST_SCALE_INCREASE',
+    'ADJUST_SCALE_DECREASE',
+
+    'ObjectManager',
 ]
 
 
-from typing import Callable, Iterable
+import typing
 
 import panda3d.core as p3d
 
-from .SelectionManager import SelectionManager
+from . import SelectionManager
 
 
 ADJUST_POS_AMOUNT_STANDARD = 'positional_magnitude_standard'
@@ -96,7 +110,7 @@ class ObjectManager(SelectionManager):
         """
         self.__accept_events(ADJUST_SCALE_EVENTS, self._adjust_scaling)
 
-    def __accept_events(self, events: Iterable[str], method: Callable):
+    def __accept_events(self, events: typing.Iterable[str], method: callable):
         """
         Initializes a group of events, hooked to the specified method.
         """

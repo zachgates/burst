@@ -1,3 +1,5 @@
+import burst
+
 from pprint import pprint
 
 from direct.directbase.DirectStart import base

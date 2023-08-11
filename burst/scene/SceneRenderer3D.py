@@ -1,7 +1,9 @@
-__all__ = ['SceneRenderer3D', 'Scene3D']
+__all__ = [
+    'SceneRenderer3D', 'Scene3D',
+]
 
 
-from . import SceneRendererBase
+from burst.scene import SceneRendererBase
 
 
 class SceneRenderer3D(SceneRendererBase):

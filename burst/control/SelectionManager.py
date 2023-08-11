@@ -1,9 +1,13 @@
-__all__ = ['SelectionManager']
+__all__ = [
+    'SelectionManager',
+]
 
 
 import panda3d.core as p3d
 
 from direct.showbase.DirectObject import DirectObject
+
+from burst.core import AngularNode
 
 
 class SelectionManager(DirectObject):
@@ -24,11 +28,8 @@ class SelectionManager(DirectObject):
         cam_node = base.camera.attach_new_node(self.__c_node)
         self.__c_trav.add_collider(cam_node, self.__c_handler)
 
-        self.__selection = burst.core.AngularNode(
-            parent = render,
-            name = 'selection',
-            )
-        self.__selection.set_axis(burst.core.AngularNode.AXES.INTERNAL)
+        self.__selection = AngularNode(parent = render, name = 'selection')
+        self.__selection.set_axis(AngularNode.AXES.INTERNAL)
         self.__selection.set_color(1, 0, 0)
 
     def get_group_name(self):
@@ -76,7 +77,7 @@ class SelectionManager(DirectObject):
 
     def reset(self):
         for node in self.selection:
-            obj = burst.core.AngularNode.get_class_tag(node)
+            obj = AngularNode.get_class_tag(node)
             self.deselect(obj)
 
     def __mouse_select(self, append: bool = False):
@@ -105,7 +106,7 @@ class SelectionManager(DirectObject):
             self.__c_handler.sort_entries()
             node = self.__c_handler.get_entry(0).get_into_node_path()
             node = node.find_net_tag(self.group_name)
-            node = burst.core.AngularNode.get_class_tag(node)
+            node = AngularNode.get_class_tag(node)
         else:
             node = None
 

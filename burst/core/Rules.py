@@ -1,8 +1,13 @@
-__all__ = ['RuleBase', 'Rule2D', 'Rule3D', 'TileSetRules']
+__all__ = [
+    'RuleBase',
+    'Rule2D',
+    'Rule3D',
+]
 
+
+import typing
 
 from dataclasses import dataclass, astuple
-from typing import Iterable, Iterator, get_type_hints
 
 
 @dataclass(init = False)
@@ -18,15 +23,15 @@ class RuleBase:
         for key, default, type_ in self._check_arg_types():
             if (val := kwargs.get(key)) is None:
                 val = type_()
-            elif isinstance(val, Iterable):
+            elif isinstance(val, typing.Iterable):
                 val = type_(*val)
             else:
                 val = type_(val)
 
             self.__setattr__(key, val)
 
-    def _check_arg_types(self) -> Iterator[tuple]:
-        for name, type_ in get_type_hints(self).items():
+    def _check_arg_types(self) -> typing.Iterator[tuple]:
+        for name, type_ in typing.get_type_hints(self).items():
             if type_:
                 yield (name, self.__getattribute__(name), type_)
 
@@ -46,13 +51,3 @@ class Rule3D:
     Three-dimensional (X, Y, Z) integer rule.
     """
     z: int = 0
-
-
-@dataclass(init = False)
-class TileSetRules(RuleBase):
-    """
-    Three rules defining the parameters of a TileSet.
-    """
-    tile_size: Rule2D = None
-    tile_run: Rule2D = None
-    tile_offset: Rule2D = None

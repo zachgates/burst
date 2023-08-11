@@ -1,13 +1,15 @@
-__all__ = ['Tile', 'TileSet']
+__all__ = [
+    'Tile', 'TileSet',
+]
 
 
+import burst
+import dataclasses
 import math
-
-from dataclasses import dataclass
 
 import panda3d.core as p3d
 
-from . import Rules
+from burst.core import PixelMatrix, RuleBase, Rule2D
 
 
 class Tile(p3d.Texture):
@@ -28,12 +30,22 @@ class TileSet(dict):
 
     _NAMEPLATE = 'tex:{0}:ref:{1}'
 
-    def __init__(self, f_path: str, **rules):
+    @dataclasses.dataclass(init = False)
+    class Rules(RuleBase):
+        """
+        Three rules defining the parameters of a TileSet.
+        """
+        tile_size: Rule2D = None
+        tile_run: Rule2D = None
+        tile_offset: Rule2D = None
+
+    def __init__(self, path: str, **rules):
         super().__init__()
-        self.rules = burst.core.TileSetRules(**rules)
-        if f_path:
-            self.atlas = loader.load_texture(f_path)
-            self.pixel = burst.core.PixelMatrix(self.atlas)
+        self.rules = self.Rules(**rules)
+
+        if path:
+            self.atlas = base.loader.load_texture(path)
+            self.pixel = PixelMatrix(self.atlas)
         else:
             self.atlas = self.pixel = None
 
@@ -89,8 +101,12 @@ class TileSet(dict):
         px_data = bytearray()
         for row in px_rows[::-1]:
             for cell in row:
-                px_data += bytes(cell.get_xyz())
-                px_data += bytes([cell.get_w()])
+                px_data += bytes([ # BGRA
+                    cell.get_x(),
+                    cell.get_y(),
+                    cell.get_z(),
+                    cell.get_w(),
+                    ])
 
         return p3d.PTAUchar(px_data)
 

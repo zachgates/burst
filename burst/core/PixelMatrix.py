@@ -1,24 +1,29 @@
-__all__ = ['PixelMatrix']
+__all__ = [
+    'PixelMatrix',
+]
 
 
 import math
 
 import panda3d.core as p3d
 
+from burst.core import Rule2D
+
 
 class PixelMatrix(object):
 
     _BLANK = p3d.LVector4i.zero()
+    _FORMAT = 'BGRA'
 
     def __init__(self, tex: p3d.Texture):
         if tex and tex.has_ram_image():
             width, height = (tex.get_x_size(), tex.get_y_size())
-            data = tex.get_ram_image_as('BGRA')
+            data = tex.get_ram_image_as(self._FORMAT)
         else:
             width = height = 0
             data = bytes()
 
-        self.__size = burst.core.Rule2D(width, height)
+        self.__size = Rule2D(width, height)
         self.__data = memoryview(data)
 
     @property
@@ -40,7 +45,7 @@ class PixelMatrix(object):
         if self.data:
             point = self.__calc_pos_from_index(index)
             index = self._norm_index_from_pos(point) - 1
-            px_size = 4 # BGRA
+            px_size = len(self._FORMAT)
             px_data = self.data[index * px_size : index * px_size + px_size]
             return p3d.LVector4i(*px_data)
         else:
@@ -62,7 +67,8 @@ class PixelMatrix(object):
         """
         return p3d.LPoint2i(
             x = math.ceil(index / self.height),
-            y = ((index - 1) % self.width) + 1)
+            y = ((index - 1) % self.width) + 1,
+            )
 
     def _norm_index_from_pos(self, point: p3d.LPoint2i) -> int:
         """

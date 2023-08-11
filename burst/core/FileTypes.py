@@ -1,18 +1,30 @@
-__all__ = ['TextureFile']
+__all__ = [
+    'ModelFile',
+    'TextureFile',
+]
 
 
 import pathlib
-
-from typing import Union
+import typing
 
 import panda3d.core as p3d
 
+from burst.control import File
 
-class TextureFile(burst.control.File, extensions = ['.jpg', '.png', '.gif']):
+
+class ModelFile(File, extensions = ['.bam', '.egg']):
+
+    def read(self):
+        return base.loader.load_model(self.path)
+
+
+class TextureFile(File, extensions = ['.jpg', '.png', '.gif']):
 
     def read(self, /, *,
-             alpha: Union[bool, str, pathlib.Path, p3d.Filename,
-                          burst.control.File] = False,
+             alpha: typing.Union[bool,
+                                 str, pathlib.Path, p3d.Filename,
+                                 File,
+                                 ] = False,
              ) -> p3d.Texture:
         """
         Attempts to load the TexFile as a Texture. An alpha File/path may be
@@ -28,7 +40,7 @@ class TextureFile(burst.control.File, extensions = ['.jpg', '.png', '.gif']):
         if isinstance(alpha, p3d.Filename):
             alpha = alpha.to_os_specific()
 
-        if isinstance(alpha, burst.control.File):
+        if isinstance(alpha, File):
             alpha = alpha.get_path()
 
         if isinstance(alpha, (str, pathlib.Path)):

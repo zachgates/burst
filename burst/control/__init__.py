@@ -1,6 +1,8 @@
 __all__ = [
-    'validate_extensions', 'ExtensionsMixin', 'File', 'TextureFile',
-    'FileManager', 'ObjectManager', 'SelectionManager',
+    'validate_extensions', 'ExtensionsMixin',
+    'File', 'FileManager',
+    'SelectionManager',
+    'ObjectManager',
 ]
 
 
@@ -8,8 +10,7 @@ import abc
 import contextlib
 import pathlib
 import re
-
-from typing import Any, Iterable
+import typing
 
 import panda3d.core as p3d
 
@@ -17,12 +18,12 @@ import panda3d.core as p3d
 _EXTENSION_EXPR = re.compile('^\.(\w+)$')
 
 
-def validate_extensions(*extensions: str,
+def validate_extensions(extensions: list[str],
                         pattern: re.Pattern = _EXTENSION_EXPR,
                         match_group: int = 1,
                         ) -> set:
     """
-    Compares each extensions with the pattern expression to validate it as
+    Compares each extension with the pattern expression to validate it as
     a filetype. A pattern and/or match group may be additionally specified.
     """
     if not isinstance(pattern, re.Pattern):
@@ -50,9 +51,9 @@ class ExtensionsMixin(object):
     initialization.
     """
 
-    def __init__(self, *extensions: str):
+    def __init__(self, extensions: list[str]):
         super().__init__()
-        self.__extensions = tuple(validate_extensions(*extensions))
+        self.__extensions = tuple(validate_extensions(extensions))
 
     def get_extensions(self) -> tuple:
         return self.__extensions
@@ -66,10 +67,10 @@ class _File(abc.ABCMeta, ExtensionsMixin):
         return super().__new__(cls, name, bases, dct)
 
     def __init__(cls, name, bases, dct, /, *,
-                 extensions: Iterable[str] = (),
+                 extensions: typing.Iterable[str] = (),
                  ) -> type:
         abc.ABCMeta.__init__(cls, name, bases, dct)
-        ExtensionsMixin.__init__(cls, *extensions)
+        ExtensionsMixin.__init__(cls, extensions)
 
 
 class File(object, metaclass = _File):
@@ -78,9 +79,9 @@ class File(object, metaclass = _File):
         if not isinstance(path, p3d.Filename):
             raise ValueError('expected panda3d.core.Filename for path')
 
-        for typ in cls.__subclasses__():
-            if path.get_extension() in typ.extensions:
-                return typ(path)
+        for type_ in cls.__subclasses__():
+            if path.get_extension() in type_.extensions:
+                return type_(path)
         else:
             return super().__new__(cls)
 
@@ -100,10 +101,10 @@ class File(object, metaclass = _File):
     path = property(get_path)
 
     @abc.abstractmethod
-    def read(self) -> Any:
+    def read(self) -> typing.Any:
         raise NotImplementedError()
 
 
 from .FileManager import *
-from .ObjectManager import *
 from .SelectionManager import *
+from .ObjectManager import *

@@ -1,9 +1,10 @@
-__all__ = ['AngularNode']
+__all__ = [
+    'AngularNode',
+]
 
 
 import enum
-
-from typing import Iterator
+import typing
 
 import panda3d.core as p3d
 
@@ -71,7 +72,7 @@ class AngularNode(DirectObject, p3d.NodePath):
             else:
                 self.attach(node, mode)
 
-    def __iter__(self) -> Iterator[p3d.NodePath]:
+    def __iter__(self) -> typing.Iterator[p3d.NodePath]:
         for node in self.get_children():
             yield node
 
