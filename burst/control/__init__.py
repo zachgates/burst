@@ -18,7 +18,7 @@ import panda3d.core as p3d
 _EXTENSION_EXPR = re.compile('^\.(\w+)$')
 
 
-def validate_extensions(extensions: list[str],
+def validate_extensions(extensions: typing.Iterable[str],
                         pattern: re.Pattern = _EXTENSION_EXPR,
                         match_group: int = 1,
                         ) -> set:
@@ -51,7 +51,7 @@ class ExtensionsMixin(object):
     initialization.
     """
 
-    def __init__(self, extensions: list[str]):
+    def __init__(self, extensions: typing.Iterable[str]):
         super().__init__()
         self.__extensions = tuple(validate_extensions(extensions))
 
