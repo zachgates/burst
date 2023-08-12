@@ -44,7 +44,7 @@ class SampleScene(ShowBase):
                      (10, 19),
                      ):
             self.sprite.add_child(self.scene.make_tile(cell).node())
-        self.sprite.set_frame_rate(24)
+        self.sprite.set_frame_rate(20)
         self.np = base.aspect2d.attach_new_node(self.sprite)
 
         self.accept('space', self.sprite.play)
