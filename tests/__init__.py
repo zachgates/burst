@@ -23,5 +23,8 @@ p3d.load_prc_file_data(
     """
     textures-auto-power-2 #f
     textures-power-2 #f
+
+    # notify-level debug
+    # default-directnotify-level debug
     """,
     )
