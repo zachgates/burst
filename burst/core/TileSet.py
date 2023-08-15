@@ -32,10 +32,10 @@ class TileSet(dict):
 
         if path:
             self.atlas = base.loader.load_texture(path)
-            data = self.atlas.get_ram_image_as('BGRA')
+            data = tuple(self.atlas.get_ram_image_as('BGRA').get_data())
         else:
             self.atlas = None
-            data = bytes()
+            data = tuple()
 
         if self.atlas and self.atlas.has_ram_image():
             width, height = (self.atlas.get_x_size(), self.atlas.get_y_size())
@@ -61,13 +61,6 @@ class TileSet(dict):
         return self.__data
 
     @property
-    def name(self) -> str:
-        """
-        Returns the name of the TileSet.
-        """
-        return f"{self.atlas.get_name() if self.atlas else 'empty'}"
-
-    @property
     def size(self) -> int:
         """
         Returns the size, in pixels, of the tiles in the TileSet.
@@ -81,43 +74,55 @@ class TileSet(dict):
         """
         return (self.rules.tile_run.x * self.rules.tile_run.y)
 
-    def __draw(self, cell: p3d.LPoint2i):
+    @property
+    def name(self) -> str:
         """
-        Returns the Texture data of the given Tile as a PTAUchar.
+        Returns the name of the TileSet.
         """
-        return p3d.PTAUchar(
-            np.flip(
-                self.data[
-                    (x := (self.rules.tile_size.x
-                           + self.rules.tile_offset.x
-                           ) * (cell.x - 1)) : x + self.rules.tile_size.x,
-                    (y := (self.rules.tile_size.y
-                           + self.rules.tile_offset.y
-                           ) * (cell.y - 1)) : y + self.rules.tile_size.y,
-                    ], axis = 0).flatten())
+        return f"{self.atlas.get_name() if self.atlas else 'empty'}"
 
-    def get_child_name(self, cell: p3d.LPoint2i) -> str:
+    def _get_child_name(self, cell: p3d.LPoint2i) -> str:
         """
         Returns the name for the given cell in the TileSet.
         """
         return self._NAMEPLATE.format(self.name, cell.x, cell.y)
 
-    def get(self, cell: p3d.LPoint2i) -> p3d.Texture:
+    def __draw(self, cell: p3d.LPoint2i, blend: p3d.LVector4i) -> list:
+        """
+        Returns the Texture data of the given Tile as a PTAUchar.
+        """
+        data = self.data[
+            (x := (self.rules.tile_size.x
+                   + self.rules.tile_offset.x
+                   ) * (cell.x - 1)) : x + self.rules.tile_size.x,
+            (y := (self.rules.tile_size.y
+                   + self.rules.tile_offset.y
+                   ) * (cell.y - 1)) : y + self.rules.tile_size.y,
+            ]
+
+        for i, row in enumerate(data):
+            for j, cell in enumerate(row):
+                if tuple(cell) == blend:
+                    data[i][j] = np.zeros(4)
+
+        return np.flip(data, axis = 0).flatten().tolist()
+
+    def get(self, cell: p3d.LPoint2i, blend: p3d.LVector4i) -> p3d.Texture:
         """
         Returns the Texture for the given cell in the TileSet.
         """
-        if (name := self.get_child_name(cell)) in self:
-            tile = self[name]
+        if (name := self._get_child_name(cell)) in self:
+            tex = self[name]
         else:
-            tile = self[name] = p3d.Texture(name)
-            tile.setup_2d_texture(
+            tex = self[name] = p3d.Texture(name)
+            tex.setup_2d_texture(
                 self.rules.tile_size.x,
                 self.rules.tile_size.y,
                 p3d.Texture.T_unsigned_byte,
                 p3d.Texture.F_rgba,
                 )
-            tile.set_magfilter(p3d.Texture.FT_nearest)
-            tile.set_ram_image(self.__draw(cell))
-            tile.compress_ram_image()
+            tex.set_magfilter(p3d.Texture.FT_nearest)
+            tex.set_ram_image(p3d.PTAUchar(self.__draw(cell, blend)))
+            tex.compress_ram_image()
 
-        return tile
+        return tex
