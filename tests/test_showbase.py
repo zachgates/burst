@@ -10,6 +10,8 @@ from direct.interval.LerpInterval import LerpPosInterval
 from direct.showbase.DirectObject import DirectObject
 from direct.showbase.ShowBase import ShowBase
 
+from burst.char import Sprite
+
 
 class Player(FSM, DirectObject):
 
@@ -89,23 +91,27 @@ class Player(FSM, DirectObject):
         pass
 
 
-
-    sprite = p3d.SequenceNode('sprite')
-    sprite_np = base.aspect2d.attach_new_node(sprite)
-    sprite_np.set_transparency(p3d.TransparencyAttrib.MAlpha)
-
-    for i, cols in ((10, (24,)), # dead
-                    (10, (19, 23, 23, 19)), # idle
-                    (10, (19, 20, 21, 22, 22, 21, 20, 19)), # move
-                    (10, (19, 23, 22, 21, 21, 22, 23, 19)), # jump
-                    ):
-        for j in cols:
-            sprite.add_child(
-                scene.make_tile((i, j), blend = (60, 45, 71, 255)).node())
 def do_setup(scene):
     tex, bgNP = scene.make_tile(row = 1, column = 1)
     bgNP.reparent_to(base.aspect2d)
     bgNP.set_sx(3)
+
+    char = Sprite(scene, blend = p3d.LColor(60, 45, 71, 255))
+    char.np.wrt_reparent_to(bgNP)
+
+    for name, cells in {'Dead': [(10, 24),
+                                 ],
+                        'Idle': [(10, 19), (10, 23),
+                                 (10, 23), (10, 19),
+                                 ],
+                        'Move': [(10, 19), (10, 20), (10, 21), (10, 22),
+                                 (10, 22), (10, 21), (10, 20), (10, 19),
+                                 ],
+                        'Jump': [(10, 19), (10, 23), (10, 22), (10, 21),
+                                 (10, 21), (10, 22), (10, 23), (10, 19),
+                                 ],
+                        }.items():
+        char.add_track(name, cells)
 
     globalClock.set_mode(p3d.ClockObject.MLimited)
     globalClock.set_frame_rate(60)
