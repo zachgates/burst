@@ -40,21 +40,16 @@ class SceneRenderer2D(SceneRendererBase):
         self._cm.set_frame_fullscreen_quad()
 
     def make_tile(self,
-                  cell: tuple[int, int],
-                  blend: typing.Optional[tuple[int, int, int, int]] = None,
-                  ) -> p3d.NodePath:
+                  /, *,
+                  row: int,
+                  column: int,
+                  ) -> tuple[p3d.Texture, p3d.NodePath]:
 
-        if isinstance(cell, tuple):
-            cell = p3d.LPoint2i(cell)
-
-        if isinstance(blend, tuple):
-            blend = p3d.LVector4i(blend)
-
-        tex = self.tiles.get(cell, blend)
+        tex = self.tiles.get(p3d.LPoint2i(row, column))
         np = base.hidden.attach_new_node(self._cm.generate())
         np.node().set_name(tex.get_name())
         np.set_texture(tex)
-        return np
+        return (tex, np)
 
 
 Scene2D = SceneRenderer2D

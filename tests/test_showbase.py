@@ -13,9 +13,9 @@ from direct.showbase.ShowBase import ShowBase
 
 class Player(FSM, DirectObject):
 
-    def __init__(self, node, np):
-        self.node = node
-        self.np = np
+    def __init__(self, char):
+        DirectObject.__init__(self)
+        self.char = char
 
         FSM.__init__(self, 'PlayerFSM')
         self.defaultTransitions = {
@@ -43,16 +43,16 @@ class Player(FSM, DirectObject):
             pass
 
     def enterIdle(self):
-        self.node.set_frame_rate(5)
-        self.node.loop(True, 1, 4)
+        self.char.node.set_frame_rate(5)
+        self.char.node.loop(True, 1, 4)
 
     def exitIdle(self):
         pass
 
     def enterJump(self):
-        self.node.set_frame_rate(10)
+        self.char.node.set_frame_rate(10)
         self.lerp = Sequence(
-            Func(self.node.play, 13, 20),
+            Func(self.char.node.play, 13, 20),
             Wait(30 / 60),
             Func(delattr, self, 'lerp'),
             Func(self.request, 'Idle'),
@@ -65,14 +65,14 @@ class Player(FSM, DirectObject):
         if hasattr(self, 'lerp'):
             return
 
-        self.node.set_frame_rate(20)
+        self.char.node.set_frame_rate(20)
         self.lerp = Sequence(
             Parallel(
-                Func(self.node.play, 5, 12),
-                self.np.posInterval(
+                Func(self.char.node.play, 5, 12),
+                self.char.np.posInterval(
                     (24 / 60),
-                    pos = p3d.Point3(self.np.get_x() + direction, 0, 0),
-                    startPos = self.np.get_pos(),
+                    pos = p3d.Point3(self.char.np.get_x() + direction, 0, 0),
+                    startPos = self.char.np.get_pos(),
                     name = 'PlayerFSM-Move',
                     )),
             Func(delattr, self, 'lerp'),
@@ -83,16 +83,12 @@ class Player(FSM, DirectObject):
         pass
 
     def enterDead(self):
-        self.node.pose(0)
+        self.char.node.pose(0)
 
     def exitDead(self):
         pass
 
 
-def do_setup():
-    background = scene.make_tile((1, 1))
-    background.reparent_to(base.aspect2d)
-    background.set_sx(3)
 
     sprite = p3d.SequenceNode('sprite')
     sprite_np = base.aspect2d.attach_new_node(sprite)
@@ -106,12 +102,16 @@ def do_setup():
         for j in cols:
             sprite.add_child(
                 scene.make_tile((i, j), blend = (60, 45, 71, 255)).node())
+def do_setup(scene):
+    tex, bgNP = scene.make_tile(row = 1, column = 1)
+    bgNP.reparent_to(base.aspect2d)
+    bgNP.set_sx(3)
 
     globalClock.set_mode(p3d.ClockObject.MLimited)
     globalClock.set_frame_rate(60)
-    sprite.set_frame_rate(20)
+    char.node.set_frame_rate(20)
 
-    fsm = Player(sprite, sprite_np)
+    fsm = Player(char)
     fsm.request('Idle')
 
 
@@ -120,5 +120,5 @@ if __name__ == '__main__':
     file = burst.store.load_file('tests/data/scenes/sample2.burst2d')
     scene = file.read()
     # file.write('tests/data/scenes/sample2.burst2d', scene)
-    do_setup()
+    do_setup(scene)
     scene.run()

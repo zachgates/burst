@@ -1,4 +1,5 @@
 __all__ = [
+    'Tile',
     'TileSet',
 ]
 
@@ -11,7 +12,50 @@ import typing
 
 import panda3d.core as p3d
 
-from burst.core import RuleBase, Rule2D
+from burst.core import PixelMatrix, RuleBase, Rule2D
+
+
+class Tile(p3d.Texture):
+
+    def __init__(self, name: str, size: Rule2D):
+        super().__init__(name)
+
+        self.__size = size
+        self.__data = None
+
+        self.setup_2d_texture(
+            self.__size.x,
+            self.__size.y,
+            p3d.Texture.T_unsigned_byte,
+            p3d.Texture.F_rgba,
+        )
+
+    def get_ram_image(self) -> np.ndarray:
+        if hash(super().get_ram_image()) == hash(self.__data):
+            return np.reshape(self.__data, (self.__size.x, self.__size.y, 4))
+        else:
+            raise Exception('ram image changed')
+
+    def get_ram_image_as(self, format):
+        raise NotImplementedError()
+
+    def set_ram_image(self, data: p3d.PTAUchar):
+        self.__data = data
+        super().set_ram_image(self.__data)
+
+    def set_ram_image_as(self, data, format):
+        raise NotImplementedError()
+
+    def set_blend(self, color: p3d.LColor):
+        for row in self.get_ram_image():
+            for cell in row:
+                if tuple(cell) == color:
+                    cell[3] = 0
+
+    def set_blend_off(self):
+        for row in self.get_ram_image():
+            for cell in row:
+                cell[3] = 255
 
 
 class TileSet(dict):
@@ -32,32 +76,12 @@ class TileSet(dict):
 
         if path:
             self.atlas = base.loader.load_texture(path)
+            self.pixel = PixelMatrix(self.atlas)
             self.rules = self.Rules(**rules)
         else:
             self.atlas = None
+            self.pixel = None
             self.rules = TileSet.Rules()
-
-        if self.atlas and self.atlas.has_ram_image():
-            width, height = (self.atlas.get_x_size(), self.atlas.get_y_size())
-            self.__data = bytearray(self.atlas.get_ram_image_as('BGRA'))
-        else:
-            width = height = 1
-            self.__data = bytearray(4)
-
-        self.__size = Rule2D(width, height)
-        self._data = np.reshape(self.__data, (height, width, 4))
-
-    @property
-    def width(self) -> int:
-        return self.__size.x
-
-    @property
-    def height(self) -> int:
-        return self.__size.y
-
-    @property
-    def data(self) -> bytes:
-        return bytes(self.__data)
 
     @property
     def size(self) -> int:
@@ -80,51 +104,65 @@ class TileSet(dict):
         """
         return f"{self.atlas.get_name() if self.atlas else 'empty'}"
 
-    def _get_child_name(self, cell: p3d.LPoint2i) -> str:
+    def _get_child_name(self, point: p3d.LPoint2i) -> str:
         """
         Returns the name for the given cell in the TileSet.
         """
-        return self._NAMEPLATE.format(self.name, cell.x, cell.y)
+        return self._NAMEPLATE.format(self.name, point.x, point.y)
 
-    def __draw(self, cell: p3d.LPoint2i) -> list:
+    def __draw(self, index: int) -> list:
         """
         Returns the Texture data of the given Tile as a PTAUchar.
         """
-        return np.flip(
-            np.flip(self._data, axis = 0)[
-                (x := (self.rules.tile_size.x
-                       + self.rules.tile_offset.x
-                       ) * (cell.x - 1)) : x + self.rules.tile_size.x,
-                (y := (self.rules.tile_size.y
-                       + self.rules.tile_offset.y
-                       ) * (cell.y - 1)) : y + self.rules.tile_size.y,
-                ], axis = 0)
+        px_rows = []
+        if index:
+            row = math.ceil(index / self.rules.tile_run.y)
+            col = ((index - 1) % self.rules.tile_run.x) + 1
+            off = p3d.LVector2i(
+                x = ((row - 1)
+                     * (self.size
+                        * self.rules.tile_run.y
+                        + (self.rules.tile_run.x - 1)
+                        * self.rules.tile_size.y
+                        * self.rules.tile_offset.x
+                        + self.rules.tile_offset.y
+                        * self.pixel.width
+                        )
+                     ),
+                y = ((col - 1)
+                     * (self.rules.tile_size.x
+                        + self.rules.tile_offset.x
+                        )
+                     ),
+                )
 
-    def get(self,
-            cell: p3d.LPoint2i,
-            blend: typing.Optional[p3d.LVector4i] = None,
-            ) -> p3d.Texture:
+            for row in range(self.rules.tile_size.y):
+                offset = (off.x + off.y + 1)
+                off.y += ((self.rules.tile_run.x * self.rules.tile_size.x)
+                          + (self.rules.tile_run.x - 1)
+                          * self.rules.tile_offset.x
+                          )
+
+                px_rows.append([self.pixel.get(offset + col)
+                                for col in range(self.rules.tile_size.x)])
+
+        px_data = bytearray()
+        for row in reversed(px_rows):
+            for cell in row:
+                px_data.extend(cell)
+
+        return p3d.PTAUchar(px_data)
+
+    def get(self, point: p3d.LPoint2i) -> p3d.Texture:
         """
         Returns the Texture for the given cell in the TileSet.
         """
-        if (name := self._get_child_name(cell)) in self:
+        if (name := self._get_child_name(point)) in self:
             return self[name]
-
-        data = self.__draw(cell)
-        if blend is not None:
-            for i, row in enumerate(data):
-                for j, cell in enumerate(row):
-                    if tuple(cell) == blend:
-                        data[i][j] = np.zeros(4)
-
-        tex = self[name] = p3d.Texture(name)
-        tex.setup_2d_texture(
-            self.rules.tile_size.x,
-            self.rules.tile_size.y,
-            p3d.Texture.T_unsigned_byte,
-            p3d.Texture.F_rgba,
-            )
-        tex.set_magfilter(p3d.Texture.FT_nearest)
-        tex.set_ram_image(p3d.PTAUchar(data.flatten().tolist()))
-        tex.compress_ram_image()
-        return tex
+        else:
+            index = ((point.x - 1) * self.rules.tile_run.x) + point.y
+            tex = self[name] = Tile(name, self.rules.tile_size)
+            tex.set_magfilter(p3d.Texture.FT_nearest)
+            tex.set_ram_image(self.__draw(index))
+            # tex.compress_ram_image()
+            return tex

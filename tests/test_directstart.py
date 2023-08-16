@@ -8,7 +8,8 @@ from direct.directbase.DirectStart import base
 
 def StaticFrame(scene, cell: tuple[int, int]) -> p3d.PandaNode:
     """Simple factory for static frames."""
-    return scene.make_tile(cell).node()
+    tex, np = scene.make_tile(row = cell[0], column = cell[1])
+    return np.node()
 
 
 def SpriteFrame(scene,
