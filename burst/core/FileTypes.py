@@ -4,10 +4,13 @@ __all__ = [
 ]
 
 
+import json
 import pathlib
 import typing
 
 import panda3d.core as p3d
+
+from direct.stdpy.file import open
 
 from burst.control import File
 
@@ -47,3 +50,10 @@ class TextureFile(File, extensions = ['.jpg', '.png', '.gif']):
             return base.loader.load_texture(self.path, alpha)
         else:
             raise TypeError(f'invalid alpha: {alpha!r}')
+
+
+class JSONFile(File, extensions = ['.json']):
+
+    def read(self) -> dict:
+        with open(self.path) as fp:
+            return json.load(fp)

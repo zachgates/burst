@@ -3,7 +3,7 @@ __all__ = [
     'SceneRenderer2D', 'Scene2D',
     'SceneFile2D',
     'SceneRenderer3D', 'Scene3D',
-    'JSONFile', 'SceneFile3D',
+    'SceneFile3D',
 ]
 
 
