@@ -8,7 +8,7 @@ from direct.directbase.DirectStart import base
 
 def StaticFrame(scene, cell: tuple[int, int]) -> p3d.PandaNode:
     """Simple factory for static frames."""
-    return scene.make_tile(cell, blend = (60, 45, 71, 255)).node()
+    return scene.make_tile(cell).node()
 
 
 def SpriteFrame(scene,
@@ -33,5 +33,5 @@ if __name__ == '__main__':
         ]))
     sprite.set_frame_rate(12)
     sprite.pingpong(True)
-    sprite_np.set_transparency(p3d.TransparencyAttrib.M_alpha)
+    sprite_np.set_transparency(p3d.TransparencyAttrib.MAlpha)
     base.run()

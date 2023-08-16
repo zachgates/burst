@@ -7,6 +7,7 @@ import burst
 import dataclasses
 import math
 import numpy as np
+import typing
 
 import panda3d.core as p3d
 
@@ -22,31 +23,29 @@ class TileSet(dict):
         """
         Three rules defining the parameters of a TileSet.
         """
-        tile_size: Rule2D = None
-        tile_run: Rule2D = None
-        tile_offset: Rule2D = None
+        tile_size: Rule2D = Rule2D(1, 1)
+        tile_run: Rule2D = Rule2D(1, 1)
+        tile_offset: Rule2D = Rule2D(0, 0)
 
     def __init__(self, path: str, **rules):
         super().__init__()
-        self.rules = self.Rules(**rules)
 
         if path:
             self.atlas = base.loader.load_texture(path)
-            data = tuple(self.atlas.get_ram_image_as('BGRA').get_data())
+            self.rules = self.Rules(**rules)
         else:
             self.atlas = None
-            data = tuple()
+            self.rules = TileSet.Rules()
 
         if self.atlas and self.atlas.has_ram_image():
             width, height = (self.atlas.get_x_size(), self.atlas.get_y_size())
+            self.__data = bytearray(self.atlas.get_ram_image_as('BGRA'))
         else:
-            width = height = 0
+            width = height = 1
+            self.__data = bytearray(4)
 
         self.__size = Rule2D(width, height)
-        self.__data = np.flip(
-            np.reshape(data, (height, width, 4)),
-            axis = 0,
-            )
+        self._data = np.reshape(self.__data, (height, width, 4))
 
     @property
     def width(self) -> int:
@@ -57,8 +56,8 @@ class TileSet(dict):
         return self.__size.y
 
     @property
-    def data(self) -> np.ndarray:
-        return self.__data
+    def data(self) -> bytes:
+        return bytes(self.__data)
 
     @property
     def size(self) -> int:
@@ -87,42 +86,45 @@ class TileSet(dict):
         """
         return self._NAMEPLATE.format(self.name, cell.x, cell.y)
 
-    def __draw(self, cell: p3d.LPoint2i, blend: p3d.LVector4i) -> list:
+    def __draw(self, cell: p3d.LPoint2i) -> list:
         """
         Returns the Texture data of the given Tile as a PTAUchar.
         """
-        data = self.data[
-            (x := (self.rules.tile_size.x
-                   + self.rules.tile_offset.x
-                   ) * (cell.x - 1)) : x + self.rules.tile_size.x,
-            (y := (self.rules.tile_size.y
-                   + self.rules.tile_offset.y
-                   ) * (cell.y - 1)) : y + self.rules.tile_size.y,
-            ]
+        return np.flip(
+            np.flip(self._data, axis = 0)[
+                (x := (self.rules.tile_size.x
+                       + self.rules.tile_offset.x
+                       ) * (cell.x - 1)) : x + self.rules.tile_size.x,
+                (y := (self.rules.tile_size.y
+                       + self.rules.tile_offset.y
+                       ) * (cell.y - 1)) : y + self.rules.tile_size.y,
+                ], axis = 0)
 
-        for i, row in enumerate(data):
-            for j, cell in enumerate(row):
-                if tuple(cell) == blend:
-                    data[i][j] = np.zeros(4)
-
-        return np.flip(data, axis = 0).flatten().tolist()
-
-    def get(self, cell: p3d.LPoint2i, blend: p3d.LVector4i) -> p3d.Texture:
+    def get(self,
+            cell: p3d.LPoint2i,
+            blend: typing.Optional[p3d.LVector4i] = None,
+            ) -> p3d.Texture:
         """
         Returns the Texture for the given cell in the TileSet.
         """
         if (name := self._get_child_name(cell)) in self:
-            tex = self[name]
-        else:
-            tex = self[name] = p3d.Texture(name)
-            tex.setup_2d_texture(
-                self.rules.tile_size.x,
-                self.rules.tile_size.y,
-                p3d.Texture.T_unsigned_byte,
-                p3d.Texture.F_rgba,
-                )
-            tex.set_magfilter(p3d.Texture.FT_nearest)
-            tex.set_ram_image(p3d.PTAUchar(self.__draw(cell, blend)))
-            tex.compress_ram_image()
+            return self[name]
 
+        data = self.__draw(cell)
+        if blend is not None:
+            for i, row in enumerate(data):
+                for j, cell in enumerate(row):
+                    if tuple(cell) == blend:
+                        data[i][j] = np.zeros(4)
+
+        tex = self[name] = p3d.Texture(name)
+        tex.setup_2d_texture(
+            self.rules.tile_size.x,
+            self.rules.tile_size.y,
+            p3d.Texture.T_unsigned_byte,
+            p3d.Texture.F_rgba,
+            )
+        tex.set_magfilter(p3d.Texture.FT_nearest)
+        tex.set_ram_image(p3d.PTAUchar(data.flatten().tolist()))
+        tex.compress_ram_image()
         return tex

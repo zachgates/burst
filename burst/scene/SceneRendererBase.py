@@ -19,3 +19,6 @@ class SceneRendererBase(DirectObject):
         prop.set_title(title)
         prop.set_size(resolution)
         base.win.request_properties(prop)
+
+    def run(self):
+        base.run()

@@ -89,37 +89,36 @@ class Player(FSM, DirectObject):
         pass
 
 
-class SampleScene(ShowBase):
+def do_setup():
+    background = scene.make_tile((1, 1))
+    background.reparent_to(base.aspect2d)
+    background.set_sx(3)
 
-    def __init__(self):
-        super().__init__()
-        file = burst.store.load_file('tests/data/scenes/sample.burst2d')
-        self.scene = file.read()
-        self.scene.adjust_window('sample', (512, 128))
+    sprite = p3d.SequenceNode('sprite')
+    sprite_np = base.aspect2d.attach_new_node(sprite)
+    sprite_np.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
-    def run(self):
-        globalClock.set_mode(p3d.ClockObject.MLimited)
-        globalClock.set_frame_rate(60)
+    for i, cols in ((10, (24,)), # dead
+                    (10, (19, 23, 23, 19)), # idle
+                    (10, (19, 20, 21, 22, 22, 21, 20, 19)), # move
+                    (10, (19, 23, 22, 21, 21, 22, 23, 19)), # jump
+                    ):
+        for j in cols:
+            sprite.add_child(
+                scene.make_tile((i, j), blend = (60, 45, 71, 255)).node())
 
-        sprite = p3d.SequenceNode('sprite')
-        for i, cols in ((10, (24,)), # dead
-                        (10, (19, 23, 23, 19)), # idle
-                        (10, (19, 20, 21, 22, 22, 21, 20, 19)), # move
-                        (10, (19, 23, 22, 21, 21, 22, 23, 19)), # jump
-                        ):
-            for j in cols:
-                sprite.add_child(self.scene.make_tile((i, j), blend = (60, 45, 71, 255)).node())
+    globalClock.set_mode(p3d.ClockObject.MLimited)
+    globalClock.set_frame_rate(60)
+    sprite.set_frame_rate(20)
 
-        sprite.set_frame_rate(20)
-        sprite_np = base.aspect2d.attach_new_node(sprite)
-        sprite_np.set_transparency(p3d.TransparencyAttrib.M_alpha)
-
-        player = Player(sprite, sprite_np)
-        player.request('Idle')
-
-        super().run()
+    fsm = Player(sprite, sprite_np)
+    fsm.request('Idle')
 
 
 if __name__ == '__main__':
-    app = SampleScene()
-    app.run()
+    base = ShowBase()
+    file = burst.store.load_file('tests/data/scenes/sample2.burst2d')
+    scene = file.read()
+    # file.write('tests/data/scenes/sample2.burst2d', scene)
+    do_setup()
+    scene.run()
