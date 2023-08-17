@@ -6,40 +6,25 @@ __all__ = [
 import panda3d.core as p3d
 
 from burst.control import File
-from burst.core import Rule2D
+from burst.core import TileSet
 from burst.scene import Scene2D
 
 
 class SceneFile2D(File, extensions = ['.burst2d']):
 
     @staticmethod
-    def _unpack_rule(dgi: p3d.DatagramIterator) -> tuple[int, int]:
-        return (dgi.get_uint16(), dgi.get_uint16())
+    def _unpack_vec2d(dgi: p3d.DatagramIterator) -> p3d.LVector2i:
+        return p3d.LVector2i(dgi.get_uint16(), dgi.get_uint16())
 
     # TEMP
     def write(self, path: str, scene: Scene2D):
-        dg = p3d.Datagram()
-        dg.add_fixed_string('new scene', 0xff)
-        dg.add_uint16(512)
-        dg.add_uint16(128)
-        dg.add_fixed_string(scene.tiles.name, 0xff)
-        dg.add_blob32(scene.tiles.pixel.data)
-        dg.add_uint16(scene.tiles.pixel.width)
-        dg.add_uint16(scene.tiles.pixel.height)
-        dg.add_uint16(scene.tiles.rules.tile_size.x)
-        dg.add_uint16(scene.tiles.rules.tile_size.y)
-        dg.add_uint16(scene.tiles.rules.tile_run.x)
-        dg.add_uint16(scene.tiles.rules.tile_run.y)
-        dg.add_uint16(scene.tiles.rules.tile_offset.x)
-        dg.add_uint16(scene.tiles.rules.tile_offset.y)
-
         stream = p3d.OFileStream(path)
         file = p3d.DatagramOutputFile()
         file.open(stream, p3d.Filename(path))
-        file.put_datagram(dg)
+        file.put_datagram(scene.pack())
         file.close()
 
-    def read(self):
+    def read(self) -> Scene2D:
         stream = p3d.IFileStream(str(self.path))
         file = p3d.DatagramInputFile()
         file.open(stream, self.get_path())
@@ -47,20 +32,14 @@ class SceneFile2D(File, extensions = ['.burst2d']):
         dgi = p3d.DatagramIterator(dg)
 
         return Scene2D(
-            # scene name
-            dgi.get_fixed_string(0xff),
-            # scene resolution
-            self._unpack_rule(dgi),
-            # atlas name
-            dgi.get_fixed_string(0xff),
-            # atlas ram image
-            dgi.get_blob32(),
-            # atlas size
-            self._unpack_rule(dgi),
-            # atlas rules
-            {
-                'tile_size': self._unpack_rule(dgi),
-                'tile_run': self._unpack_rule(dgi),
-                'tile_offset': self._unpack_rule(dgi),
-            },
-        )
+            dgi.get_fixed_string(0xFF),
+            self._unpack_vec2d(dgi),
+            TileSet(
+                dgi.get_fixed_string(0xFF),
+                self._unpack_vec2d(dgi),
+                dgi.get_blob32(),
+                **{
+                    'tile_size': self._unpack_vec2d(dgi),
+                    'tile_run': self._unpack_vec2d(dgi),
+                    'tile_offset': self._unpack_vec2d(dgi),
+                }))

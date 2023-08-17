@@ -7,8 +7,6 @@ import typing
 
 from panda3d import core as p3d
 
-from direct.showbase.DirectObject import DirectObject
-
 
 class Sprite(p3d.SequenceNode):
 
@@ -19,9 +17,18 @@ class Sprite(p3d.SequenceNode):
         self._tracks = {}
         # self._fsm = ...
 
-    def add_track(self, name: str, cells: typing.Iterable[tuple[int, int]]):
+    def add_track(self,
+                  name: str,
+                  cells: typing.Iterable[tuple[int, int]],
+                  /, *,
+                  frame_rate: int = 1,
+                  ):
+
+        if frame_rate < 0:
+            raise ValueError('expected frame_rate > 0')
+
         start = self.get_num_children()
-        self._tracks[name] = range(start, start + len(cells))
+        self._tracks[name] = (frame_rate, range(start, start + len(cells)))
 
         for cell in cells:
             np = self.scene.get_tile_card(row = cell[0], column = cell[1])
@@ -29,13 +36,16 @@ class Sprite(p3d.SequenceNode):
             self.add_child(np.node())
 
     def play(self, name: str):
-        rng = self._tracks[name]
+        rate, rng = self._tracks[name]
+        self.set_frame_rate(rate)
         super().play(rng.start, rng.stop)
 
     def loop(self, name: str, restart: bool = True):
-        rng = self._tracks[name]
+        rate, rng = self._tracks[name]
+        self.set_frame_rate(rate)
         super().loop(restart, rng.start, rng.stop)
 
     def pingpong(self, name: str, restart: bool = True):
-        rng = self._tracks[name]
+        rate, rng = self._tracks[name]
+        self.set_frame_rate(rate)
         super().pingpong(restart, rng.start, rng.stop)

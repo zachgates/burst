@@ -1,6 +1,7 @@
 __all__ = [
     'ModelFile',
     'TextureFile',
+    'JSONFile',
 ]
 
 
@@ -17,7 +18,7 @@ from burst.control import File
 
 class ModelFile(File, extensions = ['.bam', '.egg']):
 
-    def read(self):
+    def read(self) -> p3d.NodePath:
         return base.loader.load_model(self.path)
 
 

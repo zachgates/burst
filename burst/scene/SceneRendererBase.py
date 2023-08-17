@@ -10,15 +10,38 @@ from direct.showbase.DirectObject import DirectObject
 
 class SceneRendererBase(DirectObject):
 
-    def __init__(self, title: str, resolution: tuple[int, int]):
+    def pack(self):
+        dg = p3d.Datagram()
+        dg.add_fixed_string(self.get_title(), 0xFF)
+        resolution = self.get_resolution()
+        dg.add_uint16(resolution.x)
+        dg.add_uint16(resolution.y)
+        return dg
+
+    def __init__(self, title: str, resolution: p3d.LVector2i):
         super().__init__()
-        self.adjust_window(title, resolution)
+        self._win_props = p3d.WindowProperties()
+        self._win_props.set_title(title)
+        self._win_props.set_size(resolution)
+        self._adjust_window_properties()
 
-    def adjust_window(self, title: str, resolution: tuple[int, int]):
-        prop = p3d.WindowProperties()
-        prop.set_title(title)
-        prop.set_size(resolution)
-        base.win.request_properties(prop)
+    def _adjust_window_properties(self):
+        base.win.request_properties(self._win_props)
 
-    def run(self):
-        base.run()
+    def get_title(self) -> str:
+        return self._win_props.get_title()
+
+    def set_title(self, title: str):
+        self._win_props.set_title(title)
+        self._adjust_window_properties()
+
+    title = property(get_title, set_title)
+
+    def get_resolution(self) -> p3d.LVector2i:
+        return p3d.LVector2i(self._win_props.get_size())
+
+    def set_resolution(self, resolution: p3d.LVector2i):
+        self._win_props.set_size(resolution)
+        self._adjust_window_properties()
+
+    resolution = property(get_resolution, set_resolution)

@@ -1,14 +1,14 @@
 __all__ = [
     'AngularNode',
     'ModelFile', 'TextureFile', 'JSONFile',
-    'RuleBase', 'Rule2D', 'Rule3D',
     'PixelMatrix',
+    'Texture',
     'TileSet',
 ]
 
 
 from .AngularNode import *
 from .FileTypes import *
-from .Rules import *
+from .Texture import Texture
 from .PixelMatrix import *
 from .TileSet import *

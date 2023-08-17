@@ -1,5 +1,5 @@
 __all__ = [
-    'control', 'core', 'scene',
+    'char', 'control', 'core', 'scene',
 ]
 
 

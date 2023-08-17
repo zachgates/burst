@@ -93,32 +93,22 @@ class Player(FSM, DirectObject):
 
 
 def do_setup(scene):
+    globalClock.set_mode(p3d.ClockObject.MLimited)
+    globalClock.set_frame_rate(60)
+
     bgNP = scene.get_tile_card(row = 1, column = 1)
     bgNP.reparent_to(base.aspect2d)
     bgNP.set_sx(3)
 
     char = Sprite(scene, 'sprite', blend = p3d.LColor(60, 45, 71, 255))
+    char.add_track('Dead', [(10, 24)], frame_rate = 1)
+    char.add_track('Idle', [(10, 19), (10, 23), (10, 23), (10, 19)], frame_rate = 5)
+    char.add_track('Jump', [(10, 19), (10, 23), (10, 22), (10, 21)], frame_rate = 10)
+    char.add_track('Move', [(10, 19), (10, 20), (10, 21), (10, 22), (10, 22), (10, 21), (10, 20), (10, 19)], frame_rate = 20)
+
     charNP = base.aspect2d.attach_new_node(char)
     charNP.set_transparency(p3d.TransparencyAttrib.MAlpha)
     charNP.wrt_reparent_to(bgNP)
-
-    for name, cells in {'Dead': [(10, 24),
-                                 ],
-                        'Idle': [(10, 19), (10, 23),
-                                 (10, 23), (10, 19),
-                                 ],
-                        'Move': [(10, 19), (10, 20), (10, 21), (10, 22),
-                                 (10, 22), (10, 21), (10, 20), (10, 19),
-                                 ],
-                        'Jump': [(10, 19), (10, 23), (10, 22), (10, 21),
-                                 (10, 21), (10, 22), (10, 23), (10, 19),
-                                 ],
-                        }.items():
-        char.add_track(name, cells)
-
-    globalClock.set_mode(p3d.ClockObject.MLimited)
-    globalClock.set_frame_rate(60)
-    char.set_frame_rate(20)
 
     fsm = Player(char, charNP)
     fsm.request('Idle')
@@ -126,8 +116,7 @@ def do_setup(scene):
 
 if __name__ == '__main__':
     base = ShowBase()
-    file = burst.store.load_file('tests/data/scenes/sample2.burst2d')
-    scene = file.read()
-    # file.write('tests/data/scenes/sample2.burst2d', scene)
+    scene = burst.store.load_file('tests/data/scenes/sample.burst2d').read()
+    scene.set_resolution(p3d.LVector2i(512, 128))
     do_setup(scene)
-    scene.run()
+    base.run()

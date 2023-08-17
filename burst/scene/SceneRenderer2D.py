@@ -7,35 +7,35 @@ import typing
 
 import panda3d.core as p3d
 
+from burst.control import File
 from burst.core import Tile, TileSet
 from burst.scene import SceneRendererBase
 
 
 class SceneRenderer2D(SceneRendererBase):
 
-    @classmethod
-    def make_atlas(cls, name: str, data: bytes, size: tuple):
-        tex = p3d.Texture()
-        tex.setup_2d_texture(
-            *size,
-            p3d.Texture.T_unsigned_byte,
-            p3d.Texture.F_rgba,
-            )
-        tex.set_fullpath(name)
-        tex.set_name(name)
-        tex.set_ram_image(data)
-        p3d.TexturePool.add_texture(tex)
+    def pack(self):
+        dg = super().pack()
+        dg.add_fixed_string(self.tiles.pixel.get_name(), 0xFF)
+        dg.add_uint16(self.tiles.pixel.get_x_size())
+        dg.add_uint16(self.tiles.pixel.get_y_size())
+        dg.add_blob32(self.tiles.pixel.buffer.get_data())
+        dg.add_uint16(self.tiles.rules.tile_size.x)
+        dg.add_uint16(self.tiles.rules.tile_size.y)
+        dg.add_uint16(self.tiles.rules.tile_run.x)
+        dg.add_uint16(self.tiles.rules.tile_run.y)
+        dg.add_uint16(self.tiles.rules.tile_offset.x)
+        dg.add_uint16(self.tiles.rules.tile_offset.y)
+        return dg
 
     def __init__(self,
-                 title: str, resolution: tuple,
-                 atlas_name: str, atlas_data: bytes, atlas_size: tuple,
-                 atlas_rules: dict,
+                 title: str,
+                 resolution: tuple,
+                 tiles: TileSet,
                  ):
+
         super().__init__(title, resolution)
-
-        self.make_atlas(atlas_name, atlas_data, atlas_size)
-        self.tiles = TileSet(atlas_name, **atlas_rules)
-
+        self.tiles = tiles
         self._cm = p3d.CardMaker(f'{self.tiles.name}')
         self._cm.set_frame_fullscreen_quad()
 
