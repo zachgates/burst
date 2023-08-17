@@ -17,15 +17,11 @@ class SceneRenderer2D(SceneRendererBase):
     def pack(self):
         dg = super().pack()
         dg.add_fixed_string(self.tiles.pixel.get_name(), 0xFF)
-        dg.add_uint16(self.tiles.pixel.get_x_size())
-        dg.add_uint16(self.tiles.pixel.get_y_size())
-        dg.add_blob32(self.tiles.pixel.buffer.get_data())
-        dg.add_uint16(self.tiles.rules.tile_size.x)
-        dg.add_uint16(self.tiles.rules.tile_size.y)
-        dg.add_uint16(self.tiles.rules.tile_run.x)
-        dg.add_uint16(self.tiles.rules.tile_run.y)
-        dg.add_uint16(self.tiles.rules.tile_offset.x)
-        dg.add_uint16(self.tiles.rules.tile_offset.y)
+        self.tiles.pixel.size.write_datagram(dg)
+        dg.add_blob32(self.tiles.pixel.get_ram_image().get_data())
+        self.tiles.rules.tile_size.write_datagram(dg)
+        self.tiles.rules.tile_run.write_datagram(dg)
+        self.tiles.rules.tile_offset.write_datagram(dg)
         return dg
 
     def __init__(self,

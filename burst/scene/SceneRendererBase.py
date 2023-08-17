@@ -12,10 +12,8 @@ class SceneRendererBase(DirectObject):
 
     def pack(self):
         dg = p3d.Datagram()
-        dg.add_fixed_string(self.get_title(), 0xFF)
-        resolution = self.get_resolution()
-        dg.add_uint16(resolution.x)
-        dg.add_uint16(resolution.y)
+        dg.add_fixed_string(self.title, 0xFF)
+        self.resolution.write_datagram(dg)
         return dg
 
     def __init__(self, title: str, resolution: p3d.LVector2i):

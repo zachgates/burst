@@ -102,9 +102,8 @@ class Player(FSM, DirectObject):
 
 if __name__ == '__main__':
     base = ShowBase()
-
-    scene = burst.store.load_file('tests/data/scenes/sample.burst2d').read()
-    scene.set_resolution(p3d.LVector2i(512, 512))
+    file = burst.store.load_file('tests/data/scenes/sample2.burst2d')
+    scene = file.read()
 
     globalClock.set_mode(p3d.ClockObject.MLimited)
     globalClock.set_frame_rate(60)

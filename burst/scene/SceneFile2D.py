@@ -31,15 +31,20 @@ class SceneFile2D(File, extensions = ['.burst2d']):
         file.get_datagram(dg := p3d.Datagram())
         dgi = p3d.DatagramIterator(dg)
 
+        def read_vector(dgi):
+            vec = p3d.LVector2i()
+            vec.read_datagram(dgi)
+            return vec
+
         return Scene2D(
             dgi.get_fixed_string(0xFF),
-            self._unpack_vec2d(dgi),
+            read_vector(dgi),
             TileSet(
                 dgi.get_fixed_string(0xFF),
-                self._unpack_vec2d(dgi),
+                read_vector(dgi),
                 dgi.get_blob32(),
                 **{
-                    'tile_size': self._unpack_vec2d(dgi),
-                    'tile_run': self._unpack_vec2d(dgi),
-                    'tile_offset': self._unpack_vec2d(dgi),
+                    'tile_size': read_vector(dgi),
+                    'tile_run': read_vector(dgi),
+                    'tile_offset': read_vector(dgi),
                 }))
