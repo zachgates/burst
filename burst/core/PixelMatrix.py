@@ -14,10 +14,6 @@ class PixelMatrix(object):
 
     _BLANK = p3d.LVector4i.zero()
 
-    @classmethod
-    def get_ram_format(cls):
-        return cls._FORMAT
-
     def __init__(self, tex: p3d.Texture):
         if tex and tex.has_ram_image():
             width, height = (tex.get_x_size(), tex.get_y_size())

@@ -7,7 +7,7 @@ import typing
 
 import panda3d.core as p3d
 
-from burst.core import TileSet
+from burst.core import Tile, TileSet
 from burst.scene import SceneRendererBase
 
 
@@ -39,17 +39,15 @@ class SceneRenderer2D(SceneRendererBase):
         self._cm = p3d.CardMaker(f'{self.tiles.name}')
         self._cm.set_frame_fullscreen_quad()
 
-    def make_tile(self,
-                  /, *,
-                  row: int,
-                  column: int,
-                  ) -> tuple[p3d.Texture, p3d.NodePath]:
+    def get_tile(self, /, *, row: int, column: int) -> Tile:
+        return self.tiles.get(p3d.LPoint2i(row, column))
 
-        tex = self.tiles.get(p3d.LPoint2i(row, column))
+    def get_tile_card(self, /, *, row: int, column: int) -> p3d.NodePath:
         np = base.hidden.attach_new_node(self._cm.generate())
-        np.node().set_name(tex.get_name())
-        np.set_texture(tex)
-        return (tex, np)
+        np.set_texture(tile := self.get_tile(row = row, column = column))
+        np.set_python_tag('tile', tile)
+        np.node().set_name(tile.get_name())
+        return np
 
 
 Scene2D = SceneRenderer2D

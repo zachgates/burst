@@ -15,9 +15,10 @@ from burst.char import Sprite
 
 class Player(FSM, DirectObject):
 
-    def __init__(self, char):
+    def __init__(self, char, charNP):
         DirectObject.__init__(self)
         self.char = char
+        self.charNP = charNP
 
         FSM.__init__(self, 'PlayerFSM')
         self.defaultTransitions = {
@@ -45,16 +46,16 @@ class Player(FSM, DirectObject):
             pass
 
     def enterIdle(self):
-        self.char.node.set_frame_rate(5)
-        self.char.node.loop(True, 1, 4)
+        self.char.set_frame_rate(5)
+        self.char.loop('Idle')
 
     def exitIdle(self):
         pass
 
     def enterJump(self):
-        self.char.node.set_frame_rate(10)
+        self.char.set_frame_rate(10)
         self.lerp = Sequence(
-            Func(self.char.node.play, 13, 20),
+            Func(self.char.play, 'Jump'),
             Wait(30 / 60),
             Func(delattr, self, 'lerp'),
             Func(self.request, 'Idle'),
@@ -67,14 +68,14 @@ class Player(FSM, DirectObject):
         if hasattr(self, 'lerp'):
             return
 
-        self.char.node.set_frame_rate(20)
+        self.char.set_frame_rate(20)
         self.lerp = Sequence(
             Parallel(
-                Func(self.char.node.play, 5, 12),
-                self.char.np.posInterval(
+                Func(self.char.play, 'Move'),
+                self.charNP.posInterval(
                     (24 / 60),
-                    pos = p3d.Point3(self.char.np.get_x() + direction, 0, 0),
-                    startPos = self.char.np.get_pos(),
+                    pos = p3d.Point3(self.charNP.get_x() + direction, 0, 0),
+                    startPos = self.charNP.get_pos(),
                     name = 'PlayerFSM-Move',
                     )),
             Func(delattr, self, 'lerp'),
@@ -85,19 +86,21 @@ class Player(FSM, DirectObject):
         pass
 
     def enterDead(self):
-        self.char.node.pose(0)
+        self.char.pose(0)
 
     def exitDead(self):
         pass
 
 
 def do_setup(scene):
-    tex, bgNP = scene.make_tile(row = 1, column = 1)
+    bgNP = scene.get_tile_card(row = 1, column = 1)
     bgNP.reparent_to(base.aspect2d)
     bgNP.set_sx(3)
 
-    char = Sprite(scene, blend = p3d.LColor(60, 45, 71, 255))
-    char.np.wrt_reparent_to(bgNP)
+    char = Sprite(scene, 'sprite', blend = p3d.LColor(60, 45, 71, 255))
+    charNP = base.aspect2d.attach_new_node(char)
+    charNP.set_transparency(p3d.TransparencyAttrib.MAlpha)
+    charNP.wrt_reparent_to(bgNP)
 
     for name, cells in {'Dead': [(10, 24),
                                  ],
@@ -115,9 +118,9 @@ def do_setup(scene):
 
     globalClock.set_mode(p3d.ClockObject.MLimited)
     globalClock.set_frame_rate(60)
-    char.node.set_frame_rate(20)
+    char.set_frame_rate(20)
 
-    fsm = Player(char)
+    fsm = Player(char, charNP)
     fsm.request('Idle')
 
 

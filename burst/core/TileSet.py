@@ -28,7 +28,7 @@ class Tile(p3d.Texture):
             self.__size.y,
             p3d.Texture.T_unsigned_byte,
             p3d.Texture.F_rgba,
-        )
+            )
 
     def get_ram_image(self) -> np.ndarray:
         if hash(super().get_ram_image()) == hash(self.__data):
@@ -77,7 +77,7 @@ class TileSet(dict):
         if path:
             self.atlas = base.loader.load_texture(path)
             self.pixel = PixelMatrix(self.atlas)
-            self.rules = self.Rules(**rules)
+            self.rules = TileSet.Rules(**rules)
         else:
             self.atlas = None
             self.pixel = None
@@ -161,8 +161,7 @@ class TileSet(dict):
             return self[name]
         else:
             index = ((point.x - 1) * self.rules.tile_run.x) + point.y
-            tex = self[name] = Tile(name, self.rules.tile_size)
-            tex.set_magfilter(p3d.Texture.FT_nearest)
-            tex.set_ram_image(self.__draw(index))
-            # tex.compress_ram_image()
-            return tex
+            tile = self[name] = Tile(name, self.rules.tile_size)
+            tile.set_magfilter(p3d.Texture.FT_nearest)
+            tile.set_ram_image(self.__draw(index))
+            return tile
