@@ -28,12 +28,17 @@ class Sprite(p3d.SequenceNode):
             raise ValueError('expected frame_rate > 0')
 
         start = self.get_num_children()
-        self._tracks[name] = (frame_rate, range(start, start + len(cells)))
+        self._tracks[name] = (frame_rate, range(start, start + len(cells) - 1))
 
         for cell in cells:
             np = self.scene.get_tile_card(row = cell[0], column = cell[1])
-            np.get_python_tag('tile').set_blend(self._blend)
             self.add_child(np.node())
+
+            if self._blend is not None:
+                tile = np.node().get_python_tag('tile')
+                tile.set_blend(self._blend)
+
+    # AnimInterface
 
     def play(self, name: str):
         rate, rng = self._tracks[name]
@@ -49,3 +54,23 @@ class Sprite(p3d.SequenceNode):
         rate, rng = self._tracks[name]
         self.set_frame_rate(rate)
         super().pingpong(restart, rng.start, rng.stop)
+
+    # Tile
+
+    def set_blend(self, blend: p3d.LColor):
+        if isinstance(blend, p3d.LColor):
+            self._blend = blend
+            for index in range(self.get_num_children()):
+                node = self.get_child(index)
+                tile = node.get_python_tag('tile')
+                tile.set_blend(self._blend)
+        else:
+            raise TypeError('expected LColor')
+
+    def set_blend_off(self):
+        for index in range(self.get_num_children()):
+            node = self.get_child(index)
+            tile = node.get_python_tag('tile')
+            tile.set_blend_off(self._blend)
+
+        self._blend = None

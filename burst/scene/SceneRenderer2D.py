@@ -45,8 +45,8 @@ class SceneRenderer2D(SceneRendererBase):
     def get_tile_card(self, /, *, row: int, column: int) -> p3d.NodePath:
         np = base.hidden.attach_new_node(self._cm.generate())
         np.set_texture(tile := self.get_tile(row = row, column = column))
-        np.set_python_tag('tile', tile)
         np.node().set_name(tile.get_name())
+        np.node().set_python_tag('tile', tile)
         return np
 
 

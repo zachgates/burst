@@ -7,10 +7,8 @@ import math
 
 import panda3d.core as p3d
 
-from burst.core import Texture
 
-
-class PixelMatrix(Texture):
+class PixelMatrix(p3d.Texture):
 
     _BLANK = p3d.LVector4i.zero()
 
@@ -21,10 +19,10 @@ class PixelMatrix(Texture):
         index %= (self.get_x_size() * self.get_y_size()) + 1
         point = self._norm_pos_from_index(index)
 
-        # if (index := self._norm_index_from_pos(point)) == 0:
-        #     return self._BLANK
-        # else:
-        return self.__calc_pixel_by_index(index - 1)
+        if (index := self._norm_index_from_pos(point)) == 0:
+            return self._BLANK
+        else:
+            return self.__calc_pixel_by_index(index - 1)
 
     def _norm_pos_from_index(self, index: int) -> p3d.LPoint2i:
         """
@@ -56,13 +54,13 @@ class PixelMatrix(Texture):
         """
         Returns the sub-values of a pixel.
         """
-        if self.buffer:
+        if buffer := self.get_ram_image():
             point = self.__calc_pos_from_index(index)
             index = self._norm_index_from_pos(point) - 1
 
             px_size = 4 # BGRA
             px_data = [
-                self.buffer.get_element(i)
+                buffer.get_element(i)
                 for i in range(index * px_size, index * px_size + px_size)
                 ]
 

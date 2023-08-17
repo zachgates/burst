@@ -12,21 +12,30 @@ import typing
 
 import panda3d.core as p3d
 
-from burst.core import PixelMatrix, Texture
+from burst.core import PixelMatrix
 
 
-class Tile(Texture):
+class Tile(p3d.Texture):
+
+    def modify_ram_image(self):
+        return np.reshape(
+            super().modify_ram_image(),
+            (self.get_y_size(), self.get_x_size(), 4),
+            )
 
     def set_blend(self, color: p3d.LColor):
-        for row in self.get_ram_image():
+        for row in self.modify_ram_image():
             for cell in row:
-                if tuple(cell) == color:
+                if tuple(cell[0:3]) == color.get_xyz():
                     cell[3] = 0
 
-    def set_blend_off(self):
-        for row in self.get_ram_image():
+    def set_blend_off(self, color: typing.Optional[p3d.LColor] = None):
+        for row in self.modify_ram_image():
             for cell in row:
-                cell[3] = 255
+                if ((color is None)
+                    or (color and (tuple(cell[0:3]) == color.get_xyz()))
+                    ):
+                    cell[3] = 255
 
 
 class TileSet(dict):
@@ -50,8 +59,17 @@ class TileSet(dict):
                  ):
 
         self.rules = TileSet.Rules(**rules)
-        self.pixel = PixelMatrix(path, size)
-        self.pixel.set_ram_image(p3d.CPTAUchar(data))
+
+        self.pixel = PixelMatrix(path)
+        self.pixel.setup_2d_texture(
+            size.x,
+            size.y,
+            p3d.Texture.T_unsigned_byte,
+            p3d.Texture.F_rgba,
+            )
+
+        self.pixel.set_fullpath(path)
+        self.pixel.set_ram_image(data)
 
     @property
     def name(self) -> str:
@@ -128,7 +146,13 @@ class TileSet(dict):
         Returns a Tile for the given cell in the TileSet.
         """
         index = ((point.x - 1) * self.rules.tile_run.x) + point.y
-        tile = Tile(self._get_tile_name(point), self.rules.tile_size)
+        tile = Tile(self._get_tile_name(point))
+        tile.setup_2d_texture(
+            self.rules.tile_size.x,
+            self.rules.tile_size.y,
+            p3d.Texture.T_unsigned_byte,
+            p3d.Texture.F_rgba,
+            )
         tile.set_magfilter(p3d.Texture.FT_nearest)
         tile.set_ram_image(self.__draw(index))
         return tile
