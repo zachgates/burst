@@ -4,14 +4,12 @@ import panda3d.core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-from burst.char import Sprite, Character
+from burst.character import Sprite, Character
+from burst.distributed import ClientRepository
 
 
-if __name__ == '__main__':
-    base = ShowBase()
-    base.cr = None
-
-    file = burst.store.load_file('tests/data/scenes/sample2.burst2d')
+def setup_scene():
+    file = burst.store.load_file('data/scenes/sample2.burst2d')
     scene = file.read()
     scene.set_frame_rate(60)
 
@@ -27,6 +25,8 @@ if __name__ == '__main__':
     sprite.add_track('Dead', [(10, 24)], frame_rate = 1)
 
     charNP = Character(base.cr, sprite)
+    base.cr.createDistributedObject(distObj = charNP, zoneId = 2)
+
     charNP.reparent_to(bgNP)
     charNP.set_transparency(p3d.TransparencyAttrib.MAlpha)
     charNP.set_speed_factor(0.05)
@@ -44,4 +44,11 @@ if __name__ == '__main__':
         p3d.Vec3(abs(scale.get_x()), 0, abs(scale.get_z())),
         )
 
+    charNP.startPosHprBroadcast()
+
+
+if __name__ == '__main__':
+    base = ShowBase()
+    base.cr = ClientRepository(['data/dclass/direct.dc', 'data/dclass/burst.dc'])
+    base.cr.accept('client-joined', setup_scene)
     base.run()
