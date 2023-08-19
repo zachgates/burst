@@ -21,7 +21,7 @@ class KartDisplay(ShowBase):
         self.label.setText('press the space bar')
         self.label.show()
 
-        self._model = loader.load_model('tests/data/models/kart.bam')
+        self._model = burst.store.load_file('data/models/kart.bam').read()
         self._model.set_h(90)
 
         self.karts = []

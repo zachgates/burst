@@ -6,7 +6,7 @@ from direct.interval.LerpInterval import LerpFunc
 from burst.core import AngularNode
 
 
-WHEEL = loader.load_model('tests/data/models/wheel.bam')
+WHEEL = loader.load_model('data/models/wheel.bam')
 # WHEEL.set_transparency(p3d.TransparencyAttrib.M_alpha)
 # WHEEL.set_alpha_scale(0.25)
 WHEEL.set_render_mode_wireframe()

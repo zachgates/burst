@@ -18,7 +18,7 @@ class WheelDisplay(ShowBase):
         self.label.show()
 
         self.wheels = []
-        self._model = loader.load_model('tests/data/models/wheel.bam')
+        self._model = burst.store.load_file('data/models/wheel.egg').read()
         self._model.reparent_to(render)
         self._model.set_z(1)
 

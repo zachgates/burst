@@ -6,7 +6,7 @@ from .gui import SlideShowBase
 class StreetSlideShow(SlideShowBase):
 
     def run(self):
-        streets = loader.load_model('tests/data/palettes/streets.bam')
+        streets = loader.load_model('data/palettes/streets.bam')
         for node in streets.get_children():
             node = AngularNode(
                 parent = render,

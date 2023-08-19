@@ -12,7 +12,7 @@ class WallSlideShow(SlideShowBase):
         cm = p3d.CardMaker('wall_frame')
         cm.set_frame(-0.66, 0.66, -0.66, 0.66)
 
-        for file in burst.store.load_directory('palettes/walls',
+        for file in burst.store.load_directory('data/palettes/walls',
                                                extensions = ['.jpg'],
                                                ):
             self.slides.append(np := render2d.attach_new_node(cm.generate()))
