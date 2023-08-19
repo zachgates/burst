@@ -1,13 +1,7 @@
 import burst
-import pprint
 
 import panda3d.core as p3d
 
-from direct.fsm.FSM import FSM, RequestDenied
-from direct.fsm.State import State
-from direct.interval.IntervalGlobal import Func, Parallel, Sequence, Wait
-from direct.interval.LerpInterval import LerpPosInterval
-from direct.showbase.DirectObject import DirectObject
 from direct.showbase.ShowBase import ShowBase
 
 from burst.char import Sprite, Character
