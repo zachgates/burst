@@ -10,7 +10,7 @@ from direct.showbase.DirectObject import DirectObject
 
 class Responder(object):
 
-    def __init__(self, action_event: str, done_event: str):
+    def __init__(self, action_event: str):
         super().__init__()
         self._task = None
         self.__actions = dict()

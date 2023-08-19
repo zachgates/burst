@@ -7,17 +7,26 @@ import typing
 
 from panda3d import core as p3d
 
-from direct.showbase.DirectObject import DirectObject
 
+class Mover(object):
 
-class Mover(DirectObject):
-
-    def __init__(self, np: p3d.NodePath, move_event: str, done_event: str):
+    def __init__(self, np: p3d.NodePath, move_event: str):
         super().__init__()
         self._np = np
+        self._bounds = (p3d.Vec3(-1, 0, -1), p3d.Vec3(1, 0, 1))
         self._speed_factor = 1.0
         self._task = None
         self.__move_event = move_event
+
+    ###
+
+    def get_bounds(self) -> tuple[p3d.Vec3, p3d.Vec3]:
+        return self._bounds
+
+    def set_bounds(self, min_: p3d.Vec3, max_: p3d.Vec3):
+        self._bounds = (min_, max_)
+
+    bounds = property(get_bounds, set_bounds)
 
     ###
 
@@ -45,11 +54,19 @@ class Mover(DirectObject):
 
     def _move(self, task):
         if moving := any(vector := self.__get_input_vector()):
-            self._np.set_pos(
-                self._np.get_pos()
-                + vector
-                * self.get_speed_factor(),
-                )
+            pos = self._np.get_pos() + (vector * self.get_speed_factor())
+
+            if pos.get_x() < self._bounds[0].get_x():
+                pos.set_x(self._bounds[0].get_x())
+            if pos.get_z() < self._bounds[0].get_z():
+                pos.set_z(self._bounds[0].get_z())
+
+            if pos.get_x() > self._bounds[1].get_x():
+                pos.set_x(self._bounds[1].get_x())
+            if pos.get_z() > self._bounds[1].get_z():
+                pos.set_z(self._bounds[1].get_z())
+
+            self._np.set_pos(pos)
 
         base.messenger.send(self.__move_event, [moving])
         return task.again
