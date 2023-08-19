@@ -3,85 +3,73 @@ __all__ = [
 ]
 
 
+import typing
+
 from panda3d import core as p3d
 
-from direct.fsm.FSM import FSM, RequestDenied
-from direct.interval.IntervalGlobal import Func, Parallel, Sequence, Wait
-from direct.showbase.DirectObject import DirectObject
+from direct.distributed.DistributedObject import DistributedObject
 
-from burst.char import Sprite
+from burst.char import Mover, Responder, Sprite
 
 
-class Character(FSM, DirectObject, p3d.NodePath):
+class Character(DistributedObject, p3d.NodePath):
 
-    def __init__(self, char: Sprite):
-        FSM.__init__(self, 'CharacterFSM')
-        DirectObject.__init__(self)
-        p3d.NodePath.__init__(self, char)
+    def __init__(self, cr, sprite: Sprite):
+        DistributedObject.__init__(self, cr)
+        self.doId = id(self) # TODO
 
-        self.char = char
-        self.defaultTransitions = {
-            'Idle' : ['Jump', 'Move', 'Dead'],
-            'Jump' : ['Idle'],
-            'Move' : ['Idle', 'Move'],
-            'Dead' : [],
-        }
+        p3d.NodePath.__init__(self, sprite)
+        self._sprite = sprite
 
-        self.accept('escape', self.request, extraArgs = ['Dead'])
+        self.accept(move_event := self.uniqueName('mover_move'), self.set_moving)
+        self._mover = Mover(self, move_event, self.uniqueName('mover_done'))
+        self._mover.start(sprite.scene.get_frame_rate())
+        self.__did_move = False
 
-        self.accept('space', self.request, extraArgs = ['Jump'])
-        self.accept('space-repeat', self.request, extraArgs = ['Jump'])
+        self.accept(action_event := self.uniqueName('responder_action'), self.set_action)
+        self._responder = Responder(action_event, self.uniqueName('responder_done'))
+        self._responder.register('escape', 'Dead')
+        self._responder.register('space', 'Jump')
+        self._responder.start(sprite.scene.get_frame_rate())
+        self.__is_acting = False
 
-        self.accept('arrow_up', self.request, extraArgs = ['Move', p3d.Vec3(0, 0, 1)])
-        self.accept('arrow_up-repeat', self.request, extraArgs = ['Move', p3d.Vec3(0, 0, 1)])
+        # self.accept_once('escape', self.set_action, ['Dead'])
+        # self.accept('space', self.set_action, ['Jump'])
+        # self.accept('space-repeat', self.set_action, ['Jump'])
 
-        self.accept('arrow_down', self.request, extraArgs = ['Move', p3d.Vec3(0, 0, -1)])
-        self.accept('arrow_down-repeat', self.request, extraArgs = ['Move', p3d.Vec3(0, 0, -1)])
+    def get_speed_factor(self):
+        return self._mover.get_speed_factor()
 
-        self.accept('arrow_right', self.request, extraArgs = ['Move', p3d.Vec3(1, 0, 0)])
-        self.accept('arrow_right-repeat', self.request, extraArgs = ['Move', p3d.Vec3(1, 0, 0)])
+    def set_speed_factor(self, speed_factor: typing.Union[int, float]):
+        self._mover.set_speed_factor(speed_factor)
 
-        self.accept('arrow_left', self.request, extraArgs = ['Move', p3d.Vec3(-1, 0, 0)])
-        self.accept('arrow_left-repeat', self.request, extraArgs = ['Move', p3d.Vec3(-1, 0, 0)])
-
-    def request(self, request, *args):
-        try:
-            super().request(request, *args)
-        except RequestDenied as exc:
-            pass
-
-    def enterIdle(self):
-        self.char.loop('Idle')
-
-    def enterJump(self):
-        self.lerp = Sequence(
-            Func(self.char.play, 'Jump'),
-            Wait(0.5),
-            Func(delattr, self, 'lerp'),
-            Func(self.request, 'Idle'),
-            ).start()
-
-    def enterMove(self, vec: p3d.Vec3):
-        if hasattr(self, 'lerp'):
+    def set_moving(self, moving: bool):
+        if self.__is_acting:
+            if not self._sprite.is_playing():
+                self.__is_acting = False
             return
 
-        self.lerp = Sequence(
-            Parallel(
-                Func(self.char.play, 'Move'),
-                self.posInterval(
-                    (24 / 60),
-                    pos = (self.get_pos()
-                           + p3d.Vec3(
-                               vec.x * self.get_sx(),
-                               vec.y * self.get_sy(),
-                               vec.z * self.get_sz(),
-                               )),
-                    startPos = self.get_pos(),
-                    name = 'Move',
-                    )),
-            Func(delattr, self, 'lerp'),
-            Func(self.request, 'Idle'),
-            ).start()
+        if moving:
+            if ((self._sprite.is_playing() and not self.__did_move)
+                or not self._sprite.is_playing()
+                ):
+                self._sprite.play('Move')
+        else:
+            if not self._sprite.is_playing():
+                self._sprite.play('Idle')
 
-    def enterDead(self):
-        self.char.loop('Dead')
+        self.__did_move = moving
+
+    def set_action(self, action: str):
+        if action == 'Dead':
+            self._mover.stop()
+            self._responder.stop()
+            self._sprite.pose('Dead')
+            return
+
+        if self.__is_acting:
+            return
+
+        if action == 'Jump':
+            self._sprite.play('Jump')
+            self.__is_acting = True

@@ -40,6 +40,11 @@ class Sprite(p3d.SequenceNode):
 
     # AnimInterface
 
+    def pose(self, name: str):
+        rate, rng = self._tracks[name]
+        self.set_frame_rate(1)
+        super().pose(rng.start)
+
     def play(self, name: str):
         rate, rng = self._tracks[name]
         self.set_frame_rate(rate)

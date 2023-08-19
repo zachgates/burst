@@ -18,10 +18,15 @@ class SceneRendererBase(DirectObject):
 
     def __init__(self, title: str, resolution: p3d.LVector2i):
         super().__init__()
+
         self._win_props = p3d.WindowProperties()
         self._win_props.set_title(title)
         self._win_props.set_size(resolution)
+        self._win_props.set_fixed_size(True)
         self._adjust_window_properties()
+
+        globalClock.set_mode(p3d.ClockObject.MLimited)
+        self.set_frame_rate(1)
 
     def _adjust_window_properties(self):
         base.win.request_properties(self._win_props)
@@ -43,3 +48,12 @@ class SceneRendererBase(DirectObject):
         self._adjust_window_properties()
 
     resolution = property(get_resolution, set_resolution)
+
+    def get_frame_rate(self) -> int:
+        return self._frame_rate
+
+    def set_frame_rate(self, frame_rate: int):
+        self._frame_rate = frame_rate
+        globalClock.set_frame_rate(self._frame_rate)
+
+    frame_rate = property(get_frame_rate, set_frame_rate)
