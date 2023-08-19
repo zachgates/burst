@@ -7,37 +7,56 @@ import typing
 
 from panda3d import core as p3d
 
-from direct.distributed.DistributedObject import DistributedObject
+from direct.distributed.DistributedSmoothNode import DistributedSmoothNode
 
-from burst.char import Mover, Responder, Sprite
+from burst.character import Mover, Responder, Sprite
 
 
-class Character(DistributedObject, p3d.NodePath):
+class Character(DistributedSmoothNode, p3d.NodePath):
 
     def __init__(self, cr, sprite: Sprite):
-        DistributedObject.__init__(self, cr)
-        self.doId = id(self) # TODO
+        DistributedSmoothNode.__init__(self, cr)
 
         p3d.NodePath.__init__(self, sprite)
         self._sprite = sprite
 
+        self._mover = None
+        self.__did_move = False
+
+        self._responder = None
+        self.__is_acting = False
+
+    def generate(self):
+        super().generate()
+
         self.accept(event := self.uniqueName('char_move'), self.set_moving)
         self._mover = Mover(self, event)
-        self._mover.start(sprite.scene.get_frame_rate())
-        self.__did_move = False
+        self._mover.start(self._sprite.scene.get_frame_rate())
 
         self.accept(event := self.uniqueName('char_action'), self.set_action)
         self._responder = Responder(event)
         self._responder.register('escape', 'Dead')
         self._responder.register('space', 'Jump')
-        self._responder.start(sprite.scene.get_frame_rate())
-        self.__is_acting = False
+        self._responder.start(self._sprite.scene.get_frame_rate())
 
         # self.accept_once('escape', self.set_action, ['Dead'])
         # self.accept('space', self.set_action, ['Jump'])
         # self.accept('space-repeat', self.set_action, ['Jump'])
 
-    ###
+    ### Sprite
+
+    def add_track(self,
+                  name: str,
+                  cells: typing.Iterable[tuple[int, int]],
+                  /, *,
+                  frame_rate: int = 1,
+                  ):
+        self._sprite.add_track(name, cells, frame_rate = frame_rate)
+
+    def set_blend(self, blend: p3d.LColor):
+        self._sprite.set_blend(blend)
+
+    ### Mover
 
     def set_bounds(self, min_: p3d.Vec3, max_: p3d.Vec3):
         self._mover.set_bounds(min_, max_)
