@@ -1,0 +1,16 @@
+from burst.character import Character/AI
+
+struct Cell {
+  uint16 row;
+  uint16 column;
+}
+
+struct Track {
+  string name;
+  Cell cells[];
+  uint16 frame_rate;
+}
+
+dclass Character: DistributedSmoothNode {
+  set_tracks(Track[] tracks) broadcast;
+};

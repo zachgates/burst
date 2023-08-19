@@ -1,5 +1,10 @@
 __all__ = [
-    'char', 'control', 'core', 'scene',
+    'ai',
+    'character',
+    'control',
+    'core',
+    'distributed',
+    'scene',
 ]
 
 
