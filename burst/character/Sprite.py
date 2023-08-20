@@ -1,8 +1,11 @@
 __all__ = [
     'Sprite',
+    'SpriteData',
 ]
 
 
+import dataclasses
+import collections
 import typing
 
 from panda3d import core as p3d
@@ -10,54 +13,61 @@ from panda3d import core as p3d
 
 class Sprite(p3d.SequenceNode):
 
-    def __init__(self, scene, name: str, blend = None):
+    Track = collections.namedtuple('Track', 'name cells frame_rate')
+
+    def __init__(self, scene, name: str):
         super().__init__(name)
         self.scene = scene
-        self._blend = blend
+        self._blend = None
         self._tracks = {}
         # self._fsm = ...
 
-    def add_track(self,
-                  name: str,
-                  cells: typing.Iterable[tuple[int, int]],
-                  /, *,
-                  frame_rate: int = 1,
-                  ):
+    def add_track(self, track: Track):
+        if track.frame_rate < 0:
+            raise ValueError('bad track: expected frame_rate > 0')
 
-        if frame_rate < 0:
-            raise ValueError('expected frame_rate > 0')
+        self._tracks[track.name] = (
+            track,
+            range(
+                start := self.get_num_children(),
+                start + len(track.cells) - 1,
+                ))
 
-        start = self.get_num_children()
-        self._tracks[name] = (frame_rate, range(start, start + len(cells) - 1))
-
-        for cell in cells:
-            np = self.scene.get_tile_card(row = cell[0], column = cell[1])
+        for cell in track.cells:
+            np = self.scene.make_tile_card(row = cell[0], column = cell[1])
             self.add_child(np.node())
 
             if self._blend is not None:
                 tile = np.node().get_python_tag('tile')
                 tile.set_blend(self._blend)
 
+    def get_tracks(self):
+        return [track for track, rng in self._tracks]
+
+    def set_tracks(self, tracks: typing.Iterable[Track]):
+        for track in tracks:
+            self.add_track(track)
+
     # AnimInterface
 
     def pose(self, name: str):
-        rate, rng = self._tracks[name]
-        self.set_frame_rate(1)
+        track, rng = self._tracks[name]
+        self.set_frame_rate(track.frame_rate)
         super().pose(rng.start)
 
     def play(self, name: str):
-        rate, rng = self._tracks[name]
-        self.set_frame_rate(rate)
+        track, rng = self._tracks[name]
+        self.set_frame_rate(track.frame_rate)
         super().play(rng.start, rng.stop)
 
     def loop(self, name: str, restart: bool = True):
-        rate, rng = self._tracks[name]
-        self.set_frame_rate(rate)
+        track, rng = self._tracks[name]
+        self.set_frame_rate(track.frame_rate)
         super().loop(restart, rng.start, rng.stop)
 
     def pingpong(self, name: str, restart: bool = True):
-        rate, rng = self._tracks[name]
-        self.set_frame_rate(rate)
+        track, rng = self._tracks[name]
+        self.set_frame_rate(track.frame_rate)
         super().pingpong(restart, rng.start, rng.stop)
 
     # Tile
@@ -79,3 +89,10 @@ class Sprite(p3d.SequenceNode):
             tile.set_blend_off(self._blend)
 
         self._blend = None
+
+
+@dataclasses.dataclass
+class SpriteData(object):
+    name: str = 'sprite'
+    tracks: typing.Iterable[Sprite.Track] = dataclasses.field(default_factory = list)
+    blend: typing.Optional[p3d.LColor] = None

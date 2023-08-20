@@ -14,6 +14,7 @@ class SceneRendererBase(DirectObject):
         dg = p3d.Datagram()
         dg.add_fixed_string(self.title, 0xFF)
         self.resolution.write_datagram(dg)
+        dg.add_uint8(self.frame_rate)
         return dg
 
     def __init__(self, title: str, resolution: p3d.LVector2i):
@@ -29,7 +30,8 @@ class SceneRendererBase(DirectObject):
         self.set_frame_rate(1)
 
     def _adjust_window_properties(self):
-        base.win.request_properties(self._win_props)
+        if base.win:
+            base.win.request_properties(self._win_props)
 
     def get_title(self) -> str:
         return self._win_props.get_title()

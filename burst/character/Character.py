@@ -9,16 +9,15 @@ from panda3d import core as p3d
 
 from direct.distributed.DistributedSmoothNode import DistributedSmoothNode
 
-from burst.character import Mover, Responder, Sprite
+from burst.character import Mover, Responder, Sprite, SpriteData
 
 
-class Character(DistributedSmoothNode, p3d.NodePath):
+class Character(DistributedSmoothNode):
 
-    def __init__(self, cr, sprite: Sprite):
+    def __init__(self, cr):
         DistributedSmoothNode.__init__(self, cr)
 
-        p3d.NodePath.__init__(self, sprite)
-        self._sprite = sprite
+        self._sprite = None
 
         self._mover = None
         self.__did_move = False
@@ -27,34 +26,38 @@ class Character(DistributedSmoothNode, p3d.NodePath):
         self.__is_acting = False
 
     def generate(self):
-        super().generate()
+        print(f'new Character {self.doId}')
+        DistributedSmoothNode.generate(self)
 
-        self.accept(event := self.uniqueName('char_move'), self.set_moving)
+        self.accept(event := self.uniqueName('char_move'), self.b_set_moving)
         self._mover = Mover(self, event)
-        self._mover.start(self._sprite.scene.get_frame_rate())
+        self._mover.start(60)#self._sprite.scene.get_frame_rate())
 
-        self.accept(event := self.uniqueName('char_action'), self.set_action)
+        self.accept(event := self.uniqueName('char_action'), self.b_set_action)
         self._responder = Responder(event)
         self._responder.register('escape', 'Dead')
         self._responder.register('space', 'Jump')
-        self._responder.start(self._sprite.scene.get_frame_rate())
+        self._responder.start(60)#self._sprite.scene.get_frame_rate())
 
         # self.accept_once('escape', self.set_action, ['Dead'])
         # self.accept('space', self.set_action, ['Jump'])
         # self.accept('space-repeat', self.set_action, ['Jump'])
 
-    ### Sprite
+        messenger.send('character-ready', [self])
 
-    def add_track(self,
-                  name: str,
-                  cells: typing.Iterable[tuple[int, int]],
-                  /, *,
-                  frame_rate: int = 1,
-                  ):
-        self._sprite.add_track(name, cells, frame_rate = frame_rate)
+    def set_sprite(self, data):
+        name, tracks, blend = data
 
-    def set_blend(self, blend: p3d.LColor):
-        self._sprite.set_blend(blend)
+        if self._sprite:
+            self.node().remove_child(self._sprite)
+
+        scene = base.scene_manager.get_scene()
+        self._sprite = scene.make_sprite(name)
+        self.node().add_child(self._sprite)
+
+        for track in tracks:
+            self._sprite.add_track(Sprite.Track(*track))
+        self._sprite.set_blend(p3d.LColor(*blend))
 
     ### Mover
 
@@ -76,22 +79,31 @@ class Character(DistributedSmoothNode, p3d.NodePath):
 
     ###
 
-    def set_moving(self, moving: bool):
+    def set_moving(self, is_moving: bool):
         if self.__is_acting:
             if not self._sprite.is_playing():
                 self.__is_acting = False
             return
 
-        if moving:
+        if is_moving:
             if ((self._sprite.is_playing() and not self.__did_move)
                 or not self._sprite.is_playing()
                 ):
-                self._sprite.play('Move')
+                self.b_set_action('Move')
+                self.__did_move = True
         else:
             if not self._sprite.is_playing():
                 self._sprite.play('Idle')
+                self.__did_move = False
 
-        self.__did_move = moving
+    def d_set_moving(self, is_moving: bool):
+        self.sendUpdate('set_moving', [is_moving])
+
+    def b_set_moving(self, is_moving: bool):
+        self.set_moving(is_moving)
+        self.d_set_moving(is_moving)
+
+    ###
 
     def set_action(self, action: str):
         if action == 'Dead':
@@ -106,3 +118,13 @@ class Character(DistributedSmoothNode, p3d.NodePath):
         if action == 'Jump':
             self._sprite.play('Jump')
             self.__is_acting = True
+        elif action == 'Move':
+            self._sprite.play('Move')
+            self.__is_acting = False
+
+    def d_set_action(self, action: str):
+        self.sendUpdate('set_action', [action])
+
+    def b_set_action(self, action: str):
+        self.set_action(action)
+        self.d_set_action(action)

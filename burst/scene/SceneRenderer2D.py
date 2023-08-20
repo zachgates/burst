@@ -7,6 +7,7 @@ import typing
 
 import panda3d.core as p3d
 
+from burst.character import Sprite
 from burst.control import File
 from burst.core import Tile, TileSet
 from burst.scene import SceneRendererBase
@@ -29,7 +30,6 @@ class SceneRenderer2D(SceneRendererBase):
                  resolution: tuple,
                  tiles: TileSet,
                  ):
-
         super().__init__(title, resolution)
         self.tiles = tiles
         self._cm = p3d.CardMaker(f'{self.tiles.name}')
@@ -38,12 +38,15 @@ class SceneRenderer2D(SceneRendererBase):
     def get_tile(self, /, *, row: int, column: int) -> Tile:
         return self.tiles.get(p3d.LPoint2i(row, column))
 
-    def get_tile_card(self, /, *, row: int, column: int) -> p3d.NodePath:
+    def make_tile_card(self, /, *, row: int, column: int) -> p3d.NodePath:
         np = base.hidden.attach_new_node(self._cm.generate())
         np.set_texture(tile := self.get_tile(row = row, column = column))
         np.node().set_name(tile.get_name())
         np.node().set_python_tag('tile', tile)
         return np
+
+    def make_sprite(self, name):
+        return Sprite(self, name)
 
 
 Scene2D = SceneRenderer2D

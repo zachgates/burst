@@ -1,4 +1,15 @@
 from burst.character import Character/AI
+from burst.scene import SceneManager/AI
+
+
+typedef uint8 bool;
+
+struct Color {
+  uint8 r;
+  uint8 g;
+  uint8 b;
+  uint8 a;
+}
 
 struct Cell {
   uint16 row;
@@ -11,6 +22,19 @@ struct Track {
   uint16 frame_rate;
 }
 
+struct SpriteData {
+  string name;
+  Track tracks[];
+  Color blend;
+}
+
 dclass Character: DistributedSmoothNode {
-  set_tracks(Track[] tracks) broadcast;
+  set_sprite(SpriteData data) broadcast ram required;
+  set_action(string action) broadcast clsend;
+  set_moving(bool is_moving) broadcast clsend;
 };
+
+dclass SceneManager: DistributedObject {
+  request(string path) p2p;
+  set_scene(string path, uint16 zone) p2p;
+}

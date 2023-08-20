@@ -9,6 +9,8 @@ from panda3d import core as p3d
 
 from direct.distributed.ClientRepository import ClientRepository
 
+from burst.character import CharacterAI
+
 
 class AIRepository(ClientRepository):
 
@@ -63,15 +65,15 @@ class AIRepository(ClientRepository):
 
         # Create a Distributed Object by name.  This will look up the object in
         # the dc files passed to the repository earlier
-        self.timeManager = self.createDistributedObject(
+        self.time_manager = self.createDistributedObject(
             className = 'TimeManagerAI', # The Name of the Class we want to initialize
             zoneId = 1, # The Zone this Object will live in
             )
 
-        # self.gameDistObject = self.createDistributedObject(
-        #     className = 'CharacterAI',
-        #     zoneId = 2,
-        #     )
+        self.scene_manager = self.createDistributedObject(
+            className = 'SceneManagerAI',
+            zoneId = 2,
+            )
 
         print("AI Repository Ready")
 

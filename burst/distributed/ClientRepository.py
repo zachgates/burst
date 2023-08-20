@@ -13,9 +13,6 @@ from direct.distributed.ClientRepository import ClientRepository
 class ClientRepository(ClientRepository):
 
     def __init__(self, dcFileNames: typing.Iterable[str] = []):
-        self.distributedObject = None
-        self.aiCharacter = None
-
         super().__init__(
             dcFileNames = dcFileNames,
             threadedNet = True,
@@ -93,8 +90,6 @@ class ClientRepository(ClientRepository):
 
     def join(self):
         """ Join a game/room/whatever """
-        self.accept(self.uniqueName('AICharacterGenerated'), self.aiCharacterGenerated)
-
         # set our intersted zones to let the client see all distributed obects
         # in those zones
         self.setInterestZones([1, 2])
@@ -102,6 +97,5 @@ class ClientRepository(ClientRepository):
         base.messenger.send('client-joined')
         print('Joined')
 
-    def aiCharacterGenerated(self, doId):
-        print('AICharacter was generated')
-        self.aiCharacter = self.doId2do[doId]
+    def addInterest(self, zone: int):
+        self.setInterestZones([*self.interestZones, zone])
