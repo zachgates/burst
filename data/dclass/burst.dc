@@ -29,12 +29,13 @@ struct SpriteData {
 }
 
 dclass Character: DistributedSmoothNode {
-  set_sprite(SpriteData data) broadcast ram required;
+  set_sprite(SpriteData data) required broadcast ram;
+  set_active(bool is_active) broadcast ram;
   set_action(string action) broadcast clsend;
   set_moving(bool is_moving) broadcast clsend;
 };
 
 dclass SceneManager: DistributedObject {
   request(string path) p2p;
-  set_scene(string path, uint16 zone) p2p;
+  set_scene(string path, uint16 zone);
 }

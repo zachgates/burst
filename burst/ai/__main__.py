@@ -22,6 +22,6 @@ parser.add_argument(
 
 args = parser.parse_args()
 base = ShowBase(windowType = 'none')
-server = ServerRepository(args.dclass)
+base.server = ServerRepository(args.dclass)
 base.air = AIRepository(args.dclass)
 base.run()

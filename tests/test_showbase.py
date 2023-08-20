@@ -1,4 +1,5 @@
 import burst
+import random
 
 import panda3d.core as p3d
 
@@ -11,11 +12,11 @@ from burst.distributed import ClientRepository
 class BurstApp(ShowBase):
 
     def setup_char(self, char):
-        scene = base.scene_manager.get_scene()
+        scene = base.cr.scene_manager.get_scene()
 
         char.reparent_to(self.bgNP)
         char.set_transparency(p3d.TransparencyAttrib.MAlpha)
-        char.set_speed_factor(0.05)
+        char.set_speed_factor(0.05 + random.random() * 0.1)
 
         factor = 4
         char.set_scale(p3d.Vec3(
@@ -31,9 +32,10 @@ class BurstApp(ShowBase):
             )
 
         char.startPosHprBroadcast()
+        self.accept('p', base.aspect2d.ls)
 
     def setup_scene(self, zone):
-        scene = base.scene_manager.get_scene()
+        scene = base.cr.scene_manager.get_scene()
         scene.set_frame_rate(60)
 
         self.bgNP = scene.make_tile_card(row = 1, column = 1)
@@ -41,7 +43,7 @@ class BurstApp(ShowBase):
         self.bgNP.set_name('background')
 
     def setup(self):
-        base.scene_manager.request('data/scenes/sample2.burst2d', self.setup_scene)
+        base.cr.scene_manager.request('data/scenes/sample2.burst2d', self.setup_scene)
 
     def run(self):
         self.cr = ClientRepository(['data/dclass/direct.dc', 'data/dclass/burst.dc'])

@@ -97,5 +97,8 @@ class ClientRepository(ClientRepository):
         base.messenger.send('client-joined')
         print('Joined')
 
-    def addInterest(self, zone: int):
+    def addInterestZone(self, zone: int):
         self.setInterestZones([*self.interestZones, zone])
+
+    def removeInterestZone(self, zone: int):
+        self.setInterestZones([id_ for id_ in self.interestZones if id_ != zone])

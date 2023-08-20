@@ -18,6 +18,7 @@ class CharacterAI(DistributedSmoothNodeAI):
 
     def __init__(self, air):
         super().__init__(air)
+        self._is_active = True
         self._sprite = SpriteData(
             name = 'sprite',
             tracks = [
@@ -47,12 +48,18 @@ class CharacterAI(DistributedSmoothNodeAI):
 
     def generate(self):
         super().generate()
-        print('new CharacterAI')
+        print(f'new CharacterAI {self.doId}')
 
-    def get_sprite(self):
+    def get_sprite(self) -> SpriteData:
         return self._sprite
 
-    def set_sprite(self, sprite: Sprite):
-        self._sprite = sprite
+    def set_sprite(self, data: SpriteData):
+        self._sprite = data
 
     sprite = property(get_sprite, set_sprite)
+
+    def get_active(self) -> bool:
+        return self._is_active
+
+    def set_active(self, is_active: bool):
+        self._is_active = is_active
