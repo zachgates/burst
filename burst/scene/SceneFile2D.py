@@ -12,6 +12,12 @@ from burst.scene import Scene2D
 
 class SceneFile2D(File, extensions = ['.burst2d']):
 
+    @staticmethod
+    def read_vector(dgi):
+        vec = p3d.LVector2i()
+        vec.read_datagram(dgi)
+        return vec
+
     # TEMP
     def write(self, path: str, scene: Scene2D):
         stream = p3d.OFileStream(path)
@@ -27,20 +33,15 @@ class SceneFile2D(File, extensions = ['.burst2d']):
         file.get_datagram(dg := p3d.Datagram())
         dgi = p3d.DatagramIterator(dg)
 
-        def read_vector(dgi):
-            vec = p3d.LVector2i()
-            vec.read_datagram(dgi)
-            return vec
-
         return Scene2D(
             dgi.get_fixed_string(0xFF),
-            read_vector(dgi),
+            self.read_vector(dgi),
             TileSet(
                 dgi.get_fixed_string(0xFF),
-                read_vector(dgi),
+                self.read_vector(dgi),
                 dgi.get_blob32(),
                 **{
-                    'tile_size': read_vector(dgi),
-                    'tile_run': read_vector(dgi),
-                    'tile_offset': read_vector(dgi),
+                    'tile_size': self.read_vector(dgi),
+                    'tile_run': self.read_vector(dgi),
+                    'tile_offset': self.read_vector(dgi),
                 }))
