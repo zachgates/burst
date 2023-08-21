@@ -40,20 +40,31 @@ DEFAULT_SPRITE = SpriteData(
 
 class BurstApp(ShowBase):
 
+    def respawn(self):
+        if hasattr(self, 'char'):
+            self.char.set_active(False)
+        self.spawn()
+
+    def spawn(self):
+        scene = base.cr.scene_manager.get_scene()
+        self.char = base.cr.createDistributedObject(
+            className = 'Character',
+            zoneId = base.cr.scene_manager.get_zone(),
+            )
+        self.char.b_set_sprite(dataclasses.astuple(DEFAULT_SPRITE))
+        self.char.set_active(True)
+        self.char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
+        self.char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))
+        # self.accept_once('d', lambda: base.cr.sendDeleteMsg(self.char.doId))
+
     def setup_scene(self, zone):
         scene = base.cr.scene_manager.get_scene()
         scene.set_frame_rate(60)
         scene.get_background().set_texture(
             scene.get_tile(row = 1, column = 1))
 
-        char = base.cr.createDistributedObject(
-            className = 'Character',
-            zoneId = zone,
-            )
-        char.b_set_sprite(dataclasses.astuple(DEFAULT_SPRITE))
-        char.set_active(True)
-        char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
-        char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))
+        self.spawn()
+        self.accept('r', self.respawn)
 
     def setup(self):
         base.cr.scene_manager.request('data/scenes/sample2.burst2d', self.setup_scene)

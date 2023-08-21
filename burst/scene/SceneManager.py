@@ -16,6 +16,7 @@ class SceneManager(DistributedObject):
         super().__init__(cr)
         self._file = None
         self._scene = None
+        self._zone = 0
 
     def generate(self):
         super().generate()
@@ -34,8 +35,12 @@ class SceneManager(DistributedObject):
         print(f'SceneManager({self.doId}).set_scene {zone}')
         self._file = burst.store.load_file(path)
         self._scene = self._file.read()
+        self._zone = zone
         base.cr.addInterestZone(zone)
         base.messenger.send('set_scene', [zone])
 
     def get_scene(self):
         return self._scene
+
+    def get_zone(self):
+        return self._zone

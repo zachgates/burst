@@ -61,13 +61,13 @@ class Character(DistributedSmoothNode):
         # self.accept('space', self.set_action, ['Jump'])
         # self.accept('space-repeat', self.set_action, ['Jump'])
 
+    def disable(self):
+        print(f'Character.disable {self.doId}')
+        super().disable()
+
     def delete(self):
         super().delete()
         print(f'Character.delete {self.doId}')
-        if self._is_active:
-            self._mover.stop()
-            self._responder.stop()
-        self._sprite.pose('Dead')
 
     ###
 
