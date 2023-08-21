@@ -32,13 +32,24 @@ class SceneRenderer2D(SceneRendererBase):
                  ):
         super().__init__(title, resolution)
         self.tiles = tiles
+
         self._cm = p3d.CardMaker(f'{self.tiles.name}')
         self._cm.set_frame_fullscreen_quad()
+
+        self._next_sort_layer = 100
+        self.add_layer('bg')
+
         self._background = base.aspect2d.attach_new_node(self._cm.generate())
         self._background.set_name('background')
+        self._background.set_bin('bg', 1)
 
     def get_background(self):
         return self._background
+
+    def add_layer(self, name):
+        cbm = p3d.CullBinManager.get_global_ptr()
+        cbm.add_bin(name, cbm.BT_back_to_front, self._next_sort_layer)
+        self._next_sort_layer += 1
 
     def get_tile(self, /, *, row: int, column: int) -> Tile:
         return self.tiles.get(p3d.LPoint2i(row, column))
@@ -50,7 +61,7 @@ class SceneRenderer2D(SceneRendererBase):
         np.node().set_python_tag('tile', tile)
         return np
 
-    def make_sprite(self, data: SpriteData):
+    def make_sprite(self, data: SpriteData) -> Sprite:
         sprite = Sprite(self, data.name)
         sprite.set_tracks([Sprite.Track(*track) for track in data.tracks])
         sprite.set_blend(p3d.LColor(*data.blend))
