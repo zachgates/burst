@@ -65,6 +65,7 @@ class BurstApp(ShowBase):
 
         self.spawn()
         self.accept('r', self.respawn)
+        self.accept('g', self.spawn)
 
     def setup(self):
         base.cr.scene_manager.request('data/scenes/sample2.burst2d', self.setup_scene)
