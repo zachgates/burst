@@ -53,7 +53,7 @@ class BurstApp(ShowBase):
         char.b_set_sprite(dataclasses.astuple(DEFAULT_SPRITE))
         char.set_active(True)
         char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
-        char.startPosHprBroadcast()
+        char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))
 
     def setup(self):
         base.cr.scene_manager.request('data/scenes/sample2.burst2d', self.setup_scene)
