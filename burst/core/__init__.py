@@ -1,6 +1,8 @@
 __all__ = [
     'AngularNode',
-    'ModelFile', 'TextureFile', 'JSONFile',
+    'ModelFile',
+    'TextureFile',
+    'JSONFile',
     'PixelMatrix',
     'TileSet',
 ]

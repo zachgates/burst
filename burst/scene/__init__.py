@@ -1,8 +1,10 @@
 __all__ = [
     'SceneRendererBase',
-    'SceneRenderer2D', 'Scene2D',
+    'SceneRenderer2D',
+    'Scene2D',
     'SceneFile2D',
-    'SceneRenderer3D', 'Scene3D',
+    'SceneRenderer3D',
+    'Scene3D',
     'SceneFile3D',
     'SceneManager',
     'SceneManagerAI',

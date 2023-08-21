@@ -1,6 +1,8 @@
 __all__ = [
-    'validate_extensions', 'ExtensionsMixin',
-    'File', 'FileManager',
+    'validate_extensions',
+    'ExtensionsMixin',
+    'File',
+    'FileManager',
     'SelectionManager',
     'ObjectManager',
 ]
