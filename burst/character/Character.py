@@ -113,8 +113,9 @@ class Character(DistributedSmoothNode):
                 if not base.cr.isLocalId(self.doId):
                     return
 
-                self._mover.start(self._sprite.scene.get_frame_rate())
-                self._responder.start(self._sprite.scene.get_frame_rate())
+                scene = base.cr.scene_manager.get_scene()
+                self._mover.start(scene.get_frame_rate())
+                self._responder.start(scene.get_frame_rate())
 
         self._is_active = is_active
 
