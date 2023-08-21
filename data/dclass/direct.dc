@@ -35,9 +35,9 @@ dclass TimeManager: DistributedObject {
 };
 
 dclass DistributedNode: DistributedObject {
-  setX(int16 / 10) broadcast ram;
-  setY(int16 / 10) broadcast ram;
-  setZ(int16 / 10) broadcast ram;
+  setX(int16 / 1000) broadcast ram;
+  setY(int16 / 1000) broadcast ram;
+  setZ(int16 / 1000) broadcast ram;
   setH(int16 % 360 / 10) broadcast ram;
   setP(int16 % 360 / 10) broadcast ram;
   setR(int16 % 360 / 10) broadcast ram;
@@ -55,9 +55,9 @@ dclass DistributedSmoothNode: DistributedNode {
   // Component set pos and hpr functions.
 
   setComponentL(uint64) broadcast ram;
-  setComponentX(int16 / 10) broadcast ram;
-  setComponentY(int16 / 10) broadcast ram;
-  setComponentZ(int16 / 10) broadcast ram;
+  setComponentX(int16 / 1000) broadcast ram;
+  setComponentY(int16 / 1000) broadcast ram;
+  setComponentZ(int16 / 1000) broadcast ram;
   setComponentH(int16 % 360 / 10) broadcast ram;
   setComponentP(int16 % 360 / 10) broadcast ram;
   setComponentR(int16 % 360 / 10) broadcast ram;
