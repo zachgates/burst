@@ -12,10 +12,6 @@ from burst.scene import Scene2D
 
 class SceneFile2D(File, extensions = ['.burst2d']):
 
-    @staticmethod
-    def _unpack_vec2d(dgi: p3d.DatagramIterator) -> p3d.LVector2i:
-        return p3d.LVector2i(dgi.get_uint16(), dgi.get_uint16())
-
     # TEMP
     def write(self, path: str, scene: Scene2D):
         stream = p3d.OFileStream(path)
