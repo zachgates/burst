@@ -7,7 +7,7 @@ import typing
 
 import panda3d.core as p3d
 
-from burst.character import Sprite
+from burst.character import Sprite, SpriteData
 from burst.control import File
 from burst.core import Tile, TileSet
 from burst.scene import SceneRendererBase
@@ -34,6 +34,11 @@ class SceneRenderer2D(SceneRendererBase):
         self.tiles = tiles
         self._cm = p3d.CardMaker(f'{self.tiles.name}')
         self._cm.set_frame_fullscreen_quad()
+        self._background = base.aspect2d.attach_new_node(self._cm.generate())
+        self._background.set_name('background')
+
+    def get_background(self):
+        return self._background
 
     def get_tile(self, /, *, row: int, column: int) -> Tile:
         return self.tiles.get(p3d.LPoint2i(row, column))
@@ -45,8 +50,11 @@ class SceneRenderer2D(SceneRendererBase):
         np.node().set_python_tag('tile', tile)
         return np
 
-    def make_sprite(self, name):
-        return Sprite(self, name)
+    def make_sprite(self, data: SpriteData):
+        sprite = Sprite(self, data.name)
+        sprite.set_tracks([Sprite.Track(*track) for track in data.tracks])
+        sprite.set_blend(p3d.LColor(*data.blend))
+        return sprite
 
 
 Scene2D = SceneRenderer2D

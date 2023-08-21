@@ -30,17 +30,17 @@ class SceneManagerAI(DistributedObjectAI):
 
         if (zone := self._zones.get(path)) is None:
             zone = self._zones[path] = self.get_next_zone()
-            self._chars.setdefault(zone, {})
-        else:
-            for char in self._chars[zone].values():
-                # self.air.sendDeleteMsg(char.doId)
-                char.sendUpdate('set_active', [False])
-
-        char = self._chars[zone][sender] = self.air.createDistributedObject(
-            className = 'CharacterAI',
-            zoneId = zone,
-            )
+        #     self._chars.setdefault(zone, {})
+        # else:
+        #     for char in self._chars[zone].values():
+        #         # self.air.sendDeleteMsg(char.doId)
+        #         char.sendUpdate('set_active', [False])
+        #
+        # char = self._chars[zone][sender] = self.air.createDistributedObject(
+        #     className = 'CharacterAI',
+        #     zoneId = zone,
+        #     )
 
         print('sendUpdate', sender, 'set_scene', path, zone)
         self.sendUpdateToAvatarId(sender, 'set_scene', [path, zone])
-        char.sendUpdate('set_active', [True])
+        # char.sendUpdate('set_active', [True])

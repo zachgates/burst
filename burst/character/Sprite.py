@@ -41,7 +41,7 @@ class Sprite(p3d.SequenceNode):
                 tile = np.node().get_python_tag('tile')
                 tile.set_blend(self._blend)
 
-    def get_tracks(self):
+    def get_tracks(self) -> list[Track]:
         return [track for track, rng in self._tracks]
 
     def set_tracks(self, tracks: typing.Iterable[Track]):
@@ -93,6 +93,6 @@ class Sprite(p3d.SequenceNode):
 
 @dataclasses.dataclass
 class SpriteData(object):
-    name: str = 'sprite'
-    tracks: typing.Iterable[Sprite.Track] = dataclasses.field(default_factory = list)
-    blend: typing.Optional[p3d.LColor] = None
+    name: str
+    tracks: typing.Iterable[Sprite.Track]
+    blend: p3d.LColor

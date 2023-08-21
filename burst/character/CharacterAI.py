@@ -17,34 +17,10 @@ from burst.character import Sprite, SpriteData
 class CharacterAI(DistributedSmoothNodeAI):
 
     def __init__(self, air):
+        print('CharacterAI.__init__')
         super().__init__(air)
-        self._is_active = True
-        self._sprite = SpriteData(
-            name = 'sprite',
-            tracks = [
-                Sprite.Track(
-                    name = 'Idle',
-                    cells = [(10, 19), (10, 23), (10, 23), (10, 19)],
-                    frame_rate = 4,
-                    ),
-                Sprite.Track(
-                    name = 'Jump',
-                    cells = [(10, 19), (10, 23), (10, 22), (10, 21), (10, 19)],
-                    frame_rate = 10,
-                    ),
-                Sprite.Track(
-                    'Move',
-                    cells = [(10, 19), (10, 20), (10, 21), (10, 22), (10, 22), (10, 21), (10, 20), (10, 19)],
-                    frame_rate = 24,
-                    ),
-                Sprite.Track(
-                    name = 'Dead',
-                    cells = [(10, 24)],
-                    frame_rate = 1,
-                    ),
-            ],
-            blend = p3d.LColor(60, 45, 71, 255),
-            )
+        self._is_active = False
+        self._sprite = None
 
     def generate(self):
         super().generate()

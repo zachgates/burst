@@ -15,8 +15,20 @@ from burst.character import Mover, Responder, Sprite, SpriteData
 class Character(DistributedSmoothNode):
 
     def __init__(self, cr):
-        DistributedSmoothNode.__init__(self, cr)
+        super().__init__(cr)
+        self.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
+        scene = base.cr.scene_manager.get_scene()
+        self.reparent_to(scene.get_background())
+
+        factor = 4
+        self.set_scale(p3d.Vec3(
+            (scene.tiles.rules.tile_size.x / scene.resolution.x) * factor,
+            1,
+            (scene.tiles.rules.tile_size.y / scene.resolution.y) * factor,
+            ))
+
+        self._sprite_data = SpriteData('sprite', [], p3d.LColor())
         self._sprite = None
 
         self._mover = None
@@ -29,10 +41,16 @@ class Character(DistributedSmoothNode):
 
     def generate(self):
         print(f'Character.generate {self.doId}')
-        DistributedSmoothNode.generate(self)
+        super().generate()
 
         self.accept(event := self.uniqueName('char_move'), self.b_set_moving)
         self._mover = Mover(self, event)
+
+        scale = (self.get_scale() - 1)
+        self.set_bounds(
+            p3d.Vec3(scale.get_x(), 0, scale.get_z()),
+            p3d.Vec3(abs(scale.get_x()), 0, abs(scale.get_z())),
+            )
 
         self.accept(event := self.uniqueName('char_action'), self.b_set_action)
         self._responder = Responder(event)
@@ -43,44 +61,60 @@ class Character(DistributedSmoothNode):
         # self.accept('space', self.set_action, ['Jump'])
         # self.accept('space-repeat', self.set_action, ['Jump'])
 
-        messenger.send('character-ready', [self])
-
     def delete(self):
         super().delete()
         print(f'Character.delete {self.doId}')
-        self._mover.stop()
-        self._responder.stop()
+        if self._is_active:
+            self._mover.stop()
+            self._responder.stop()
         self._sprite.pose('Dead')
 
+    ###
+
+    def get_sprite(self) -> SpriteData:
+        return self._sprite_data
+
     def set_sprite(self, data):
-        print(f'Character({id(self)}).set_sprite {self.doId}')
-        name, tracks, blend = data
+        print(f'Character({self.doId}).set_sprite')
+        print(data)
 
         if self._sprite:
             print('remove_child')
             self.node().remove_child(self._sprite)
 
+        self._sprite_data = SpriteData(*data)
         scene = base.cr.scene_manager.get_scene()
-        self._sprite = scene.make_sprite(name)
+        self._sprite = scene.make_sprite(self._sprite_data)
         self.node().add_child(self._sprite)
+        print('add_child')
 
-        for track in tracks:
-            self._sprite.add_track(Sprite.Track(*track))
-        self._sprite.set_blend(p3d.LColor(*blend))
+    def d_set_sprite(self, data):
+        self.sendUpdate('set_sprite', [data])
+
+    def b_set_sprite(self, data):
+        self.set_sprite(data)
+        self.d_set_sprite(data)
+
+    ###
 
     def get_active(self):
         return self._is_active
 
     def set_active(self, is_active: bool):
-        print(f'Character({id(self)}).set_active({is_active}) {self.doId}')
+        print(f'Character({self.doId}).set_active({is_active})')
 
         if not is_active:
             if self._is_active:
+                print(f'stop activity {self.doId}')
                 self._mover.stop()
                 self._responder.stop()
         else:
-            self._mover.start(self._sprite.scene.get_frame_rate())
-            self._responder.start(self._sprite.scene.get_frame_rate())
+            if not self._is_active:
+                if not base.cr.isLocalId(self.doId):
+                    return
+
+                self._mover.start(self._sprite.scene.get_frame_rate())
+                self._responder.start(self._sprite.scene.get_frame_rate())
 
         self._is_active = is_active
 
@@ -132,8 +166,8 @@ class Character(DistributedSmoothNode):
 
     def set_action(self, action: str):
         if action == 'Dead':
-            self._mover.stop()
-            self._responder.stop()
+            print(f'Dead {self.doId}')
+            self.set_active(False)
             self._sprite.pose('Dead')
             self.__is_acting = True
             return

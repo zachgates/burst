@@ -1,46 +1,59 @@
 import burst
+import dataclasses
 import random
 
 import panda3d.core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-from burst.character import Sprite, Character
+from burst.character import Character, Sprite, SpriteData
 from burst.distributed import ClientRepository
+
+
+DEFAULT_SPRITE = SpriteData(
+    name = 'sprite',
+    tracks = [
+        Sprite.Track(
+            name = 'Idle',
+            cells = [(10, 19), (10, 23), (10, 23), (10, 19)],
+            frame_rate = 4,
+            ),
+        Sprite.Track(
+            name = 'Jump',
+            cells = [(10, 19), (10, 23), (10, 22), (10, 21), (10, 19)],
+            frame_rate = 10,
+            ),
+        Sprite.Track(
+            'Move',
+            cells = [(10, 19), (10, 20), (10, 21), (10, 22), (10, 22), (10, 21), (10, 20), (10, 19)],
+            frame_rate = 24,
+            ),
+        Sprite.Track(
+            name = 'Dead',
+            cells = [(10, 24)],
+            frame_rate = 1,
+            ),
+    ],
+    blend = p3d.LColor(60, 45, 71, 255),
+    )
 
 
 class BurstApp(ShowBase):
 
-    def setup_char(self, char):
-        scene = base.cr.scene_manager.get_scene()
-
-        char.reparent_to(self.bgNP)
-        char.set_transparency(p3d.TransparencyAttrib.MAlpha)
-        char.set_speed_factor(0.05 + random.random() * 0.1)
-
-        factor = 4
-        char.set_scale(p3d.Vec3(
-            (scene.tiles.rules.tile_size.x / scene.resolution.x) * factor,
-            1,
-            (scene.tiles.rules.tile_size.y / scene.resolution.y) * factor,
-            ))
-
-        scale = (char.get_scale() - 1)
-        char.set_bounds(
-            p3d.Vec3(scale.get_x(), 0, scale.get_z()),
-            p3d.Vec3(abs(scale.get_x()), 0, abs(scale.get_z())),
-            )
-
-        char.startPosHprBroadcast()
-        self.accept('p', base.aspect2d.ls)
-
     def setup_scene(self, zone):
         scene = base.cr.scene_manager.get_scene()
         scene.set_frame_rate(60)
+        scene.get_background().set_texture(
+            scene.get_tile(row = 1, column = 1))
 
-        self.bgNP = scene.make_tile_card(row = 1, column = 1)
-        self.bgNP.reparent_to(base.aspect2d)
-        self.bgNP.set_name('background')
+        char = base.cr.createDistributedObject(
+            className = 'Character',
+            zoneId = zone,
+            )
+        char.b_set_sprite(dataclasses.astuple(DEFAULT_SPRITE))
+        char.set_active(True)
+        char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
+        char.startPosHprBroadcast()
 
     def setup(self):
         base.cr.scene_manager.request('data/scenes/sample2.burst2d', self.setup_scene)
@@ -48,7 +61,6 @@ class BurstApp(ShowBase):
     def run(self):
         self.cr = ClientRepository(['data/dclass/direct.dc', 'data/dclass/burst.dc'])
         self.cr.accept('scene-manager-ready', self.setup)
-        self.cr.accept('character-ready', self.setup_char)
         super().run()
 
 
