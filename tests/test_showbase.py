@@ -40,6 +40,27 @@ class BurstApp(ShowBase):
 
         spring.pingpong('Bounce')
 
+        cs = p3d.CollisionSphere(0, 0, 0, 10)
+        csNP = springNP.attach_new_node(p3d.CollisionNode('prop-cnode'))
+        csNP.node().add_solid(cs)
+        csNP.show()
+
+        traverser = p3d.CollisionTraverser('traverser name')
+        base.cTrav = traverser
+        queue = p3d.CollisionHandlerQueue()
+        traverser.addCollider(csNP, queue)
+        traverser.traverse(base.aspect2d)
+
+        def check_queue(task):
+            nonlocal queue
+            queue.sort_entries()
+            # for entry in queue.entries:
+            #     print(entry)
+            print(queue.entries)
+            return task.again
+
+        base.task_mgr.do_method_later(1, check_queue, 'cq', appendTask = True)
+
     def respawn(self):
         for char in self.chars:
             char.set_action('Dead')
@@ -82,6 +103,11 @@ class BurstApp(ShowBase):
         char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
         char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))
         # self.accept_once('d', lambda: base.cr.sendDeleteMsg(self.char.doId))
+
+        cs = p3d.CollisionSphere(0, 0, 0, 10)
+        csNP = char.attach_new_node(p3d.CollisionNode('char-cnode'))
+        csNP.node().add_solid(cs)
+        csNP.show()
 
     def setup_scene(self, zone):
         scene = base.cr.scene_manager.get_scene()
