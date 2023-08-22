@@ -13,3 +13,5 @@ Launch a client:
 cd burst
 python -m tests.test_showbase
 ```
+
+[sample](sample.gif)
