@@ -45,11 +45,10 @@ class BurstApp(ShowBase):
         csNP.node().add_solid(cs)
         csNP.show()
 
-        traverser = p3d.CollisionTraverser('traverser name')
-        base.cTrav = traverser
+        traverser = p3d.CollisionTraverser('traverser')
         queue = p3d.CollisionHandlerQueue()
         traverser.addCollider(csNP, queue)
-        traverser.traverse(base.aspect2d)
+        traverser.traverse(scene.get_background())
 
         def check_queue(task):
             nonlocal queue
