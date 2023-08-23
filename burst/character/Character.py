@@ -9,7 +9,7 @@ from panda3d import core as p3d
 
 from direct.distributed.DistributedSmoothNode import DistributedSmoothNode
 
-from burst.character import Mover, Responder, Sprite, SpriteData
+from burst.character import Collider, Mover, Responder, Sprite, SpriteData
 
 
 class Character(DistributedSmoothNode):
@@ -39,12 +39,9 @@ class Character(DistributedSmoothNode):
 
         self._is_active = False
 
-        self._cnode = p3d.CollisionNode('char')
-        self._csphere = p3d.CollisionSphere(0, 0, 0, self.get_sx() * 0.5)
-        self._csnp = scene._collisions.attach_new_node(self._cnode)
-        self._csnp.set_python_tag('realnode', self)
-        self._csnp.node().add_solid(self._csphere)
-        self._csnp.show()
+        self._collider = Collider(self, self.get_sx() * 0.5, 'char', 'prop')
+        self._collider.reparent_to(scene._collisions)
+        base.cTrav.addCollider(self._collider, base.cEvent)
 
     def generate(self):
         print(f'Character.generate {self.doId}')
@@ -78,7 +75,7 @@ class Character(DistributedSmoothNode):
 
     def set_pos(self, pos):
         super().set_pos(pos)
-        self._csnp.set_pos(pos.x, pos.z, 0)
+        self._collider.set_pos(pos.get_x(), 0, pos.get_z())
 
     ###
 

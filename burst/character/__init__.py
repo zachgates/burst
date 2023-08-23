@@ -3,6 +3,7 @@ __all__ = [
     'SpriteData',
     'Mover',
     'Responder',
+    'Collider',
     'Character',
     'CharacterAI',
 ]
@@ -11,5 +12,6 @@ __all__ = [
 from .Sprite import *
 from .Mover import *
 from .Responder import *
+from .Collider import *
 from .Character import *
 from .CharacterAI import *
