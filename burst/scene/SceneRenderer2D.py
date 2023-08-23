@@ -43,6 +43,8 @@ class SceneRenderer2D(SceneRendererBase):
         self._background.set_name('background')
         self._background.set_bin('bg', 1)
 
+        self._collisions = base.render.attach_new_node('collisions')
+
     def get_background(self):
         return self._background
 

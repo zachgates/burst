@@ -39,6 +39,13 @@ class Character(DistributedSmoothNode):
 
         self._is_active = False
 
+        self._cnode = p3d.CollisionNode('char')
+        self._csphere = p3d.CollisionSphere(0, 0, 0, self.get_sx() * 0.5)
+        self._csnp = scene._collisions.attach_new_node(self._cnode)
+        self._csnp.set_python_tag('realnode', self)
+        self._csnp.node().add_solid(self._csphere)
+        self._csnp.show()
+
     def generate(self):
         print(f'Character.generate {self.doId}')
         super().generate()
@@ -68,6 +75,10 @@ class Character(DistributedSmoothNode):
     def delete(self):
         super().delete()
         print(f'Character.delete {self.doId}')
+
+    def set_pos(self, pos):
+        super().set_pos(pos)
+        self._csnp.set_pos(pos.x, pos.z, 0)
 
     ###
 

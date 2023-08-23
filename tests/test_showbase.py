@@ -4,13 +4,47 @@ import random
 
 import panda3d.core as p3d
 
+from direct.interval.IntervalGlobal import Func, Parallel, Sequence
 from direct.showbase.ShowBase import ShowBase
 
 from burst.character import Character, Sprite, SpriteData
 from burst.distributed import ClientRepository
 
 
+CHAR_MASK = p3d.BitMask32(0x0F)
+PROP_MASK = p3d.BitMask32(0xF0)
+
+
 class BurstApp(ShowBase):
+
+    def do_spring(self, entry):
+        char = entry.get_from_node_path().get_python_tag('realnode')
+        # char.set_active(False)
+
+        prop = entry.get_into_node_path().get_python_tag('realnode')
+        spring = prop.get_python_tag('sprite')
+
+        def spring_task(task):
+            nonlocal char
+            if task.time > 1:
+                return task.done
+            elif task.time < 0.5:
+                char.set_pos(p3d.Vec3(char.get_x(), 0, char.get_z() + 0.02))
+            elif task.time > 0.5:
+                char.set_pos(p3d.Vec3(char.get_x(), 0, char.get_z() - 0.02))
+            return task.cont
+
+        spring.play('Bounce')
+        base.task_mgr.add(spring_task, appendTask = True)
+
+        # Parallel(
+        #     Func(spring.play, 'Bounce'),
+        #     char.posInterval(
+        #         0.5,
+        #         pos = p3d.Point3(char.get_x(), 0, char.get_z() + 0.5),
+        #         startPos = char.get_pos(),
+        #         blendType = 'easeInOut',
+        #     )).start()
 
     def build_spring(self):
         scene = base.cr.scene_manager.get_scene()
@@ -18,15 +52,21 @@ class BurstApp(ShowBase):
             name = 'spring',
             tracks = [
                 Sprite.Track(
+                    name = 'Off',
+                    cells = [(6, 22)],
+                    frame_rate = 1,
+                    ),
+                Sprite.Track(
                     name = 'Bounce',
-                    cells = [(6, 22), (6, 23), (6, 24)],
-                    frame_rate = 12,
+                    cells = [(6, 22), (6, 23), (6, 24), (6, 23), (6, 22)],
+                    frame_rate = 30,
                     ),
                 ],
             blend = p3d.LColor(60, 45, 71, 255),
             ))
 
         springNP = scene.get_background().attach_new_node(spring)
+        springNP.set_python_tag('sprite', spring)
         springNP.set_bin('prop', 1)
         springNP.set_transparency(p3d.TransparencyAttrib.MAlpha)
         springNP.set_pos(random.choice([-1, 1]) * min(0.8, random.random()), 0, -min(0.8, max(0.1, random.random())))
@@ -38,27 +78,17 @@ class BurstApp(ShowBase):
             (scene.tiles.rules.tile_size.y / scene.resolution.y) * factor,
             ))
 
-        spring.pingpong('Bounce')
+        spring.pose('Off')
 
-        cs = p3d.CollisionSphere(0, 0, 0, 10)
-        csNP = springNP.attach_new_node(p3d.CollisionNode('prop-cnode'))
-        csNP.node().add_solid(cs)
-        csNP.show()
-
-        traverser = p3d.CollisionTraverser('traverser')
-        queue = p3d.CollisionHandlerQueue()
-        traverser.addCollider(csNP, queue)
-        traverser.traverse(scene.get_background())
-
-        def check_queue(task):
-            nonlocal queue
-            queue.sort_entries()
-            # for entry in queue.entries:
-            #     print(entry)
-            print(queue.entries)
-            return task.again
-
-        base.task_mgr.do_method_later(1, check_queue, 'cq', appendTask = True)
+        cnode = p3d.CollisionNode('prop_spring')
+        cnode.set_from_collide_mask(p3d.BitMask32.allOff())
+        cnode.set_into_collide_mask(CHAR_MASK)
+        csphere = p3d.CollisionSphere(0, 0, 0, springNP.get_sx() * 0.5)
+        csnp = scene._collisions.attach_new_node(cnode)
+        csnp.set_python_tag('realnode', springNP)
+        csnp.set_pos(springNP.get_x(), springNP.get_z(), 0)
+        csnp.node().add_solid(csphere)
+        csnp.show()
 
     def respawn(self):
         for char in self.chars:
@@ -101,19 +131,38 @@ class BurstApp(ShowBase):
         char.set_active(True)
         char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
         char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))
-        # self.accept_once('d', lambda: base.cr.sendDeleteMsg(self.char.doId))
 
-        cs = p3d.CollisionSphere(0, 0, 0, 10)
-        csNP = char.attach_new_node(p3d.CollisionNode('char-cnode'))
-        csNP.node().add_solid(cs)
-        csNP.show()
+        char._cnode.set_from_collide_mask(CHAR_MASK)
+        char._cnode.set_into_collide_mask(PROP_MASK)
+        base.cTrav.addCollider(char._csnp, base.cEvent)
+
+        # self.accept_once('d', lambda: base.cr.sendDeleteMsg(self.char.doId))
 
     def setup_scene(self, zone):
         scene = base.cr.scene_manager.get_scene()
         scene.set_frame_rate(60)
 
+        base.cTrav = p3d.CollisionTraverser('traverser')
+        base.cTrav.traverse(scene.get_background())
+
+        # base.cQueue = p3d.CollisionHandlerQueue()
+        #
+        # def check_queue(task):
+        #     base.cQueue.sort_entries()
+        #     print(dir(base.cQueue.entries))
+        #     for entry in base.cQueue.entries:
+        #         print(entry)
+        #     return task.again
+        #
+        # base.task_mgr.do_method_later(1, check_queue, 'cg', appendTask = True)
+
+        self.cEvent = p3d.CollisionHandlerEvent()
+        self.cEvent.addInPattern('%fn-into-%in')
+        self.accept('char-into-prop_spring', self.do_spring)
+
         bgNP = scene.get_background()
         bgNP.set_texture(scene.get_tile(row = 1, column = 1))
+        # bgNP.hide()
         self.accept('p', scene.get_background().ls)
 
         scene.add_layer('prop')
