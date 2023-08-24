@@ -60,7 +60,7 @@ class BurstApp(ShowBase):
             blend = p3d.LColor(60, 45, 71, 255),
             ))
 
-        springNP = scene.get_layer('background').attach_new_node(spring)
+        springNP = scene.get_layer('prop').attach_new_node(spring)
         springNP.set_python_tag('sprite', spring)
         springNP.set_bin('prop', 1)
         springNP.set_transparency(p3d.TransparencyAttrib.MAlpha)
