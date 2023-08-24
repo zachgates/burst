@@ -28,10 +28,11 @@ class BurstApp(ShowBase):
             nonlocal char
             if task.time > 1:
                 return task.done
-            elif task.time < 0.5:
-                char.set_pos(p3d.Vec3(char.get_x(), 0, char.get_z() + 0.02))
+            v = pow(task.time - 0.5, 2) * (2 / 9)
+            if task.time < 0.5:
+                char.set_pos(p3d.Vec3(char.get_x(), 0, char.get_z() + v))
             elif task.time > 0.5:
-                char.set_pos(p3d.Vec3(char.get_x(), 0, max(start.get_z(), char.get_z() - 0.02)))
+                char.set_pos(p3d.Vec3(char.get_x(), 0, max(start.get_z(), char.get_z() - v)))
             return task.cont
 
         spring.play('Bounce')
