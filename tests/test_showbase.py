@@ -60,7 +60,7 @@ class BurstApp(ShowBase):
             blend = p3d.LColor(60, 45, 71, 255),
             ))
 
-        springNP = scene.get_background().attach_new_node(spring)
+        springNP = scene.get_layer('background').attach_new_node(spring)
         springNP.set_python_tag('sprite', spring)
         springNP.set_bin('prop', 1)
         springNP.set_transparency(p3d.TransparencyAttrib.MAlpha)
@@ -76,7 +76,7 @@ class BurstApp(ShowBase):
         spring.pose('Off')
 
         collider = Collider(springNP, springNP.get_sx() * 0.5, 'none', 'char')
-        collider.reparent_to(scene._collisions)
+        collider.reparent_to(self._collisions)
         collider.set_pos(springNP.get_x(), 0, springNP.get_z())
 
     def respawn(self):
@@ -126,23 +126,9 @@ class BurstApp(ShowBase):
         scene = base.cr.scene_manager.get_scene()
         scene.set_frame_rate(60)
 
-        base.cTrav = p3d.CollisionTraverser('traverser')
-        base.cTrav.traverse(scene.get_background())
-        base.cEvent = p3d.CollisionHandlerEvent()
-        base.cEvent.addInPattern('%fn-into-%in')
-        self.accept('collider-into-collider', self.do_spring)
-
-        bgNP = scene.get_background()
-        bgNP.set_texture(scene.get_tile(row = 1, column = 1))
-        self.accept('p', scene.get_background().ls)
-
-        def view_colliders():
-            nonlocal bgNP
-            base.disableMouse()
-            base.camera.set_pos(0, -4, 0)
-            bgNP.hide()
-
-        self.accept('c', view_colliders)
+        background = scene.add_layer('background')
+        scene.make_tile_card(row = 1, column = 1).reparent_to(background)
+        self.accept('p', scene._root.ls)
 
         scene.add_layer('prop')
         self.accept('b', self.build_spring)
@@ -150,6 +136,21 @@ class BurstApp(ShowBase):
         scene.add_layer('char')
         self.accept('g', self.spawn)
         self.accept('r', self.respawn)
+
+        base.cTrav = p3d.CollisionTraverser('traverser')
+        base.cTrav.traverse(scene.get_layer('char'))
+        base.cEvent = p3d.CollisionHandlerEvent()
+        base.cEvent.addInPattern('%fn-into-%in')
+        self.accept('DistributedNode-into-spring', self.do_spring)
+
+        def view_colliders():
+            nonlocal scene
+            base.disableMouse()
+            base.camera.set_pos(0, -4, 0)
+            scene._root.hide()
+
+        self._collisions = base.render.attach_new_node('collisions')
+        self.accept('c', view_colliders)
 
         self.chars = []
         self.spawn()

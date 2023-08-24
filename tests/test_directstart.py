@@ -15,5 +15,7 @@ if __name__ == '__main__':
         ))
     sprite.loop('Idle')
 
-    scene.get_background().attach_new_node(sprite)
+    layer = scene.add_layer('char')
+    layer.attach_new_node(sprite)
+
     base.run()

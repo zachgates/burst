@@ -36,22 +36,27 @@ class SceneRenderer2D(SceneRendererBase):
         self._cm = p3d.CardMaker(f'{self.tiles.name}')
         self._cm.set_frame_fullscreen_quad()
 
+        self._root = base.aspect2d.attach_new_node('root')
         self._next_sort_layer = 100
-        self.add_layer('bg')
+        self._layers = {}
 
-        self._background = base.aspect2d.attach_new_node(self._cm.generate())
-        self._background.set_name('background')
-        self._background.set_bin('bg', 1)
+    def add_layer(self, name: str) -> p3d.NodePath:
+        if name in self._layers:
+            raise ValueError(f'layer exists for {name!r}')
 
-        self._collisions = base.render.attach_new_node('collisions')
-
-    def get_background(self):
-        return self._background
-
-    def add_layer(self, name):
         cbm = p3d.CullBinManager.get_global_ptr()
         cbm.add_bin(name, cbm.BT_back_to_front, self._next_sort_layer)
         self._next_sort_layer += 1
+
+        layer = self._layers[name] = self._root.attach_new_node(name)
+        layer.set_bin(name, 1)
+        return layer
+
+    def get_layer(self, name: str) -> p3d.NodePath:
+        if name in self._layers:
+            return self._layers[name]
+        else:
+            raise KeyError(f'no layer exists for {name!r}')
 
     def get_tile(self, /, *, row: int, column: int) -> Tile:
         return self.tiles.get(p3d.LPoint2i(row, column))

@@ -23,7 +23,7 @@ class Collider(p3d.NodePath):
                  into_mask: str = 'none',
                  ):
 
-        super().__init__(p3d.CollisionNode(f'collider'))
+        super().__init__(p3d.CollisionNode(np.get_name()))
         self.node().set_from_collide_mask(Collider.MASKS.get(from_mask))
         self.node().set_into_collide_mask(Collider.MASKS.get(into_mask))
         self.node().add_solid(p3d.CollisionSphere(0, 0, 0, radius))

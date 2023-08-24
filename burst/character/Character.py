@@ -19,7 +19,7 @@ class Character(DistributedSmoothNode):
         self.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
         scene = base.cr.scene_manager.get_scene()
-        self.reparent_to(scene.get_background())
+        self.reparent_to(scene.get_layer('char'))
 
         factor = 4
         self.set_scale(p3d.Vec3(
@@ -40,7 +40,7 @@ class Character(DistributedSmoothNode):
         self._is_active = False
 
         self._collider = Collider(self, self.get_sx() * 0.5, 'char', 'prop')
-        self._collider.reparent_to(scene._collisions)
+        self._collider.reparent_to(base._collisions)
         base.cTrav.addCollider(self._collider, base.cEvent)
 
     def generate(self):
