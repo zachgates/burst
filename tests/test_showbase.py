@@ -1,5 +1,4 @@
 import burst
-import dataclasses
 import random
 
 import panda3d.core as p3d
@@ -92,7 +91,7 @@ class BurstApp(ShowBase):
             zoneId = base.cr.scene_manager.get_zone(),
             ))
         char.set_bin('char', 1)
-        char.b_set_sprite(dataclasses.astuple(SpriteData(
+        char.b_set_sprite(SpriteData(
             name = 'sprite',
             tracks = [
                 Sprite.Track(
@@ -117,7 +116,7 @@ class BurstApp(ShowBase):
                     ),
             ],
             blend = p3d.LColor(60, 45, 71, 255),
-            )))
+            ))
         char.set_active(True)
         char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
         char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))

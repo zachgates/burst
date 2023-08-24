@@ -93,6 +93,10 @@ class Sprite(p3d.SequenceNode):
 
 @dataclasses.dataclass
 class SpriteData(object):
+
     name: str
     tracks: typing.Iterable[Sprite.Track]
     blend: p3d.LColor
+
+    def __iter__(self):
+        yield from dataclasses.astuple(self)
