@@ -10,10 +10,6 @@ from burst.character import Character, Collider, Sprite, SpriteData
 from burst.distributed import ClientRepository
 
 
-CHAR_MASK = p3d.BitMask32(0x0F)
-PROP_MASK = p3d.BitMask32(0xF0)
-
-
 class BurstApp(ShowBase):
 
     def do_spring(self, entry):
