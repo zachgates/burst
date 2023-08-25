@@ -12,10 +12,10 @@ from direct.distributed.DistributedSmoothNode import DistributedSmoothNode
 from burst.character import Collider, Mover, Responder, Sprite, SpriteData
 
 
-class Character(DistributedSmoothNode):
+class Character(Collider, DistributedSmoothNode):
 
     def __init__(self, cr):
-        super().__init__(cr)
+        DistributedSmoothNode.__init__(self, cr)
         self.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
         scene = base.cr.scene_manager.get_scene()
@@ -28,6 +28,8 @@ class Character(DistributedSmoothNode):
             (scene.tiles.rules.tile_size.y / scene.resolution.y) * factor,
             ))
 
+        Collider.__init__(self, cr, self.get_sx() * 0.5, 'char', 'prop')
+
         self._sprite_data = SpriteData('sprite', [], p3d.LColor())
         self._sprite = None
 
@@ -39,13 +41,9 @@ class Character(DistributedSmoothNode):
 
         self._is_active = False
 
-        self._collider = Collider(self, self.get_sx() * 0.5, 'char', 'prop')
-        self._collider.reparent_to(base._collisions)
-        base.cTrav.addCollider(self._collider, base.cEvent)
-
     def generate(self):
         print(f'Character.generate {self.doId}')
-        super().generate()
+        DistributedSmoothNode.generate(self)
 
         self.accept(event := self.uniqueName('char_move'), self.b_set_moving)
         self._mover = Mover(self, event)
@@ -65,17 +63,17 @@ class Character(DistributedSmoothNode):
         # self.accept('space', self.set_action, ['Jump'])
         # self.accept('space-repeat', self.set_action, ['Jump'])
 
+        if self.cr.isLocalId(self.doId):
+            base.cTrav.addCollider(self._collider, base.cEvent)
+
     def disable(self):
         print(f'Character.disable {self.doId}')
-        super().disable()
+        DistributedSmoothNode.disable(self)
 
     def delete(self):
-        super().delete()
+        Collider.delete(self)
+        DistributedSmoothNode.delete(self)
         print(f'Character.delete {self.doId}')
-
-    def set_pos(self, pos):
-        super().set_pos(pos)
-        self._collider.set_pos(pos.get_x(), 0, pos.get_z())
 
     ###
 

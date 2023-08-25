@@ -55,9 +55,11 @@ class Mover(object):
     def _move(self, task):
         if moving := any(vector := self.__get_input_vector()):
             pos = self._np.get_pos() + (vector * self.get_speed_factor())
-            pos.x = min(max(pos.x, self._bounds[0].x), self._bounds[1].x)
-            pos.z = min(max(pos.z, self._bounds[0].z), self._bounds[1].z)
-            self._np.set_pos(pos)
+            self._np.set_pos(
+                min(max(pos.x, self._bounds[0].x), self._bounds[1].x),
+                0,
+                min(max(pos.z, self._bounds[0].z), self._bounds[1].z),
+                )
 
         base.messenger.send(self.__move_event, [moving])
         return task.again

@@ -1,4 +1,5 @@
 from burst.character import Character/AI
+from burst.character import Prop/AI
 from burst.scene import SceneManager/AI
 
 
@@ -19,6 +20,10 @@ struct SpriteData {
   string name;
   Track tracks[];
   uint8[4] blend;
+}
+
+dclass Prop: DistributedNode {
+  set_sprite(SpriteData data) required broadcast ram;
 }
 
 dclass Character: DistributedSmoothNode {

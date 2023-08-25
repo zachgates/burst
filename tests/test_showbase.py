@@ -18,10 +18,7 @@ class BurstApp(ShowBase):
 
     def do_spring(self, entry):
         char = entry.get_from_node_path().get_python_tag('realnode')
-        # char.set_active(False)
-
         prop = entry.get_into_node_path().get_python_tag('realnode')
-        spring = prop.get_python_tag('sprite')
 
         def spring_task(start, task):
             nonlocal char
@@ -29,12 +26,12 @@ class BurstApp(ShowBase):
                 return task.done
             v = pow(task.time - 0.5, 2) * (2 / 9)
             if task.time < 0.5:
-                char.set_pos(p3d.Vec3(char.get_x(), 0, char.get_z() + v))
+                char.set_pos(char.get_x(), 0, char.get_z() + v)
             elif task.time > 0.5:
-                char.set_pos(p3d.Vec3(char.get_x(), 0, max(start.get_z(), char.get_z() - v)))
+                char.set_pos(char.get_x(), 0, max(start.get_z(), char.get_z() - v))
             return task.cont
 
-        spring.play('Bounce')
+        prop._sprite.play('Bounce')
         base.task_mgr.add(
             spring_task,
             extraArgs = [char.get_pos()],
@@ -43,7 +40,12 @@ class BurstApp(ShowBase):
 
     def build_spring(self):
         scene = base.cr.scene_manager.get_scene()
-        spring = scene.make_sprite(SpriteData(
+        spring = base.cr.createDistributedObject(
+            className = 'Prop',
+            zoneId = base.cr.scene_manager.get_zone(),
+            )
+        spring.set_bin('prop', 1)
+        spring.b_set_sprite(SpriteData(
             name = 'spring',
             tracks = [
                 Sprite.Track(
@@ -59,25 +61,12 @@ class BurstApp(ShowBase):
                 ],
             blend = p3d.LColor(60, 45, 71, 255),
             ))
-
-        springNP = scene.get_layer('prop').attach_new_node(spring)
-        springNP.set_python_tag('sprite', spring)
-        springNP.set_bin('prop', 1)
-        springNP.set_transparency(p3d.TransparencyAttrib.MAlpha)
-        springNP.set_pos(random.choice([-1, 1]) * min(0.8, random.random()), 0, -min(0.8, max(0.1, random.random())))
-
-        factor = 4
-        springNP.set_scale(p3d.Vec3(
-            (scene.tiles.rules.tile_size.x / scene.resolution.x) * factor,
-            1,
-            (scene.tiles.rules.tile_size.y / scene.resolution.y) * factor,
-            ))
-
-        spring.pose('Off')
-
-        collider = Collider(springNP, springNP.get_sx() * 0.5, 'none', 'char')
-        collider.reparent_to(self._collisions)
-        collider.set_pos(springNP.get_x(), 0, springNP.get_z())
+        spring.b_set_pos(
+            random.choice([-1, 1]) * min(0.8, random.random()),
+            0,
+            -min(0.8, max(0.1, random.random())),
+            )
+        spring._sprite.pose('Off')
 
     def respawn(self):
         for char in self.chars:
@@ -141,7 +130,7 @@ class BurstApp(ShowBase):
         base.cTrav.traverse(scene.get_layer('char'))
         base.cEvent = p3d.CollisionHandlerEvent()
         base.cEvent.addInPattern('%fn-into-%in')
-        self.accept('DistributedNode-into-spring', self.do_spring)
+        self.accept('DistributedNode-into-DistributedNode', self.do_spring)
 
         def view_colliders():
             nonlocal scene
