@@ -3,7 +3,6 @@ import random
 
 import panda3d.core as p3d
 
-from direct.interval.IntervalGlobal import Func, Parallel, Sequence
 from direct.showbase.ShowBase import ShowBase
 
 from burst.character import Sprite, SpriteData
