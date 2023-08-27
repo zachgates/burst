@@ -8,8 +8,6 @@ from panda3d import core as p3d
 
 from direct.distributed.DistributedObjectAI import DistributedObjectAI
 
-from burst.character import CharacterAI
-
 
 class SceneManagerAI(DistributedObjectAI):
 

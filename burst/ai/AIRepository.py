@@ -9,8 +9,6 @@ from panda3d import core as p3d
 
 from direct.distributed.ClientRepository import ClientRepository
 
-from burst.character import CharacterAI
-
 
 class AIRepository(ClientRepository):
 

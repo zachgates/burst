@@ -5,7 +5,7 @@ __all__ = [
     'Responder',
     'Collider',
     'Character',
-    'CharacterAI',
+    'Prop',
 ]
 
 
@@ -14,4 +14,4 @@ from .Mover import *
 from .Responder import *
 from .Collider import *
 from .Character import *
-from .CharacterAI import *
+from .Prop import *
