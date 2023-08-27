@@ -37,7 +37,7 @@ class SceneManager(DistributedObject):
         self._scene = self._file.read()
         self._zone = zone
         base.cr.addInterestZone(zone)
-        base.messenger.send('set_scene', [zone])
+        base.messenger.send('set_scene')
 
     def get_scene(self):
         return self._scene

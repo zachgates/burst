@@ -102,11 +102,11 @@ class BurstApp(ShowBase):
             blend = p3d.LColor(60, 45, 71, 255),
             ))
         char.set_active(True)
-        char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
+        char._mover.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
         char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))
         # self.accept_once('d', lambda: base.cr.sendDeleteMsg(self.char.doId))
 
-    def setup_scene(self, zone):
+    def setup_scene(self):
         scene = base.cr.scene_manager.get_scene()
         scene.set_frame_rate(60)
 

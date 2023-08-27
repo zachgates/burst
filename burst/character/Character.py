@@ -28,7 +28,7 @@ class Character(Collider, DistributedSmoothNode):
             (scene.tiles.rules.tile_size.y / scene.resolution.y) * factor,
             ))
 
-        Collider.__init__(self, cr, self.get_sx() * 0.5, 'char', 'prop')
+        Collider.__init__(self, cr, (self.get_sx() * 0.5), 'char', 'prop')
 
         self._sprite_data = SpriteData('sprite', [], p3d.LColor())
         self._sprite = None
@@ -47,11 +47,9 @@ class Character(Collider, DistributedSmoothNode):
 
         self.accept(event := self.uniqueName('char_move'), self.b_set_moving)
         self._mover = Mover(self, event)
-
-        scale = (self.get_scale() - 1)
-        self.set_bounds(
-            p3d.Vec3(scale.get_x(), 0, scale.get_z()),
-            p3d.Vec3(abs(scale.get_x()), 0, abs(scale.get_z())),
+        self._mover.set_bounds(
+            p3d.Vec3((self.get_sx() - 1), 0, (self.get_sz() - 1)),
+            p3d.Vec3(abs(self.get_sx() - 1), 0, abs(self.get_sz() - 1)),
             )
 
         self.accept(event := self.uniqueName('char_action'), self.b_set_action)
@@ -59,12 +57,8 @@ class Character(Collider, DistributedSmoothNode):
         self._responder.register('escape', 'Dead')
         self._responder.register('space', 'Jump')
 
-        # self.accept_once('escape', self.set_action, ['Dead'])
-        # self.accept('space', self.set_action, ['Jump'])
-        # self.accept('space-repeat', self.set_action, ['Jump'])
-
         if self.cr.isLocalId(self.doId):
-            base.cTrav.addCollider(self._collider, base.cEvent)
+            base.cTrav.add_collider(self._collider, base.cEvent)
 
     def disable(self):
         print(f'Character.disable {self.doId}')
@@ -124,24 +118,6 @@ class Character(Collider, DistributedSmoothNode):
                 self._responder.start(scene.get_frame_rate())
 
         self._is_active = is_active
-
-    ### Mover
-
-    def set_bounds(self, min_: p3d.Vec3, max_: p3d.Vec3):
-        self._mover.set_bounds(min_, max_)
-
-    def get_bounds(self) -> tuple[p3d.Vec3, p3d.Vec3]:
-        return self._mover.get_bounds()
-
-    bounds = property(get_bounds, set_bounds)
-
-    def get_speed_factor(self):
-        return self._mover.get_speed_factor()
-
-    def set_speed_factor(self, speed_factor: typing.Union[int, float]):
-        self._mover.set_speed_factor(speed_factor)
-
-    speed_factor = property(get_speed_factor, set_speed_factor)
 
     ###
 
