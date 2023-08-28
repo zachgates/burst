@@ -8,14 +8,14 @@ Launch a server:
 
 ```
 cd burst
-python -m burst.ai
+python -m burst.ai --dclass tests/sample/dclass/sample.dc
 ```
 
 Launch a client:
 
 ```
 cd burst
-python -m tests.test_showbase
+python -m tests.sample
 ```
 
 ![sample](sample.gif)
