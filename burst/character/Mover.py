@@ -7,16 +7,16 @@ import typing
 
 from panda3d import core as p3d
 
+from direct.distributed.DistributedNode import DistributedNode
+from direct.task import Task
 
-class Mover(object):
 
-    def __init__(self, np: p3d.NodePath, move_event: str):
-        super().__init__()
-        self._np = np
+class Mover(DistributedNode):
+
+    def __init__(self, cr):
+        DistributedNode.__init__(self, cr)
         self._bounds = (p3d.Vec3(-1, 0, -1), p3d.Vec3(1, 0, 1))
         self._speed_factor = 1.0
-        self._task = None
-        self.__move_event = move_event
 
     ###
 
@@ -40,37 +40,39 @@ class Mover(object):
 
     ###
 
-    def start(self, frame_rate: int):
-        self._task = base.task_mgr.do_method_later(
-            (1 / frame_rate),
-            self._move, f'{self._move!r}',
-            appendTask = True,
+    def set_x(self, x):
+        self.set_pos(x, self.get_y(), self.get_z())
+
+    def set_y(self, y):
+        self.set_pos(self.get_x(), y, self.get_z())
+
+    def set_z(self, z):
+        self.set_pos(self.get_x(), self.get_y(), z)
+
+    def set_pos(self, x, y, z):
+        super().set_pos(
+            min(max(x, self._bounds[0].get_x()), self._bounds[1].get_x()),
+            min(max(y, self._bounds[0].get_y()), self._bounds[1].get_y()),
+            min(max(z, self._bounds[0].get_z()), self._bounds[1].get_z()),
             )
 
-    def stop(self):
-        base.task_mgr.remove(self._task)
-
     ###
-
-    def _move(self, task):
-        if moving := any(vector := self.__get_input_vector()):
-            pos = self._np.get_pos() + (vector * self.get_speed_factor())
-            self._np.set_pos(
-                min(max(pos.x, self._bounds[0].x), self._bounds[1].x),
-                0,
-                min(max(pos.z, self._bounds[0].z), self._bounds[1].z),
-                )
-
-        base.messenger.send(self.__move_event, [moving])
-        return task.again
 
     def __get_input_vector(self) -> p3d.Vec3:
         return p3d.Vec3(
             x = ((base.mouseWatcherNode.is_button_down('arrow_right')
                   - base.mouseWatcherNode.is_button_down('arrow_left')
-                  ) * self._np.get_sx()),
+                  ) * self.get_sx()),
             y = 0,
             z = ((base.mouseWatcherNode.is_button_down('arrow_up')
                   - base.mouseWatcherNode.is_button_down('arrow_down')
-                  ) * self._np.get_sz()),
+                  ) * self.get_sz()),
             )
+
+    def _watch(self, hook = (lambda *a, **kw: None)):
+        if is_moving := any(vector := self.__get_input_vector()):
+            pos = self.get_pos() + (vector * self.get_speed_factor())
+            self.set_pos(*pos)
+
+        hook(is_moving)
+        return Task.again

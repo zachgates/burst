@@ -16,9 +16,8 @@ class Prop(Collider, DistributedNode):
         DistributedNode.__init__(self, cr)
         self.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
-        scene = base.cr.scene_manager.get_scene()
+        scene = self.cr.scene_manager.get_scene()
         self.reparent_to(scene.get_layer('prop'))
-
         factor = 4
         self.set_scale(p3d.Vec3(
             (scene.tiles.rules.tile_size.x / scene.resolution.x) * factor,
@@ -26,10 +25,10 @@ class Prop(Collider, DistributedNode):
             (scene.tiles.rules.tile_size.y / scene.resolution.y) * factor,
             ))
 
-        Collider.__init__(self, cr, self.get_sx() * 0.5, 'none', 'char')
-
         self._sprite_data = SpriteData('sprite', [], p3d.LColor())
         self._sprite = None
+
+        Collider.__init__(self, cr, self.get_sx() * 0.5, 'none', 'char')
 
     ###
 
@@ -37,7 +36,7 @@ class Prop(Collider, DistributedNode):
         return self._sprite_data
 
     def set_sprite(self, data):
-        scene = base.cr.scene_manager.get_scene()
+        scene = self.cr.scene_manager.get_scene()
         self._sprite_data = SpriteData(*data)
         self._sprite = scene.make_sprite(self._sprite_data)
         self.node().add_child(self._sprite)

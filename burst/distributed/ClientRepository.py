@@ -7,6 +7,8 @@ import typing
 
 from panda3d import core as p3d
 
+from direct.distributed import MsgTypesCMU
+from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.ClientRepository import ClientRepository
 
 
@@ -102,3 +104,13 @@ class ClientRepository(ClientRepository):
 
     def removeInterestZone(self, zone: int):
         self.setInterestZones([id_ for id_ in self.interestZones if id_ != zone])
+
+    def sendDisableMsg(self, doId):
+        """
+        direct.distributed.DistributedObject has sendDisableMsg implemented,
+        but direct.distributed.ClientRepository does not; so here it is.
+        """
+        dg = PyDatagram()
+        dg.addUint16(MsgTypesCMU.OBJECT_DISABLE_CMU)
+        dg.addUint32(doId)
+        self.send(dg)

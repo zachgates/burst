@@ -3,43 +3,26 @@ __all__ = [
 ]
 
 
-from panda3d import core as p3d
+from direct.distributed.DistributedObject import DistributedObject
+from direct.task import Task
 
-from direct.showbase.DirectObject import DirectObject
 
+class Responder(DistributedObject):
 
-class Responder(object):
+    def __init__(self, cr):
+        DistributedObject.__init__(self, cr)
+        self._button_map = dict()
 
-    def __init__(self, action_event: str):
-        super().__init__()
-        self._task = None
-        self.__actions = dict()
-        self.__action_event = action_event
-
-    ###
-
-    def start(self, frame_rate: int):
-        self._task = base.task_mgr.do_method_later(
-            (1 / frame_rate),
-            self._respond, f'{self._respond!r}',
-            appendTask = True,
-            )
-
-    def stop(self):
-        base.task_mgr.remove(self._task)
-
-    ###
-
-    def register(self, button: str, action: str):
-        if action in self.__actions:
-            raise Exception('action already bound')
+    def _watch_button(self, button: str, action: str):
+        if button in self._button_map:
+            raise ValueError(f'already registered: {button!r}')
         else:
-            self.__actions[action] = button
+            self._button_map[button] = action
 
-    def _respond(self, task):
-        for action, button in self.__actions.items():
+    def _watch(self, hook = (lambda *a, **kw: None)):
+        for button, action in self._button_map.items():
             if base.mouseWatcherNode.is_button_down(button):
-                base.messenger.send(self.__action_event, [action])
+                hook(action)
                 break
 
-        return task.again
+        return Task.again

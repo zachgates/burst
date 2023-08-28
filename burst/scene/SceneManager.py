@@ -21,7 +21,7 @@ class SceneManager(DistributedObject):
     def generate(self):
         super().generate()
         print(f'SceneManager({self.doId}).generate')
-        base.cr.scene_manager = self
+        self.cr.scene_manager = self
         base.messenger.send('scene-manager-ready')
 
     def request(self, path: str, callback: callable):
@@ -36,7 +36,7 @@ class SceneManager(DistributedObject):
         self._file = burst.store.load_file(path)
         self._scene = self._file.read()
         self._zone = zone
-        base.cr.addInterestZone(zone)
+        self.cr.addInterestZone(zone)
         base.messenger.send('set_scene')
 
     def get_scene(self):

@@ -40,10 +40,15 @@ class Collider(DistributedNode):
                  from_mask: str = 'none',
                  into_mask: str = 'none',
                  ):
-        super().__init__(cr)
+        DistributedNode.__init__(self, cr)
         self._collider = _Collider(self, radius, from_mask, into_mask)
         self._collider.reparent_to(base._collisions)
         self._collider.set_pos(self.get_pos())
+
+    def generate(self):
+        super().generate()
+        if self.cr.isLocalId(self.doId):
+            base.cTrav.add_collider(self._collider, base.cEvent)
 
     def delete(self):
         self._collider.remove_node()

@@ -28,9 +28,7 @@ dclass Prop: DistributedNode {
 
 dclass Character: DistributedSmoothNode {
   set_sprite(SpriteData data) required broadcast ram;
-  set_active(bool is_active) required broadcast ram;
-  set_action(string action) broadcast clsend;
-  set_moving(bool is_moving) broadcast clsend;
+  set_action(string action) broadcast ram clsend;
 };
 
 dclass SceneManager: DistributedObject {
