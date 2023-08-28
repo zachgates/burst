@@ -1,0 +1,5 @@
+from tests.sample.SampleCharacter import SampleCharacter
+
+
+dclass SampleCharacter: Character {
+};
