@@ -14,6 +14,7 @@ class SampleCharacter(Character):
         self._watch_button('escape', 'Dead')
         self._watch_button('space', 'Jump')
 
+        self._action = ''
         self.__task = None
         self.__is_moving = False
         self.__is_acting = False
