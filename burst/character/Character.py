@@ -11,10 +11,10 @@ from panda3d import core as p3d
 from direct.distributed.DistributedSmoothNode import DistributedSmoothNode
 from direct.task import Task
 
-from burst.character import Collider, Mover, Responder, Sprite, SpriteData
+from burst.character import Collider, Mover, Responder, Sprite
 
 
-class Character(Collider, Responder, Mover, DistributedSmoothNode,
+class Character(Sprite, Collider, Responder, Mover, DistributedSmoothNode,
                 metaclass = abc.ABCMeta,
                 ):
 
@@ -23,16 +23,8 @@ class Character(Collider, Responder, Mover, DistributedSmoothNode,
         self.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
         scene = self.cr.scene_manager.get_scene()
-        self.reparent_to(scene.get_layer('char'))
-        factor = 4
-        self.set_scale(p3d.Vec3(
-            (scene.tiles.rules.tile_size.x / scene.resolution.x) * factor,
-            1,
-            (scene.tiles.rules.tile_size.y / scene.resolution.y) * factor,
-            ))
-
-        self._sprite_data = SpriteData('sprite', [], p3d.LColor.zero())
-        self._sprite = None
+        Sprite.__init__(self, cr, scene, 'sprite')
+        self.reparent_to(self.scene.get_layer('char'))
 
         Collider.__init__(self, cr, (self.get_sx() * 0.5), 'char', 'prop')
         Responder.__init__(self, cr)
@@ -41,32 +33,6 @@ class Character(Collider, Responder, Mover, DistributedSmoothNode,
             p3d.Vec3((self.get_sx() - 1), 0, (self.get_sz() - 1)),
             p3d.Vec3(abs(self.get_sx() - 1), 0, abs(self.get_sz() - 1)),
             )
-
-    ###
-
-    def get_sprite(self) -> SpriteData:
-        return self._sprite_data
-
-    def set_sprite(self, data):
-        print(f'Character({self.doId}).set_sprite')
-        print(data)
-
-        if self._sprite:
-            print('remove_child')
-            self.node().remove_child(self._sprite)
-
-        scene = self.cr.scene_manager.get_scene()
-        self._sprite_data = SpriteData(*data)
-        self._sprite = scene.make_sprite(self._sprite_data)
-        self.node().add_child(self._sprite)
-        print('add_child')
-
-    def d_set_sprite(self, data):
-        self.sendUpdate('set_sprite', [data])
-
-    def b_set_sprite(self, data):
-        self.set_sprite(data)
-        self.d_set_sprite(data)
 
     ###
 

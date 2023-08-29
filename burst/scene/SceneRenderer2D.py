@@ -7,7 +7,6 @@ import typing
 
 import panda3d.core as p3d
 
-from burst.character import Sprite, SpriteData
 from burst.control import File
 from burst.core import Tile, TileSet
 from burst.scene import SceneRendererBase
@@ -67,12 +66,6 @@ class SceneRenderer2D(SceneRendererBase):
         np.node().set_name(tile.get_name())
         np.node().set_python_tag('tile', tile)
         return np
-
-    def make_sprite(self, data: SpriteData) -> Sprite:
-        sprite = Sprite(self, data.name)
-        sprite.set_tracks([Sprite.Track(*track) for track in data.tracks])
-        sprite.set_blend(p3d.LColor(*data.blend))
-        return sprite
 
 
 Scene2D = SceneRenderer2D

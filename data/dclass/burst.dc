@@ -10,24 +10,21 @@ struct Cell {
   uint16 column;
 }
 
-struct Track {
+struct SpriteTrack {
   string name;
   Cell cells[];
   uint16 frame_rate;
 }
 
-struct SpriteData {
-  string name;
-  Track tracks[];
-  uint8[4] blend;
+dclass Sprite: DistributedNode {
+  set_tracks(SpriteTrack[] tracks) required broadcast ram;
+  set_blend(uint8[4] blend) required broadcast ram;
 }
 
-dclass Prop: DistributedNode {
-  set_sprite(SpriteData data) required broadcast ram;
+dclass Prop: Sprite {
 }
 
-dclass Character: DistributedSmoothNode {
-  set_sprite(SpriteData data) required broadcast ram;
+dclass Character: Sprite, DistributedSmoothNode {
   set_action(string action) broadcast ram clsend;
 };
 

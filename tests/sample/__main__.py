@@ -5,7 +5,7 @@ import panda3d.core as p3d
 
 from direct.showbase.ShowBase import ShowBase
 
-from burst.character import Sprite, SpriteData
+from burst.character import Sprite
 from burst.distributed import ClientRepository
 
 
@@ -26,7 +26,7 @@ class BurstApp(ShowBase):
                 char.set_pos(char.get_x(), 0, max(start.get_z(), char.get_z() - v))
             return task.cont
 
-        prop._sprite.play('Bounce')
+        prop.play('Bounce')
         base.task_mgr.add(
             spring_task,
             extraArgs = [char.get_pos()],
@@ -40,28 +40,25 @@ class BurstApp(ShowBase):
             zoneId = base.cr.scene_manager.get_zone(),
             )
         spring.set_bin('prop', 1)
-        spring.b_set_sprite(SpriteData(
-            name = 'spring',
-            tracks = [
-                Sprite.Track(
-                    name = 'Off',
-                    cells = [(6, 22)],
-                    frame_rate = 1,
-                    ),
-                Sprite.Track(
-                    name = 'Bounce',
-                    cells = [(6, 22), (6, 23), (6, 24), (6, 23), (6, 22)],
-                    frame_rate = 30,
-                    ),
-                ],
-            blend = p3d.LColor(60, 45, 71, 255),
-            ))
+        spring.b_set_tracks([
+            Sprite.Track(
+                name = 'Off',
+                cells = [(6, 22)],
+                frame_rate = 1,
+                ),
+            Sprite.Track(
+                name = 'Bounce',
+                cells = [(6, 22), (6, 23), (6, 24), (6, 23), (6, 22)],
+                frame_rate = 30,
+                ),
+            ])
+        spring.b_set_blend((60, 45, 71, 255))
         spring.b_set_pos(
             random.choice([-1, 1]) * min(0.8, random.random()),
             0,
             -min(0.8, max(0.1, random.random())),
             )
-        spring._sprite.pose('Off')
+        spring.pose('Off')
 
     def respawn(self):
         for char in self.chars:
@@ -75,32 +72,29 @@ class BurstApp(ShowBase):
             zoneId = base.cr.scene_manager.get_zone(),
             ))
         char.set_bin('char', 1)
-        char.b_set_sprite(SpriteData(
-            name = 'sprite',
-            tracks = [
-                Sprite.Track(
-                    name = 'Idle',
-                    cells = [(10, 19), (10, 23), (10, 23), (10, 19)],
-                    frame_rate = 4,
-                    ),
-                Sprite.Track(
-                    name = 'Jump',
-                    cells = [(10, 19), (10, 23), (10, 22), (10, 21), (10, 19)],
-                    frame_rate = 10,
-                    ),
-                Sprite.Track(
-                    'Move',
-                    cells = [(10, 19), (10, 20), (10, 21), (10, 22), (10, 22), (10, 21), (10, 20), (10, 19)],
-                    frame_rate = 24,
-                    ),
-                Sprite.Track(
-                    name = 'Dead',
-                    cells = [(10, 24)],
-                    frame_rate = 1,
-                    ),
-            ],
-            blend = p3d.LColor(60, 45, 71, 255),
-            ))
+        char.b_set_tracks([
+            Sprite.Track(
+                name = 'Idle',
+                cells = [(10, 19), (10, 23), (10, 23), (10, 19)],
+                frame_rate = 4,
+                ),
+            Sprite.Track(
+                name = 'Jump',
+                cells = [(10, 19), (10, 23), (10, 22), (10, 21), (10, 19)],
+                frame_rate = 10,
+                ),
+            Sprite.Track(
+                name = 'Move',
+                cells = [(10, 19), (10, 20), (10, 21), (10, 22), (10, 22), (10, 21), (10, 20), (10, 19)],
+                frame_rate = 24,
+                ),
+            Sprite.Track(
+                name = 'Dead',
+                cells = [(10, 24)],
+                frame_rate = 1,
+                ),
+        ])
+        char.b_set_blend((60, 45, 71, 255))
         char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
         char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))
         # self.accept_once('d', lambda: base.cr.sendDeleteMsg(self.char.doId))
