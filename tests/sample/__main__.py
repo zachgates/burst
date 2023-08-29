@@ -15,21 +15,26 @@ class BurstApp(ShowBase):
         char = entry.get_from_node_path().get_python_tag('realnode')
         prop = entry.get_into_node_path().get_python_tag('realnode')
 
-        def spring_task(start, task):
-            nonlocal char
+        def spring_task(start, multiplier, task):
             if task.time > 1:
                 return task.done
-            v = pow(task.time - 0.5, 2) * (2 / 9)
+
+            v = (pow(task.time - 0.5, 2)
+                 * ((1 / 9)
+                    + ((1 / 27) * multiplier)
+                 ))
+
+            nonlocal char
             if task.time < 0.5:
-                char.set_pos(char.get_x(), 0, char.get_z() + v)
+                char.set_z(char.get_z() + v)
             elif task.time > 0.5:
-                char.set_pos(char.get_x(), 0, max(start.get_z(), char.get_z() - v))
+                char.set_z(max(start.get_z(), char.get_z() - v))
             return task.cont
 
         prop.play('Bounce')
         base.task_mgr.add(
             spring_task,
-            extraArgs = [char.get_pos()],
+            extraArgs = [char.get_pos(), random.randint(0, 9)],
             appendTask = True,
             )
 
