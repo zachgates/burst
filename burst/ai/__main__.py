@@ -15,8 +15,8 @@ parser.add_argument(
     type = str,
     action = 'append',
     default = [
-        'data/dclass/direct.dc',
-        'data/dclass/burst.dc',
+        'burst/dclass/direct.dc',
+        'burst/dclass/burst.dc',
     ])
 
 

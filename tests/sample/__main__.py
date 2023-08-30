@@ -39,7 +39,6 @@ class BurstApp(ShowBase):
             )
 
     def build_spring(self):
-        scene = base.cr.scene_manager.get_scene()
         spring = base.cr.createDistributedObject(
             className = 'Prop',
             zoneId = base.cr.scene_manager.get_zone(),
@@ -71,7 +70,6 @@ class BurstApp(ShowBase):
         self.spawn()
 
     def spawn(self):
-        scene = base.cr.scene_manager.get_scene()
         self.chars.append(char := base.cr.createDistributedObject(
             className = 'SampleCharacter',
             zoneId = base.cr.scene_manager.get_zone(),
@@ -101,7 +99,7 @@ class BurstApp(ShowBase):
         ])
         char.b_set_blend((60, 45, 71, 255))
         char.set_speed_factor(0.05 + random.randint(0, 100) * 0.001)
-        char.startPosHprBroadcast(period = (1 / scene.get_frame_rate()))
+        char.startPosHprBroadcast(period = (1 / char.scene.get_frame_rate()))
         # self.accept_once('d', lambda: base.cr.sendDeleteMsg(self.char.doId))
 
     def setup_scene(self):
@@ -142,8 +140,8 @@ class BurstApp(ShowBase):
 
     def run(self):
         self.cr = ClientRepository([
-            'data/dclass/direct.dc',
-            'data/dclass/burst.dc',
+            'burst/dclass/direct.dc',
+            'burst/dclass/burst.dc',
             'tests/sample/dclass/sample.dc',
             ])
         self.cr.accept('scene-manager-ready', self.setup)
