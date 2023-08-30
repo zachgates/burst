@@ -1,4 +1,4 @@
-from tests.sample.SampleCharacter import SampleCharacter
+from tests.sample.character.SampleCharacter import SampleCharacter
 
 
 dclass SampleCharacter: Character {
