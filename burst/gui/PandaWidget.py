@@ -143,7 +143,7 @@ class PandaWidget(QtWidgets.QWidget):
 
         # DEFER
         # Resize container to maintain Panda aspect ratio
-        # self.container.resize(size_to_panda_aspect_ratio(self.size()))
+        self.container.resize(size_to_panda_aspect_ratio(self.size()))
 
         # print(type(event))
         print(self.size())
