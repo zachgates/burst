@@ -13,7 +13,6 @@ import typing
 import panda3d.core as p3d
 
 from burst.core import PixelMatrix, TextureFile
-from burst import cext
 
 
 _CM = p3d.CardMaker('cm')
