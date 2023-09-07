@@ -24,7 +24,7 @@ class PandaApp(QtWidgets.QApplication, DirectObject):
 
         notify = p3d.Notify.ptr()
         # notify.getCategory('display').setSeverity(p3d.NSDebug)
-        notify.getCategory('windisplay').setSeverity(p3d.NSSpam)
+        notify.getCategory('windisplay').setSeverity(p3d.NSDebug)
         notify.getCategory('cocoadisplay').setSeverity(p3d.NSSpam)
         notify.getCategory('cocoagldisplay').setSeverity(p3d.NSSpam)
 
