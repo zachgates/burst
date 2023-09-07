@@ -128,13 +128,13 @@ class BurstApp(PandaApp):
         # props.setParentWindow(int(self.container.winId()))
         # base.win.requestProperties(props)
 
-        layout = QtWidgets.QHBoxLayout(widget)
-        layout.addWidget(tree := QtWidgets.QTreeWidget(), 75)
-        layout.addWidget(pw := PandaWidget(widget), 200)
-        layout.addWidget(QtWidgets.QTreeWidget(), 75)
+        layout = QtWidgets.QGridLayout(widget)
+        layout.addWidget(pw := PandaWidget(widget), 0, 0, 2, 1)
+        layout.addWidget(tree := QtWidgets.QTreeWidget(), 0, 1, 1, 1)
+        layout.addWidget(QtWidgets.QTreeWidget(), 1, 1, 1, 1)
         # layout.setContentsMargins(0, 0, 0, 0)
         # layout.setSpacing(10)
-        # layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(0, 1)
         # layout.setRowStretch(0, 1)
         # layout.setRowStretch(1, 1)
 
