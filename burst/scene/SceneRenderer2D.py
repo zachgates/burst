@@ -7,8 +7,8 @@ import typing
 
 import panda3d.core as p3d
 
-from burst.control import File
-from burst.core import Tile, TileSet
+from burst.control import VFS
+from burst.core import TextureFile, Tile, TileSet
 from burst.scene import SceneRendererBase
 
 
@@ -16,24 +16,21 @@ class SceneRenderer2D(SceneRendererBase):
 
     def pack(self):
         dg = super().pack()
-        dg.add_fixed_string(self.tiles.pixel.get_name(), 0xFF)
-        self.tiles.pixel.size.write_datagram(dg)
-        dg.add_blob32(self.tiles.pixel.get_ram_image().get_data())
-        self.tiles.rules.tile_size.write_datagram(dg)
-        self.tiles.rules.tile_run.write_datagram(dg)
-        self.tiles.rules.tile_offset.write_datagram(dg)
+        print(len(self._sheets))
+        dg.add_uint8(len(self._sheets))
+        for i, ts in self._sheets.items():
+            path = p3d.Filename(ts.get_fullpath())
+            path.make_relative_to(VFS.get_cwd())
+            dg.add_fixed_string(path.to_os_specific(), 0xFF)
+            # ts.size.write_datagram(dg)
+            # dg.add_blob32(ts.get_ram_image().get_data())
+            ts.rules.write_datagram(dg)
         return dg
 
-    def __init__(self,
-                 title: str,
-                 resolution: tuple,
-                 tiles: TileSet,
-                 ):
-        super().__init__(title, resolution)
-        self.tiles = tiles
+    def __init__(self, title: str, resolution: tuple, frame_rate: int):
+        super().__init__(title, resolution, frame_rate)
 
-        self._cm = p3d.CardMaker(f'{self.tiles.name}')
-        self._cm.set_frame_fullscreen_quad()
+        self._sheets = {}
 
         self._root = base.aspect2d.attach_new_node('root')
         self._next_sort_layer = 100
@@ -57,15 +54,14 @@ class SceneRenderer2D(SceneRendererBase):
         else:
             raise KeyError(f'no layer exists for {name!r}')
 
-    def get_tile(self, /, *, row: int, column: int) -> Tile:
-        return self.tiles.get(p3d.LPoint2i(row, column))
+    def load_tilesheet(self, file: TextureFile, rules: TileSet.Rules):
+        index = len(self._sheets)
+        tiles = self._sheets[index] = TileSet(file.read(), rules)
+        print(f'load_tilesheet({str(file.path)!r}) @ ({index})')
+        return tiles
 
-    def make_tile_card(self, /, *, row: int, column: int) -> p3d.NodePath:
-        np = base.hidden.attach_new_node(self._cm.generate())
-        np.set_texture(tile := self.get_tile(row = row, column = column))
-        np.node().set_name(tile.get_name())
-        np.node().set_python_tag('tile', tile)
-        return np
+    def tiles(self, index: int):
+        return self._sheets[index]
 
 
 Scene2D = SceneRenderer2D

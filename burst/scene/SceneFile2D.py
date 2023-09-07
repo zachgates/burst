@@ -3,6 +3,8 @@ __all__ = [
 ]
 
 
+import burst
+
 import panda3d.core as p3d
 
 from burst.control import File
@@ -33,15 +35,30 @@ class SceneFile2D(File, extensions = ['.burst2d']):
         file.get_datagram(dg := p3d.Datagram())
         dgi = p3d.DatagramIterator(dg)
 
-        return Scene2D(
-            dgi.get_fixed_string(0xFF),
-            self.read_vector(dgi),
-            TileSet(
-                dgi.get_fixed_string(0xFF),
-                self.read_vector(dgi),
-                dgi.get_blob32(),
-                **{
-                    'tile_size': self.read_vector(dgi),
-                    'tile_run': self.read_vector(dgi),
-                    'tile_offset': self.read_vector(dgi),
-                }))
+        scene = Scene2D(
+            dgi.get_fixed_string(0xFF), # title
+            self.read_vector(dgi), # resolution
+            dgi.get_uint8(), # frame_rate
+            )
+
+        # path = dgi.get_fixed_string(0xFF)
+        # size = self.read_vector(dgi)
+        # data = dgi.get_blob32()
+        #
+        # rules = TileSet.Rules()
+        # rules.read_datagram(dgi)
+        #
+        # scene.load_tilesheet(
+        #     TextureFile(p3d.Filename('data/tiles/' + path + '.png')),
+        #     rules,
+        #     )
+
+        for i in range(dgi.get_uint8()):
+            path = dgi.get_fixed_string(0xFF).strip('\x01')
+            # file = TextureFile(p3d.Filename(path))
+            file = burst.store.load_file(path)
+            rules = TileSet.Rules()
+            rules.read_datagram(dgi)
+            scene.load_tilesheet(file, rules)
+
+        return scene

@@ -16,23 +16,44 @@ class Sprite(DistributedNode):
 
     Track = collections.namedtuple('Track', 'name cells frame_rate')
 
-    def __init__(self, cr, scene, name: str):
+    def __init__(self, cr, name: str):
         DistributedNode.__init__(self, cr)
         self.node().add_child(p3d.SequenceNode(name))
 
-        self.scene = scene
         self._blend = p3d.LColor.zero()
         self._tracks = {}
-
-        factor = 4
-        self.set_scale(p3d.Vec3(
-            (self.scene.tiles.rules.tile_size.x / self.scene.resolution.x) * factor,
-            1,
-            (self.scene.tiles.rules.tile_size.y / self.scene.resolution.y) * factor,
-            ))
+        self._tilesheet = 0
 
     def _get_seq_node(self):
         return self.node().get_child(0)
+
+    def generate(self):
+        super().generate()
+        scene = self.cr.scene_manager.get_scene()
+        factor = 4
+        self.set_scale(p3d.Vec3(
+            (self.tiles.rules.tile_size.x / scene.resolution.x) * factor,
+            1,
+            (self.tiles.rules.tile_size.y / scene.resolution.y) * factor,
+            ))
+
+    @property
+    def tiles(self):
+        scene = self.cr.scene_manager.get_scene()
+        return scene.tiles(self.get_tilesheet())
+
+    def get_tilesheet(self) -> int:
+        return self._tilesheet
+
+    def set_tilesheet(self, index: int):
+        self._tilesheet = index
+
+    def d_set_tilesheet(self, index: int):
+        self.sendUpdate('set_tilesheet', [index])
+
+    def b_set_tilesheet(self, index: int):
+        self.set_tilesheet(index)
+        self.d_set_tilesheet(index)
 
     def get_tracks(self) -> list[Track]:
         return [tuple(track) for name, (track, rng) in self._tracks.items()]
@@ -59,8 +80,8 @@ class Sprite(DistributedNode):
                 start + len(track.cells) - 1,
                 ))
 
-        for cell in track.cells:
-            np = self.scene.make_tile_card(row = cell[0], column = cell[1])
+        for row, column in track.cells:
+            np = self.tiles.make_tile_card(row = row, column = column)
             self._get_seq_node().add_child(np.node())
 
             if self._blend is not None:

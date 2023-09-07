@@ -5,12 +5,14 @@ __all__ = [
     'scene',
     'distributed',
     'ai',
+    'gui',
 ]
 
 
 import builtins
 import ctypes
 import importlib
+import pathlib
 import sys
 import types
 
@@ -90,6 +92,18 @@ class BurstModule(types.ModuleType):
 
 burst = sys.modules[__package__]
 burst.__class__ = BurstModule
-burst.store = burst.control.FileManager(
-    p3d.get_model_path().operator_typecast_DSearchPath(),
+
+search_path = p3d.get_model_path().operator_typecast_DSearchPath()
+burst.store = burst.control.FileManager(search_path)
+burst.store.add_search_path(pathlib.Path(__file__).parent.with_name('data'))
+
+p3d.load_prc_file_data(
+    "burst.__init__",
+    """
+    textures-auto-power-2 #f
+    textures-power-2 #f
+
+    # notify-level debug
+    # default-directnotify-level debug
+    """,
     )

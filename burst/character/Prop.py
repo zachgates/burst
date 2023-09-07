@@ -17,7 +17,11 @@ class Prop(Sprite, Collider, DistributedNode):
         self.set_transparency(p3d.TransparencyAttrib.MAlpha)
 
         scene = self.cr.scene_manager.get_scene()
-        Sprite.__init__(self, cr, scene, 'sprite')
-        self.reparent_to(self.scene.get_layer('prop'))
+        Sprite.__init__(self, cr, 'sprite')
+        self.reparent_to(scene.get_layer('prop'))
 
-        Collider.__init__(self, cr, self.get_sx() * 0.5, 'none', 'char')
+        Collider.__init__(self, cr, 'none', 'char')
+
+    def generate(self):
+        super().generate()
+        self.get_cnode().set_radius(self.get_sx() * 0.5)

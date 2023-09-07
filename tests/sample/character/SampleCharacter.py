@@ -2,6 +2,9 @@ __all__ = [
     'Character',
 ]
 
+import burst
+
+from PyQt5 import QtCore, QtWidgets
 
 from burst.character import Character
 
@@ -19,15 +22,30 @@ class SampleCharacter(Character):
         self.__is_moving = False
         self.__is_acting = False
 
+        self._qItem = None
+
     def generate(self):
         super().generate()
+
+        self._qItem = QtWidgets.QTreeWidgetItem(burst.window.tree)
+        self._qItem.setText(0, str(self.doId))
+        # self._qItem.setFlags(self._qItem.flags() | QtCore.Qt.ItemIsEditable)
+        burst.window.tree.addTopLevelItem(self._qItem)
+        burst.window.tree.sortItems(app.TC_DOID, QtCore.Qt.AscendingOrder)
+
         if self.cr.isLocalId(self.doId):
             self.__task = base.task_mgr.do_method_later(
-                (1 / self.scene.get_frame_rate()),
+                (1 / self.cr.scene_manager.get_scene().get_frame_rate()),
                 self._watch,
                 name = f'{self._watch!r}',
                 extraArgs = [], # hack to trigger appendTask=False
                 )
+
+    def delete(self):
+        super().delete()
+
+        root = burst.window.tree.invisibleRootItem()
+        root.removeChild(self._qItem)
 
     def set_moving(self, is_moving: bool):
         if is_moving:
@@ -40,7 +58,7 @@ class SampleCharacter(Character):
 
     def set_action(self, action: str):
         if action not in self._tracks:
-            print(f'unknown action: {action}')
+            print(f'unknown action: {action!r}')
             return
 
         # interrupt both acting and moving
@@ -49,7 +67,6 @@ class SampleCharacter(Character):
                 base.task_mgr.remove(self.__task)
             self.pose('Dead')
             self._action = 'Dead'
-            return
 
         if self.__is_acting:
             if self.is_playing():
@@ -74,7 +91,8 @@ class SampleCharacter(Character):
             if not self.is_playing(): # are we busy ?
                 self.play('Idle') # no, and
                 self.__is_moving = False # we are not moving
-        else:
-            raise ValueError(f'unknown action: {action!r}')
+        # else:
+        #     raise ValueError(f'unknown action: {action!r}')
 
+        self._qItem.setText(app.TC_ACTION, action)
         self._action = action

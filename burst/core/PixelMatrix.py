@@ -17,7 +17,7 @@ class PixelMatrix(p3d.Texture):
 
     size = property(get_size)
 
-    def get(self, index: int = 0) -> p3d.LVector4i:
+    def get_pixel(self, index: int = 0) -> p3d.LVector4i:
         """
         Returns the sub-values of a pixel at the supplied index or point.
         """

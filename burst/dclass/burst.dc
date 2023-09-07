@@ -17,6 +17,7 @@ struct SpriteTrack {
 }
 
 dclass Sprite: DistributedNode {
+  set_tilesheet(uint8 index) required broadcast ram;
   set_tracks(SpriteTrack[] tracks) required broadcast ram;
   set_blend(uint8[4] blend) required broadcast ram;
 }
